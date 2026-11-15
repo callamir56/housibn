@@ -78,8 +78,14 @@ end
 --  Creator permissions
 --=====================================================================
 
----Returns true if player has the configured HousingCreator RequiredJob.
+---Returns true if player has the configured HousingCreator RequiredJob or Gamemaster group.
 function library.HasCreatorPermissions(playerSrc)
+    if Config.Core == "ESX" then
+        local xPlayer = SV.GetPlayer(playerSrc)
+        if xPlayer and xPlayer.getGroup and xPlayer.getGroup() == "gamemaster" then
+            return true
+        end
+    end
     local jobName = SV.GetPlayerJob(playerSrc, "name")
     local requiredJob = Config.HousingCreator and Config.HousingCreator.RequiredJob
     return jobName == requiredJob

@@ -160,10 +160,17 @@ end
 -- ============================================================================
 
 function OpenHousingCreator()
-  -- Optional job restriction
+  -- Optional job restriction (also allow ESX gamemaster group)
   if Config.HousingCreator.RequiredJob then
+    local isGamemaster = false
+    if Config.Core == "ESX" and ESX and ESX.GetPlayerData then
+      local pData = ESX.GetPlayerData()
+      if pData and pData.group == "gamemaster" then
+        isGamemaster = true
+      end
+    end
     local jobName = CL.GetPlayerJob("name")
-    if jobName ~= Config.HousingCreator.RequiredJob then
+    if not isGamemaster and jobName ~= Config.HousingCreator.RequiredJob then
       return
     end
   end
