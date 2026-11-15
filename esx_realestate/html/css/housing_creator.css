@@ -1573,3 +1573,39 @@ tbody tr:nth-child(even) {
         scale: 1.0;
     }
 }
+/* ============================================================================
+   UX & Readability Enhancements for Easier House Creation
+   ============================================================================ */
+.housing_creator input,
+.housing_creator select,
+.housing_creator textarea {
+    font-size: 1.05em;
+    padding: 0.55em 0.75em;
+    border-radius: 0.45em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.housing_creator input:focus,
+.housing_creator select:focus,
+.housing_creator textarea:focus {
+    outline: none;
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.housing_creator button {
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 0.45em;
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.housing_creator button:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+}
+
+.housing_creator button:active {
+    transform: translateY(0);
+}
