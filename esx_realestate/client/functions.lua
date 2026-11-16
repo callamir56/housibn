@@ -633,7 +633,9 @@ function RefreshTargets()
                       )
                     end
 
-                    if OpenHousingGarage then
+                    if Config.Garages and OpenGarage then
+                      OpenGarage(currentZonePropertyId, currentZonePropertyData)
+                    elseif OpenHousingGarage then
                       OpenHousingGarage(currentZonePropertyId)
                     end
                   end,
