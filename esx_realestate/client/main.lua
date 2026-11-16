@@ -9,7 +9,7 @@ RegisterNetEvent("vms_housing:cl:playerDropped", function()
   end
 
   if CurrentShell then
-    DeleteObject(CurrentShell)
+    DeleteHousingShell(CurrentShell)
   end
 
   Property:RemoveFurniture()
@@ -183,7 +183,7 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
       return
     end
 
-    if not library.RequestEntity(propertyData.metadata.shell) then
+    if not library.RequestHousingShell(propertyData.metadata.shell) then
       return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
     end
 
@@ -208,18 +208,7 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
 
   -- Load shell / IPL
   if propertyData.type == "shell" then
-    CurrentShell = CreateObjectNoOffset(
-      joaat(propertyData.metadata.shell),
-      0.0, 0.0, 500.0,
-      false, false, false
-    )
-
-    while not DoesEntityExist(CurrentShell) do
-      Wait(1)
-    end
-
-    SetEntityHeading(CurrentShell, 0.0)
-    FreezeEntityPosition(CurrentShell, true)
+    CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
     Property:LoadStaticInteractable(AvailableShells[propertyData.metadata.shell])
 

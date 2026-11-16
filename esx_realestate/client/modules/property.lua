@@ -216,7 +216,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
         return
       end
 
-      local ok = library.RequestEntity(propertyData.metadata.shell)
+      local ok = library.RequestHousingShell(propertyData.metadata.shell)
       if not ok then
         if onDone then onDone(false) end
         return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
@@ -264,14 +264,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
 
     -- Spawn/load the actual interior
     if propertyData.type == "shell" then
-      CurrentShell = CreateObjectNoOffset(joaat(propertyData.metadata.shell), 0.0, 0.0, 500.0, false, false, false)
-
-      while not DoesEntityExist(CurrentShell) do
-        Wait(1)
-      end
-
-      SetEntityHeading(CurrentShell, 0.0)
-      FreezeEntityPosition(CurrentShell, true)
+      CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
       self:LoadStaticInteractable(AvailableShells[propertyData.metadata.shell])
     elseif propertyData.type == "ipl" then
@@ -336,7 +329,7 @@ function Property.ExitProperty(self, onDone, skipRefreshTargets, skipServerLeave
   SetArtificialLightsState(false)
 
   if CurrentShell then
-    DeleteObject(CurrentShell)
+    DeleteHousingShell(CurrentShell)
     CurrentShell = nil
   end
 
@@ -1436,7 +1429,7 @@ function Property.OpenDoorPeephole(self)
   end
 
   if CurrentShell then
-    DeleteObject(CurrentShell)
+    DeleteHousingShell(CurrentShell)
     CurrentShell = nil
   end
 

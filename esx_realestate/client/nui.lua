@@ -187,7 +187,7 @@ RegisterNUICallbackCompat("creator:previewShell", function(data, _cb)
 
         -- X
         if IsControlJustPressed(0, 73) then
-          DeleteObject(CurrentShell)
+          DeleteHousingShell(CurrentShell)
 
           -- restore previous coords if saved
           if houseConfiguration.previousCoords and houseConfiguration.previousCoords.x then
@@ -857,7 +857,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
             icon = "fa-solid fa-door-open",
             label = TRANSLATE("target.exit"),
             action = function()
-              DeleteObject(CurrentShell)
+              DeleteHousingShell(CurrentShell)
 
               if ToggleWeather then
                 ToggleWeather(false)

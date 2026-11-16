@@ -136,7 +136,7 @@ end
 
 local function cleanupShellAndReturnToPreviousCoords()
   if CurrentShell then
-    DeleteObject(CurrentShell)
+    DeleteHousingShell(CurrentShell)
     CurrentShell = false
   end
 
@@ -393,7 +393,7 @@ function HousingCreator:CreateEmergencyExitInsidePoint(_unused, iplTheme)
 
     -- Cleanup & return
     if CurrentShell then
-      DeleteObject(CurrentShell)
+      DeleteHousingShell(CurrentShell)
       CurrentShell = false
     end
 
@@ -1098,7 +1098,7 @@ function HousingCreator:EnterShell(shellName, cb)
     return
   end
 
-  local loaded = library.RequestEntity(shellName)
+  local loaded = library.RequestHousingShell(shellName)
   if not loaded then
     SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })
     SetNuiFocus(true, true)
@@ -1114,14 +1114,7 @@ function HousingCreator:EnterShell(shellName, cb)
   Wait(1500)
 
   -- Create shell object far above map
-  CurrentShell = CreateObjectNoOffset(joaat(shellName), 0.0, 0.0, 500.0, false, false, false)
-
-  while not DoesEntityExist(CurrentShell) do
-    Wait(1)
-  end
-
-  SetEntityHeading(CurrentShell, 0.0)
-  FreezeEntityPosition(CurrentShell, true)
+  CurrentShell = SpawnHousingShell(shellName)
 
   -- Teleport player to shell doors coords
   local doors = AvailableShells[shellName].doors

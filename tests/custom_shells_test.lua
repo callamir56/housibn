@@ -8,7 +8,7 @@ for _ in pairs(registry) do count = count + 1 end
 assert(count == 6)
 for _, name in ipairs(names) do
   local shell = assert(registry[name])
-  assert(shell.model == name and shell.needsCalibration)
+  assert(shell.model == name and shell.mapInterior and not shell.needsCalibration)
   assert(shell.doors.x and shell.doors.y and shell.doors.z and shell.doors.heading)
 end
 assert(registry.t1_unfurn_shell.doors.x == -43.758571624756)

@@ -762,7 +762,7 @@ function SpawnInLastProperty(onDone)
           return warn(('Could not find shell "%s"!'):format(propertyData.metadata.shell))
         end
 
-        if not library.RequestEntity(propertyData.metadata.shell) then
+        if not library.RequestHousingShell(propertyData.metadata.shell) then
           return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
         end
 
@@ -796,19 +796,7 @@ function SpawnInLastProperty(onDone)
 
       -- Load interior type
       if propertyData.type == "shell" then
-        CurrentShell = CreateObjectNoOffset(
-          joaat(propertyData.metadata.shell),
-          0.0, 0.0, 500.0,
-          false, false, false
-        )
-
-        -- Wait until it exists
-        while not DoesEntityExist(CurrentShell) do
-          Wait(1)
-        end
-
-        SetEntityHeading(CurrentShell, 0.0)
-        FreezeEntityPosition(CurrentShell, true)
+        CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
         -- Load static interaction points for this shell
         Property:LoadStaticInteractable(AvailableShells[propertyData.metadata.shell])

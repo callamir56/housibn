@@ -133,7 +133,7 @@ AddEventHandler("onResourceStop", function(resourceName)
 
     -- Remove shell entity if spawned
     if CurrentShell then
-      DeleteObject(CurrentShell)
+      DeleteHousingShell(CurrentShell)
     end
   end
 

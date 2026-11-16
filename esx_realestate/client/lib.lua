@@ -19,6 +19,28 @@ end
 
 library = library or {}
 
+-- Fixed map interiors have no spawned shell object. Lua treats 0 as truthy,
+-- so it can mark the inside-shell state without referring to a GTA entity.
+function library.RequestHousingShell(name)
+  local definition = AvailableShells[name]
+  if definition and definition.mapInterior then return true end
+  return library.RequestEntity(name)
+end
+
+function SpawnHousingShell(name)
+  local definition = AvailableShells[name]
+  if definition and definition.mapInterior then return 0 end
+  local entity = CreateObjectNoOffset(joaat(name), 0.0, 0.0, 500.0, false, false, false)
+  while not DoesEntityExist(entity) do Wait(1) end
+  SetEntityHeading(entity, 0.0)
+  FreezeEntityPosition(entity, true)
+  return entity
+end
+
+function DeleteHousingShell(entity)
+  if entity and entity ~= 0 then DeleteObject(entity) end
+end
+
 -- Internal state used by some helpers
 library.WaitGameTimer   = nil   -- cooldown limiter timestamp (ms)
 library.IsHaveProp      = nil   -- prop handle spawned by PlayAnimation (slot #1)

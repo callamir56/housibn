@@ -97,7 +97,7 @@ local function checkCameras(propertyId, resultCallback, environment)
           end
 
           if CurrentShell then
-            DeleteObject(CurrentShell)
+            DeleteHousingShell(CurrentShell)
             CurrentShell = nil
           end
 
@@ -117,19 +117,7 @@ local function checkCameras(propertyId, resultCallback, environment)
           Property:RemoveFurniture()
 
           -- Spawn shell high above the map
-          CurrentShell = CreateObjectNoOffset(
-            joaat(propertyData.metadata.shell),
-            0.0, 0.0, 500.0,
-            false, false, false
-          )
-
-          -- Wait for shell to exist
-          while not DoesEntityExist(CurrentShell) do
-            Wait(1)
-          end
-
-          SetEntityHeading(CurrentShell, 0.0)
-          FreezeEntityPosition(CurrentShell, true)
+          CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
           -- Keep weather “forced” while shell exists (original spawns a thread)
           if ToggleWeather then
@@ -243,7 +231,7 @@ local function checkCameras(propertyId, resultCallback, environment)
         end
 
         if CurrentShell then
-          DeleteObject(CurrentShell)
+          DeleteHousingShell(CurrentShell)
           CurrentShell = nil
         end
 
@@ -474,7 +462,7 @@ local function checkCameras(propertyId, resultCallback, environment)
           end
 
           if CurrentShell then
-            DeleteObject(CurrentShell)
+            DeleteHousingShell(CurrentShell)
             CurrentShell = nil
           end
 

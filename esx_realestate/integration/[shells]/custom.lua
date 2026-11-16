@@ -1,7 +1,5 @@
--- The coordinates below are the reference positions supplied for each shell.
--- They are NOT yet calibrated for this resource, which spawns shell objects at
--- (0, 0, 500). Replace doors with the entrance position at that spawn location
--- and set needsCalibration = false after verifying each model in game.
+-- These are fixed map interiors, not objects to spawn at (0, 0, 500).
+-- The external map resource must be started before entering a property.
 local shells = {
     t1_unfurn_shell = {label = 'T1 Unfurnished', model = 't1_unfurn_shell', tags = {'empty'}, doors = {x = -43.758571624756, y = -621.24615478516, z = 13.069511413574, heading = 163.11503601074}},
     t1_furn_shell = {label = 'T1 Furnished', model = 't1_furn_shell', tags = {'furnished'}, doors = {x = -43.758937835693, y = -621.25531005859, z = -29.204921722412, heading = 163.11503601074}},
@@ -12,7 +10,7 @@ local shells = {
 }
 
 for _, shell in pairs(shells) do
-    if shell.needsCalibration == nil then shell.needsCalibration = true end
+    shell.mapInterior = true
 end
 
 addShells(shells)
