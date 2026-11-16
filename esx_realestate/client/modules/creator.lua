@@ -160,24 +160,17 @@ end
 -- ============================================================================
 
 function OpenHousingCreator()
-  -- Optional job restriction
-  if Config.HousingCreator.RequiredJob then
-    local jobName = CL.GetPlayerJob("name")
-    if jobName ~= Config.HousingCreator.RequiredJob then
-      return
-    end
-  end
+  if openedMenu then return end
 
-  if openedMenu == "HousingCreator" then
-    return
-  end
+  -- The server checks both the configured job and the player's ESX group.
+  library.Callback("vms_housing:canOpenCreator", function(allowed)
+    if not allowed or openedMenu then return end
 
-  resetHouseCreationTable()
-
-  -- NUI: Open creator
-  SendNUIMessage({ action = "HousingCreator", actionName = "Open" })
-  SetNuiFocus(true, true)
-  openedMenu = "HousingCreator"
+    resetHouseCreationTable()
+    SendNUIMessage({ action = "HousingCreator", actionName = "Open" })
+    SetNuiFocus(true, true)
+    openedMenu = "HousingCreator"
+  end)
 end
 
 -- Command / Key mapping

@@ -23,11 +23,10 @@ local EVENT_DELETE_FURNITURE = "vms_housing:sv:deleteFurniture"
 --- Returns player + identifier if the caller has creator permissions, otherwise nil.
 local function getCreatorContext(src)
   local player = SV.GetPlayer(src)
-  local identifier = SV.GetIdentifier(player)
-
   if not library.HasCreatorPermissions(player) then
     return nil
   end
+  local identifier = SV.GetIdentifier(player)
 
   return {
     src = src,

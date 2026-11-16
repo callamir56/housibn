@@ -460,7 +460,8 @@ Config.HousingCreator = {
     Command = 'housing',                    -- Command to open the housing creator menu
     Key = 'F7',                             -- Keyboard shortcut to open the housing creator menu
     Description = 'Open Housing Creator',   -- Description shown in keybind hint
-    RequiredJob = 'unemployed'              -- Required job to access the housing creator
+    RequiredJob = 'unemployed',             -- Existing job-based access (nil permits all jobs)
+    AllowedGroups = { gamemaster = true },  -- ESX groups allowed regardless of job
 }
 
 Config.HousingCreatorControls = {

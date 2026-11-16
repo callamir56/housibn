@@ -78,12 +78,22 @@ end
 --  Creator permissions
 --=====================================================================
 
----Returns true if player has the configured HousingCreator RequiredJob.
-function library.HasCreatorPermissions(playerSrc)
-    local jobName = SV.GetPlayerJob(playerSrc, "name")
-    local requiredJob = Config.HousingCreator and Config.HousingCreator.RequiredJob
-    return jobName == requiredJob
+---Check creator access on the server using the ESX group or configured job.
+function library.HasCreatorPermissions(player)
+    if not player or not Config.HousingCreator then return false end
+
+    local settings = Config.HousingCreator
+    if Config.Core == "ESX" and player.getGroup then
+        local group = player.getGroup()
+        if settings.AllowedGroups and settings.AllowedGroups[group] then return true end
+    end
+
+    return not settings.RequiredJob or SV.GetPlayerJob(player, "name") == settings.RequiredJob
 end
+
+library.RegisterCallback("vms_housing:canOpenCreator", function(source, cb)
+    cb(library.HasCreatorPermissions(SV.GetPlayer(source)))
+end)
 
 --=====================================================================
 --  Random chance helper
