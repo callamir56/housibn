@@ -18,3 +18,18 @@ assert(library.RequestHousingShell('prop') and requested == 1)
 assert(SpawnHousingShell('prop') == 123 and created == 1)
 DeleteHousingShell(123); assert(deleted == 1)
 print('map and object shell handling passed')
+local coords, heading, collision = nil, nil, 0
+function PlayerPedId() return 44 end
+function RequestCollisionAtCoord(x,y,z) collision = collision + 1 end
+function SetEntityCoordsNoOffset(ped,x,y,z) assert(ped == 44); coords = {x,y,z} end
+function SetEntityHeading(ped,h) assert(ped == 44); heading = h end
+CurrentProperty = '6'; CurrentShell = 0
+ApplyMapInteriorEntry(6, 1, 2, 3, 180)
+assert(coords[1] == 1 and coords[2] == 2 and coords[3] == 3 and heading == 180 and collision == 2)
+coords = nil
+ApplyMapInteriorEntry(7, 1, 2, 3, 180)
+assert(coords == nil)
+CurrentShell = nil
+ApplyMapInteriorEntry(6, 1, 2, 3, 180)
+assert(coords == nil)
+print('map entry confirmation tests passed')

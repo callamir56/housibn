@@ -1483,6 +1483,16 @@ AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
     end
 
     SetPlayerRoutingBucket(src, tonumber(propertyId) + 1)
+
+    -- For fixed map interiors, also move the ped on its owning client after the
+    -- bucket change; a server-side coordinate update alone can be overwritten.
+    if prop.type == "shell" then
+        local shell = AvailableShells[prop.metadata.shell]
+        if shell and shell.mapInterior then
+            local doors = shell.doors
+            TriggerClientEvent("vms_housing:cl:enterMapInterior", src, propertyId, doors.x, doors.y, doors.z, doors.heading)
+        end
+    end
 end)
 
 RegisterNetEvent("vms_housing:sv:exitHouse")

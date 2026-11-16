@@ -90,6 +90,11 @@ local function initializeHousing(isResourceRestart, playerData)
   end)
 end
 
+-- The server confirms the routing bucket before the owning client moves its ped.
+RegisterNetEvent("vms_housing:cl:enterMapInterior", function(propertyId, x, y, z, heading)
+  ApplyMapInteriorEntry(propertyId, x, y, z, heading)
+end)
+
 -- Network notification passthrough
 RegisterNetEvent("vms_housing:notification", CL.Notification)
 

@@ -41,6 +41,18 @@ function DeleteHousingShell(entity)
   if entity and entity ~= 0 then DeleteObject(entity) end
 end
 
+-- Apply the server-confirmed map entry on the owning client, which controls
+-- its player ped. Ignore late confirmations after leaving or switching houses.
+function ApplyMapInteriorEntry(propertyId, x, y, z, heading)
+  if not CurrentProperty or tostring(CurrentProperty) ~= tostring(propertyId) or CurrentShell ~= 0 then return end
+  if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" or type(heading) ~= "number" then return end
+  local ped = PlayerPedId()
+  RequestCollisionAtCoord(x, y, z)
+  SetEntityCoordsNoOffset(ped, x, y, z, false, false, false)
+  SetEntityHeading(ped, heading)
+  RequestCollisionAtCoord(x, y, z)
+end
+
 -- Internal state used by some helpers
 library.WaitGameTimer   = nil   -- cooldown limiter timestamp (ms)
 library.IsHaveProp      = nil   -- prop handle spawned by PlayAnimation (slot #1)
