@@ -71,7 +71,8 @@ library.RegisterCallback('vms_housing:garage:park',function(src,cb,id,netId,prop
         local rows=MySQL.query.await('SELECT `owner`,`plate`,`vehicle`,`stored` FROM `owned_vehicles` WHERE UPPER(TRIM(`plate`)) = UPPER(?) AND `owner` = ? LIMIT 2',{plate,identifier})
         local row=rows and #rows==1 and rows[1]
         local registered=row and decode(row.vehicle)
-        if not HousingGarageAccess.OwnsVehicle(identifier,row) or tonumber(row.stored)~=0 or not registered
+        local storedStatus = row and tonumber(row.stored)
+        if not HousingGarageAccess.OwnsVehicle(identifier,row) or (storedStatus~=0 and storedStatus~=1) or not registered
             or type(registered.model)~='number' or (registered.model & 0xffffffff)~=(props.model & 0xffffffff) then
             return {ok=false,reason='Vehicle is not available.'}
         end
@@ -80,6 +81,29 @@ library.RegisterCallback('vms_housing:garage:park',function(src,cb,id,netId,prop
             or trim(GetVehicleNumberPlateText(vehicle))~=plate then return {ok=false,reason='Vehicle no longer available.'} end
         local encoded=json.encode(props)
         if not encoded or #encoded>65536 then return {ok=false,reason='Invalid vehicle data.'} end
+        -- A nearby real vehicle is already out, even if another resource left
+        -- owned_vehicles.stored at 1. Claim that row with compare-and-swap so
+        -- normal garages no longer offer it during the housing transfer.
+        if storedStatus == 1 then
+            local alreadyParked = MySQL.query.await('SELECT `plate` FROM `housing_garage_vehicles` WHERE UPPER(TRIM(`plate`)) = UPPER(?) LIMIT 1', {plate})
+            if not alreadyParked or #alreadyParked > 0 then return {ok=false,reason='Vehicle is already parked.'} end
+            local updated = MySQL.update.await('UPDATE `owned_vehicles` SET `stored` = 0 WHERE UPPER(TRIM(`plate`)) = UPPER(?) AND `owner` = ? AND `stored` = 1 LIMIT 1', {plate,identifier})
+            if updated ~= 1 then return {ok=false,reason='Vehicle status changed. Try again.'} end
+            -- Keep stored=0 even if parking subsequently fails: the real
+            -- vehicle is still out and must not be offered as stored.
+        end
+        local currentIdentifier, _, checkedPed = context(src, propertyId)
+        if currentIdentifier ~= identifier or not DoesEntityExist(vehicle)
+            or not distance(GetEntityCoords(vehicle),GetEntityCoords(checkedPed),12.0)
+            or trim(GetVehicleNumberPlateText(vehicle)) ~= plate then
+            return {ok=false,reason='Vehicle no longer available.'}
+        end
+        for _, other in ipairs(GetPlayers()) do
+            local otherPed=GetPlayerPed(tonumber(other))
+            if otherPed and otherPed~=0 and GetVehiclePedIsIn(otherPed,false)==vehicle then
+                return {ok=false,reason='Everyone must exit the vehicle.'}
+            end
+        end
         -- Unique property and plate indexes reject concurrent attempts.
         local inserted=MySQL.update.await('INSERT INTO `housing_garage_vehicles` (`property_id`,`owner`,`plate`,`vehicle`) VALUES (?, ?, ?, ?)',{propertyId,identifier,plate,encoded})
         if not inserted or inserted~=1 then return {ok=false,reason='Could not park vehicle.'} end

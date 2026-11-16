@@ -20,7 +20,7 @@ assert(loadfile('esx_realestate/server/modules/garage_candidates.lua'))()
 local function check(ids) local r;callback(1,function(value) r=value end,'42',ids);return r end
 local result=check({1,1,2,3,40})
 assert(result.ok and #result.vehicles==2 and result.vehicles[1].plate=='OWNED' and result.vehicles[1].available)
-assert(result.vehicles[2].plate=='OTHER' and not result.vehicles[2].available)
+assert(result.vehicles[2].plate=='OTHER' and result.vehicles[2].available)
 local ids={} for i=1,39 do ids[i]=1000+i end ids[40]=1
 assert(#check(ids).vehicles==1) -- own vehicle is not dropped behind 30 others
 rows[#rows+1]={owner='char:a',plate='OWNED ',stored=0}

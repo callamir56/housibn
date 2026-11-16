@@ -4,6 +4,8 @@ local prop={metadata={garage={x=0,y=0,z=0,w=90}}}
 local identifier='owner'
 local inVehicle=false
 local failDelete=false
+local ownedStatus=0
+local claimResult=1
 SV={GetPlayer=function() return {} end,GetIdentifier=function() return identifier end}
 library={HasPermissions=function(_,who) return who=='owner' end,RegisterCallback=function(n,fn) callbacks[n]=fn end}
 function GetProperty(id) if id=='1' then return prop end end
@@ -26,8 +28,9 @@ function TriggerClientEvent() end
 json={encode=function(value) return value end, decode=function(value) return value end}
 MySQL={query={await=function(sql,args)
   if sql:find('housing_garage_vehicles') then return stored and {stored} or {} end
-  if sql:find('owned_vehicles') then return {{owner='owner',plate='TEST',vehicle=props,stored=0}} end
+  if sql:find('owned_vehicles') then return {{owner='owner',plate='TEST',vehicle=props,stored=ownedStatus}} end
 end},update={await=function(sql,args)
+  if sql:find('UPDATE `owned_vehicles`') then if claimResult==1 then ownedStatus=0 end; return claimResult end
   if sql:find('INSERT') then stored={property_id=args[1],owner=args[2],plate=args[3],vehicle=args[4]};return 1 end
   if sql:find('DELETE') then if failDelete then error('db failed') end; stored=nil;return 1 end
 end}}
@@ -45,4 +48,6 @@ identifier='owner'; failDelete=true; assert(not call('take','1').ok and stored a
 assert(call('take','1').ok and not stored and entities[12])
 entities[11]=true;entities[12]=nil
 assert(not call('park','1',100,{model=999,plate='TEST'}).ok and entities[11])
+ownedStatus=1; claimResult=0; assert(not call('park','1',100,props).ok and entities[11] and not stored and ownedStatus==1)
+claimResult=1; assert(call('park','1',100,props).ok and ownedStatus==0 and stored and not entities[11])
 print('garage parking, ownership, model and retrieval tests passed')

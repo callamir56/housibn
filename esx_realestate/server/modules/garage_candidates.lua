@@ -47,7 +47,7 @@ library.RegisterCallback('vms_housing:garage:candidates', function(src, cb, prop
                     local key = plateKey(GetVehicleNumberPlateText(vehicle))
                     local row = key and byPlate[key]
                     if row then
-                        vehicles[#vehicles + 1] = {id = id, plate = key, available = tonumber(row.stored) == 0}
+                        vehicles[#vehicles + 1] = {id = id, plate = key, available = tonumber(row.stored) == 0 or tonumber(row.stored) == 1}
                     end
                 end
             end
