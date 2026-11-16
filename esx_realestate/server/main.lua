@@ -1436,6 +1436,11 @@ AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return end
 
+    if prop.type == "shell" then
+        local shell = prop.metadata and AvailableShells[prop.metadata.shell]
+        if not shell or shell.needsCalibration then return end
+    end
+
     prop.playersInside = prop.playersInside or {}
     table.insert(prop.playersInside, src)
 

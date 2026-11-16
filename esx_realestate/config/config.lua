@@ -474,12 +474,8 @@ Config.HousingCreatorControls = {
     ['CANCEL'] = {controlIndex = 202},          -- Default: BACKSPACE / ESC
 }
 
-Config.Shells = {
-    K4MB1 = false,                                                       -- Enable shell support for K4MB1
-    ENVI = true,                                                       -- Enable shell support for ENVI
-    DCCustomz = false,                                                  -- Enable shell support for DCCustomz
-    KuzQuality = GetResourceState('kq_shellbuilder') ~= 'missing',      -- Enable shell support for Kuz Quality Shell Creator
-}
+-- Only the custom shells listed in integration/[shells]/custom.lua are loaded.
+Config.Shells = {}
 
 
 

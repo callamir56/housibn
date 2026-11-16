@@ -12,7 +12,7 @@ shared_scripts {
 	'config/config.regions.lua',
 
 	'shared/*.lua',
-	'integration/[shells]/*.lua',
+	'integration/[shells]/custom.lua',
 	'integration/[ipl]/*.lua',
 }
 

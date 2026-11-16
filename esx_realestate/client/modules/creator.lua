@@ -1091,6 +1091,13 @@ function HousingCreator:EnterShell(shellName, cb)
     return warn(("Could not find shell \"%s\"!"):format(shellName))
   end
 
+  if AvailableShells[shellName].needsCalibration then
+    CL.Notification("This shell needs its entrance position configured before it can be used.", 5000, "error")
+    SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })
+    SetNuiFocus(true, true)
+    return
+  end
+
   local loaded = library.RequestEntity(shellName)
   if not loaded then
     SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })

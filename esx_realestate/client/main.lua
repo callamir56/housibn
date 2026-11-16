@@ -178,6 +178,11 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
       return warn(('Could not find shell "%s"!'):format(propertyData.metadata.shell))
     end
 
+    if AvailableShells[propertyData.metadata.shell].needsCalibration then
+      CL.Notification("This shell needs its entrance position configured before it can be used.", 5000, "error")
+      return
+    end
+
     if not library.RequestEntity(propertyData.metadata.shell) then
       return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
     end
