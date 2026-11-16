@@ -110,6 +110,11 @@ local function CloseNUI(closeNonCreatorMenus)
     return
   end
 
+  if openedMenu == "Wardrobe" and CloseWardrobe then
+    CloseWardrobe()
+    return
+  end
+
   if openedMenu == "Safe" then
     CloseSafe()
     return
