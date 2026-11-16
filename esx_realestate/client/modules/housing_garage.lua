@@ -1,5 +1,6 @@
 local active, session, propertyId, busy = false, 0, nil, false
 local ghosts, ghostVersion = {}, 0
+local renderGhost
 
 local function send(action, data)
     SendNUIMessage({action='HousingGarage', actionName=action, data=data})
@@ -66,6 +67,7 @@ RegisterNUICallback('housingGarage:park',function(data,cb)
         if not active or current~=session then return end
         busy=false
         if not result or not result.ok then return send('Error',result and result.reason or 'Could not park.') end
+        if result.ghost then renderGhost(result.ghost) end
         refresh()
     end,propertyId,id,props)
 end)
@@ -109,42 +111,66 @@ local function clearGhosts()
     for _,vehicle in pairs(ghosts) do if DoesEntityExist(vehicle) then DeleteEntity(vehicle) end end
     ghosts={}
 end
-local function updateGhosts()
-    local current=ghostVersion+1; ghostVersion=current
-    library.Callback('vms_housing:garage:ghosts',function(rows)
-        if current~=ghostVersion then return end
-        local wanted={}
-        for _,row in ipairs(rows or {}) do
-            local id=tostring(row.id); wanted[id]=true
-            if not ghosts[id] then
-                CreateThread(function()
-                    local model=row.props and row.props.model
-                    if not model or not IsModelInCdimage(model) or not IsModelAVehicle(model) then return end
-                    RequestModel(model)
-                    local deadline=GetGameTimer()+5000
-                    while not HasModelLoaded(model) and GetGameTimer()<deadline do Wait(0) end
-                    if current~=ghostVersion or not HasModelLoaded(model) then SetModelAsNoLongerNeeded(model); return end
-                    local p=row.coords
-                    local vehicle=CreateVehicle(model,p.x,p.y,p.z,p.w or 0.0,false,false)
-                    SetModelAsNoLongerNeeded(model)
-                    if vehicle and vehicle~=0 then
-                        ESX.Game.SetVehicleProperties(vehicle,row.props)
-                        SetEntityAlpha(vehicle,75,false)
-                        SetEntityCollision(vehicle,false,false)
-                        SetEntityInvincible(vehicle,true)
-                        SetVehicleDoorsLocked(vehicle,2)
-                        SetVehicleEngineOn(vehicle,false,true,true)
-                        FreezeEntityPosition(vehicle,true)
-                        ghosts[id]=vehicle
-                    end
-                end)
-            end
+-- Each player sees a local-only display vehicle at the configured garage point.
+renderGhost = function(row)
+    if type(row) ~= 'table' or type(row.props) ~= 'table' or type(row.coords) ~= 'table' then return end
+    local id = tostring(row.id)
+    if ghosts[id] and DoesEntityExist(ghosts[id]) then return end
+    local current = ghostVersion
+    CreateThread(function()
+        local model = tonumber(row.props.model)
+        if not model or not IsModelAVehicle(model) then
+            print(('[esx_realestate] Invalid parked vehicle model for garage %s'):format(id))
+            return
         end
-        for id,vehicle in pairs(ghosts) do
-            if not wanted[id] then if DoesEntityExist(vehicle) then DeleteEntity(vehicle) end; ghosts[id]=nil end
+        RequestModel(model)
+        local deadline = GetGameTimer() + 10000
+        while not HasModelLoaded(model) and GetGameTimer() < deadline do Wait(0) end
+        if current ~= ghostVersion or not HasModelLoaded(model) then
+            SetModelAsNoLongerNeeded(model)
+            return
+        end
+        if ghosts[id] and DoesEntityExist(ghosts[id]) then SetModelAsNoLongerNeeded(model); return end
+        local p = row.coords
+        local vehicle = CreateVehicle(model, p.x, p.y, p.z, p.w or 0.0, false, false)
+        SetModelAsNoLongerNeeded(model)
+        if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then
+            print(('[esx_realestate] Failed to create parked vehicle for garage %s'):format(id))
+            return
+        end
+        -- Display safety must still be applied if a customization fails.
+        local ok, err = pcall(ESX.Game.SetVehicleProperties, vehicle, row.props)
+        if not ok then print(('[esx_realestate] Parked vehicle properties: %s'):format(tostring(err))) end
+        SetEntityAlpha(vehicle, 102, false)
+        SetEntityCollision(vehicle, false, false)
+        SetEntityInvincible(vehicle, true)
+        SetVehicleDoorsLocked(vehicle, 2)
+        SetVehicleDoorsLockedForAllPlayers(vehicle, true)
+        SetVehicleUndriveable(vehicle, true)
+        SetVehicleEngineOn(vehicle, false, true, true)
+        FreezeEntityPosition(vehicle, true)
+        ghosts[id] = vehicle
+    end)
+end
+
+local function updateGhosts()
+    local current = ghostVersion + 1
+    ghostVersion = current
+    library.Callback('vms_housing:garage:ghosts', function(rows)
+        if current ~= ghostVersion or type(rows) ~= 'table' then return end
+        local wanted = {}
+        for _, row in ipairs(rows or {}) do
+            wanted[tostring(row.id)] = true
+            renderGhost(row)
+        end
+        for id, vehicle in pairs(ghosts) do
+            if not wanted[id] then
+                if DoesEntityExist(vehicle) then DeleteEntity(vehicle) end
+                ghosts[id] = nil
+            end
         end
     end)
 end
 RegisterNetEvent('vms_housing:garage:changed',function() updateGhosts(); if active and not busy then refresh() end end)
-CreateThread(function() while true do Wait(15000); if ESX and ESX.Game then updateGhosts() end end end)
+CreateThread(function() Wait(1000); while true do if ESX and ESX.Game then updateGhosts() end; Wait(15000) end end)
 AddEventHandler('onResourceStop',function(name) if name==GetCurrentResourceName() then close(); clearGhosts() end end)

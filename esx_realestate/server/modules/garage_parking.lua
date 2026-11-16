@@ -89,7 +89,7 @@ library.RegisterCallback('vms_housing:garage:park',function(src,cb,id,netId,prop
             return {ok=false,reason='Could not move vehicle. Try again.'}
         end
         announce()
-        return {ok=true}
+        return {ok=true, ghost={id=propertyId, coords=property.metadata.garage, props=props}}
     end)
 end)
 
@@ -127,7 +127,7 @@ library.RegisterCallback('vms_housing:garage:ghosts',function(src,cb)
     if not ped or ped==0 then return cb({}) end
     local pos=GetEntityCoords(ped)
     local ok,rows=pcall(MySQL.query.await,'SELECT `property_id`,`vehicle` FROM `housing_garage_vehicles`',{})
-    if not ok or not rows then return cb({}) end
+    if not ok or not rows then return cb(nil) end
     local result={}
     for _,row in ipairs(rows) do
         local property=GetProperty(tostring(row.property_id))
