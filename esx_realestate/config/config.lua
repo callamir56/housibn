@@ -34,6 +34,9 @@ Config.PlayerSetJob = Config.Core == "ESX" and "esx:setJob" or "QBCore:Client:On
 -- Automatically creates required SQL tables on resource start (recommended for first install).
 Config.AutoExecuteQuery = true
 
+-- Populate the bundled furniture catalog only when its database table is empty.
+Config.AutoSeedFurniture = true
+
 ---@class Debug<boolean>
 -- By running debugging, you will receive prints at various activities, in case of any problems, this will be able to help you find the cause of the misconfiguration.
 Config.Debug = true                 -- Enables debug prints for various system events.

@@ -215,6 +215,21 @@ MySQL.ready(function()
         -- These are AWAIT calls (block this init thread until results arrive)
         ------------------------------------------------------------------
         local furnitureListRows   = MySQL.query.await("SELECT * FROM `houses_furniture_list`", {})
+        -- Seed only a genuinely empty catalog. Never replace a server's custom items.
+        if furnitureListRows and #furnitureListRows == 0 and Config.AutoSeedFurniture then
+            local seedSql = LoadResourceFile(GetCurrentResourceName(), "[SQL]/Furniture.sql")
+            if not seedSql or seedSql == "" then
+                print("[esx_realestate] Cannot find [SQL]/Furniture.sql; furniture catalog remains empty.")
+            else
+                local ok, err = pcall(function() MySQL.query.await(seedSql, {}) end)
+                if ok then
+                    furnitureListRows = MySQL.query.await("SELECT * FROM `houses_furniture_list`", {})
+                    print(("[esx_realestate] Default furniture catalog loaded: %d items."):format(furnitureListRows and #furnitureListRows or 0))
+                else
+                    print(("[esx_realestate] Could not import furniture catalog: %s"):format(tostring(err)))
+                end
+            end
+        end
         local housesRows          = MySQL.query.await("SELECT * FROM `houses`", {})
         local billsRows           = MySQL.query.await("SELECT * FROM `houses_bills` ORDER BY id DESC", {})
         local placedFurnitureRows = MySQL.query.await("SELECT * FROM `houses_furniture`", {})
