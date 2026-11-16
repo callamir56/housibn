@@ -172,6 +172,15 @@ end
 -- ============================================================================
 
 function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, bypassChecks)
+  -- Capture the target before async callbacks and fades: leaving the outside
+  -- zone clears GetCurrentPropertyId/GetCurrentPropertyData.
+  local targetId = propertyIdOverride or (propertyData and propertyData.id) or GetCurrentPropertyId()
+  if not targetId or type(propertyData) ~= "table" or type(propertyData.metadata) ~= "table" then
+    if onDone then onDone(false) end
+    return
+  end
+  targetId = tostring(targetId)
+
   -- If not bypassing, block entering while editing furniture/theme (original behavior)
   if not bypassChecks and isInEditMode(self) then
     return
@@ -244,23 +253,8 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
 
     FreezeEntityPosition(PlayerPedId(), true)
 
-    -- CurrentProperty is set to tostring(override) when override is provided (original behavior)
-    local resolvedPropertyId
-    if propertyIdOverride then
-      resolvedPropertyId = tostring(propertyIdOverride)
-    else
-      resolvedPropertyId = GetCurrentPropertyId()
-    end
-    CurrentProperty = resolvedPropertyId
-
-    -- CurrentPropertyData is pulled from Properties when override is provided (original behavior)
-    local resolvedPropertyData
-    if propertyIdOverride and Properties[tostring(propertyIdOverride)] then
-      resolvedPropertyData = Properties[tostring(propertyIdOverride)]
-    else
-      resolvedPropertyData = GetCurrentPropertyData()
-    end
-    CurrentPropertyData = resolvedPropertyData
+    CurrentProperty = targetId
+    CurrentPropertyData = (Properties and Properties[targetId]) or propertyData
 
     -- Spawn/load the actual interior
     if propertyData.type == "shell" then
@@ -291,9 +285,17 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
 
     Wait(1500)
 
-    -- Restore light state if stored
-    if CurrentPropertyData.metadata.lightState ~= nil then
-      SetArtificialLightsState(not CurrentPropertyData.metadata.lightState)
+    -- Another event may refresh or clear the cache while the transition yields.
+    -- Do not resurrect an entry that has already been cancelled or replaced.
+    if CurrentProperty ~= targetId then
+      DoScreenFadeIn(1500)
+      FreezeEntityPosition(PlayerPedId(), false)
+      return
+    end
+    CurrentPropertyData = CurrentPropertyData or (Properties and Properties[targetId]) or propertyData
+    local metadata = CurrentPropertyData.metadata or {}
+    if metadata.lightState ~= nil then
+      SetArtificialLightsState(not metadata.lightState)
     end
 
     DoScreenFadeIn(1500)

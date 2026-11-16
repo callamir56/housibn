@@ -181,7 +181,7 @@ RegisterNetEvent("vms_housing:cl:loadProperties", function(propertiesJson)
 
   -- Update cached CurrentPropertyData if we're already inside a property
   if CurrentProperty then
-    CurrentPropertyData = Properties[tostring(CurrentProperty)]
+    CurrentPropertyData = Properties[tostring(CurrentProperty)] or CurrentPropertyData
   end
 
   -- Register MLO doors (if provided)
