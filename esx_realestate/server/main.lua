@@ -35,6 +35,16 @@ RegisterNetEvent("vms_housing:sv:fetchData")
 AddEventHandler("vms_housing:sv:fetchData", function()
     local src = source
 
+    -- Never send partial caches while the database initialization is running.
+    local deadline = GetGameTimer() + 30000
+    while not HousingDataReady and GetGameTimer() < deadline do
+        Citizen.Wait(100)
+    end
+    if not HousingDataReady then
+        print("[esx_realestate] Data initialization timed out; check database errors and restart the resource.")
+        return
+    end
+
     -- Player resolution (some cores can be late to init right after connect)
     local player = SV.GetPlayer(src)
     if not player then

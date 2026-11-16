@@ -648,6 +648,12 @@ const Property = {
                     `;
                 }
             }
+            if (!orderFurnitureHTML) {
+                const reason = !Object.keys(this.FurnitureList || {}).length
+                    ? 'Furniture catalog is empty. Contact the server administrator.'
+                    : 'Furniture placement is disabled for this property. Enable indoor or outdoor furniture in the housing creator.';
+                orderFurnitureHTML = `<p class="furniture-empty-message">${reason}</p>`;
+            }
             $('.housing_manage div[data-type="order-furniture"] > div > .side-boxes > .box > .furniture-list').html(orderFurnitureHTML);
 
             $('.housing_manage div[data-type="order-furniture"] > div > .side-boxes > .box > .furniture-filters > #search > input').val('')

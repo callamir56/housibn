@@ -230,6 +230,9 @@ function openManageMenu(propertyId, isDevice)
     payload.data.images = propertyData.metadata and propertyData.metadata.images
   end
 
+  -- The UI may have loaded after the initial furniture sync. Send the current
+  -- catalog immediately before opening the purchase menu.
+  SendNUIMessage({ action = "Property", actionName = "ReloadAvailableFurniture", data = Furniture or {} })
   -- Open NUI
   SetNuiFocus(true, true)
   SendNUIMessage(payload)

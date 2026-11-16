@@ -9,6 +9,7 @@ Core = Config.CoreExport()
 Properties        = {}   -- [propertyIdString] = houseRow
 Furniture         = {}   -- [model] = furnitureRow
 PendingDeliveries = {}   -- array of { propertyId, furnitureId, deliveryTime }
+HousingDataReady = false -- client fetches must wait for catalog and property caches
 
 --=====================================================================
 --  Furniture catalog persistence helper
@@ -593,6 +594,12 @@ MySQL.ready(function()
         end
 
         ------------------------------------------------------------------
+        -- All caches are now populated; waiting clients may receive them.
+        HousingDataReady = true
+        if not furnitureListRows or #furnitureListRows == 0 then
+            print("[esx_realestate] Furniture catalog is empty; import [SQL]/Furniture.sql once and restart the resource.")
+        end
+
         -- Debug output
         ------------------------------------------------------------------
         library.Debug(("^2VMS Housing init completed in %d ms^7"):format(GetGameTimer() - initStartMs))

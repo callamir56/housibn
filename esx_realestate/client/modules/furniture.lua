@@ -689,6 +689,8 @@ local function openFurnitureMenu()
 
   local isOutside = not isInside
 
+  -- Resync in case the UI loaded after the initial catalog message.
+  SendNUIMessage({ action = "Property", actionName = "ReloadAvailableFurniture", data = Furniture or {} })
   -- [NUI] Open furniture menu with placement rules
   SendNUIMessage({
     action = "Property",
