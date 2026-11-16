@@ -210,6 +210,12 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
         return warn(('Could not find shell "%s"!'):format(propertyData.metadata.shell))
       end
 
+      if AvailableShells[propertyData.metadata.shell].needsCalibration then
+        if onDone then onDone(false) end
+        CL.Notification("This shell needs its entrance position configured before it can be used.", 5000, "error")
+        return
+      end
+
       local ok = library.RequestEntity(propertyData.metadata.shell)
       if not ok then
         if onDone then onDone(false) end
@@ -1126,6 +1132,7 @@ end
 -- ============================================================================
 
 function Property.RegisterDoors(self, doorsConfig)
+  if type(doorsConfig) ~= "table" or type(doorsConfig.doors) ~= "table" then return end
   for doorIndex, doorDef in pairs(doorsConfig.doors) do
     if doorDef.type == "slide_gate" then
       doorDef.hash = joaat(("vms_housing_%s_%s"):format(doorsConfig.propertyId, doorIndex))
