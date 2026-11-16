@@ -32,7 +32,7 @@ local function refresh()
     end
     table.sort(candidates,function(a,b) return a.distance<b.distance end)
     local ids={}
-    for i=1,math.min(#candidates,30) do ids[i]=candidates[i].id end
+    for i=1,math.min(#candidates,200) do ids[i]=candidates[i].id end
     library.Callback('vms_housing:garage:status',function(status)
         if not active or current~=session then return end
         if not status or not status.ok then return send('Error',status and status.reason or 'Garage unavailable.') end

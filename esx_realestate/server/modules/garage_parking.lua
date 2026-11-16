@@ -68,8 +68,8 @@ library.RegisterCallback('vms_housing:garage:park',function(src,cb,id,netId,prop
             or type(props.model)~='number' or (props.model & 0xffffffff)~=(GetEntityModel(vehicle) & 0xffffffff) then
             return {ok=false,reason='Invalid vehicle.'}
         end
-        local rows=MySQL.query.await('SELECT `owner`,`plate`,`vehicle`,`stored` FROM `owned_vehicles` WHERE `plate` = ? AND `owner` = ? LIMIT 1',{plate,identifier})
-        local row=rows and rows[1]
+        local rows=MySQL.query.await('SELECT `owner`,`plate`,`vehicle`,`stored` FROM `owned_vehicles` WHERE UPPER(TRIM(`plate`)) = UPPER(?) AND `owner` = ? LIMIT 2',{plate,identifier})
+        local row=rows and #rows==1 and rows[1]
         local registered=row and decode(row.vehicle)
         if not HousingGarageAccess.OwnsVehicle(identifier,row) or tonumber(row.stored)~=0 or not registered
             or type(registered.model)~='number' or (registered.model & 0xffffffff)~=(props.model & 0xffffffff) then
@@ -98,8 +98,8 @@ library.RegisterCallback('vms_housing:garage:take',function(src,cb,id)
         local row=parked(propertyId)
         if not row or not HousingGarageAccess.CanUse(propertyId,identifier,row.owner) then return {ok=false,reason='Vehicle unavailable.'} end
         local data=decode(row.vehicle)
-        local owned=MySQL.query.await('SELECT `owner`,`stored` FROM `owned_vehicles` WHERE `plate` = ? AND `owner` = ? LIMIT 1',{row.plate,identifier})
-        if not data or type(data.model)~='number' or not HousingGarageAccess.OwnsVehicle(identifier,owned and owned[1]) or tonumber(owned[1].stored)~=0 then
+        local owned=MySQL.query.await('SELECT `owner`,`stored` FROM `owned_vehicles` WHERE UPPER(TRIM(`plate`)) = UPPER(?) AND `owner` = ? LIMIT 2',{row.plate,identifier})
+        if not data or type(data.model)~='number' or not owned or #owned~=1 or not HousingGarageAccess.OwnsVehicle(identifier,owned[1]) or tonumber(owned[1].stored)~=0 then
             return {ok=false,reason='Vehicle unavailable.'}
         end
         if context(src,propertyId)~=identifier then return {ok=false,reason='Access denied or too far away.'} end

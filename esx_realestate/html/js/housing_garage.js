@@ -27,7 +27,11 @@ const HousingGarage = {
             $('<div class="wardrobe-row-name"></div>').text(vehicle.name || 'Vehicle').appendTo(details);
             $('<div></div>').text(vehicle.plate || '').css({fontSize:'.8em',color:'#aaa'}).appendTo(details);
             row.append($('<span class="wardrobe-slot"><i class="fa-solid fa-car"></i></span>'),details);
-            $('<button type="button" class="wardrobe-wear">Park</button>').css({border:0,borderRadius:'.35em',padding:'.45em .8em'}).on('click',function(){ $('.housing-garage button').prop('disabled',true); HousingGarage.post('park',{id:vehicle.id}); }).appendTo(row);
+            if (vehicle.available) {
+                $('<button type="button" class="wardrobe-wear">Park</button>').css({border:0,borderRadius:'.35em',padding:'.45em .8em'}).on('click',function(){ $('.housing-garage button').prop('disabled',true); HousingGarage.post('park',{id:vehicle.id}); }).appendTo(row);
+            } else {
+                $('<span></span>').text('Stored elsewhere').css({fontSize:'.8em',color:'#e6b975'}).appendTo(row);
+            }
             list.append(row);
         });
         $('.housing-garage button').prop('disabled',false);
