@@ -56,3 +56,11 @@ CREATE TABLE IF NOT EXISTS `houses_furniture_list` (
   `metadata` longtext DEFAULT NULL,
   PRIMARY KEY (`model`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `housing_wardrobe_outfits` (
+  `identifier` varchar(128) NOT NULL,
+  `slot` tinyint unsigned NOT NULL,
+  `name` varchar(40) NOT NULL,
+  `skin` longtext NOT NULL,
+  PRIMARY KEY (`identifier`, `slot`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -740,6 +740,7 @@ Config.Weather = DetectActiveWeather()
 --  ╚═════╝╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 local function DetectActiveClothing()
     local resources = {
+        'esx_skin',
         'vms_clothestore',
         'qb-clothing',
         'ak47_clothing',
