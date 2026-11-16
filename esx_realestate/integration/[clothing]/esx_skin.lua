@@ -9,10 +9,10 @@ local function send(action, data)
 end
 
 local function message(reason)
-    if reason == 'full' then return 'You can save up to five outfits.' end
-    if reason == 'invalid' then return 'Please enter a valid name (1–40 characters).' end
-    if reason == 'missing' then return 'This outfit no longer exists.' end
-    return 'Wardrobe unavailable. Please check the server console.'
+    if reason == 'full' then return 'Wardrobe is full.' end
+    if reason == 'invalid' then return 'Enter a valid name (1–40 characters).' end
+    if reason == 'missing' then return 'Outfit not found.' end
+    return 'Wardrobe unavailable.'
 end
 
 local function refresh()
@@ -67,7 +67,7 @@ RegisterNUICallback('wardrobe:save', function(data, cb)
     cb({ok = true})
     TriggerEvent('skinchanger:getSkin', function(skin)
         if not active or session ~= generation then return end
-        if type(skin) ~= 'table' then return send('Error', 'Could not read your current outfit.') end
+        if type(skin) ~= 'table' then return send('Error', 'Unable to read outfit.') end
         library.Callback('vms_housing:wardrobe', function(result)
             if not active or session ~= generation then return end
             if not result or not result.ok then return send('Error', message(result and result.reason)) end
@@ -85,7 +85,7 @@ RegisterNUICallback('wardrobe:wear', function(data, cb)
     TriggerEvent('skinchanger:getSkin', function(skin)
         if not active or session ~= generation then return end
         if type(skin) ~= 'table' or skin.sex ~= outfit.skin.sex then
-            return send('Error', 'This outfit is not compatible with your current character model.')
+            return send('Error', 'Outfit does not match your character.')
         end
         TriggerEvent('skinchanger:loadClothes', skin, outfit.skin)
         send('Success', 'Outfit applied.')

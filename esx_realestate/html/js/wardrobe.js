@@ -12,7 +12,7 @@ const Wardrobe = {
         this.outfits = [];
         this.pendingDelete = null;
         this.busy = false;
-        $('.wardrobe-status').text('Loading your outfits...').removeClass('error success');
+        $('.wardrobe-status').text('Loading...').removeClass('error success');
         $('#wardrobe-name').val('');
         this.render();
         $('.wardrobe').fadeIn(120);
@@ -28,7 +28,7 @@ const Wardrobe = {
         this.pendingDelete = null;
         this.busy = false;
         this.render();
-        if ($('.wardrobe-status').text() === 'Loading your outfits...') $('.wardrobe-status').text('');
+        if ($('.wardrobe-status').text() === 'Loading...') $('.wardrobe-status').text('');
     },
     Error: function(message) {
         this.busy = false;
@@ -52,12 +52,11 @@ const Wardrobe = {
             const number = $('<span class="wardrobe-slot"></span>').text(String(slot).padStart(2, '0'));
             const details = $('<div class="wardrobe-row-details"></div>');
             $('<div class="wardrobe-row-name"></div>').text(outfit ? outfit.name : 'Empty slot').appendTo(details);
-            $('<div class="wardrobe-row-subtitle"></div>').text(outfit ? 'Saved outfit' : 'Save your current outfit below').appendTo(details);
             row.append(number, details);
             if (outfit) {
                 const actions = $('<div class="wardrobe-row-actions"></div>');
                 if (this.pendingDelete === slot) {
-                    $('<button type="button" class="wardrobe-confirm">Confirm delete</button>').prop('disabled', this.busy).on('click', function() {
+                    $('<button type="button" class="wardrobe-confirm">Delete</button>').prop('disabled', this.busy).on('click', function() {
                         if (self.busy) return;
                         self.busy = true; self.render(); self.post('delete', {slot});
                     }).appendTo(actions);
@@ -79,7 +78,7 @@ const Wardrobe = {
         }
         const full = this.outfits.length >= 5;
         $('.wardrobe-save input, .wardrobe-save button').prop('disabled', this.busy || full);
-        $('#wardrobe-name').attr('placeholder', full ? 'All outfit slots are full' : 'Enter outfit name');
+        $('#wardrobe-name').attr('placeholder', full ? 'Wardrobe full' : 'Outfit name');
     }
 };
 
@@ -88,9 +87,9 @@ $('.wardrobe-save').on('submit', function(event) {
     event.preventDefault();
     const name = String($('#wardrobe-name').val() || '').trim();
     if (Wardrobe.busy || Wardrobe.outfits.length >= 5) return;
-    if (!name || [...name].length > 40) return Wardrobe.Error({data: 'Enter a name between 1 and 40 characters.'});
+    if (!name || [...name].length > 40) return Wardrobe.Error({data: 'Enter a name (1–40 characters).'});
     Wardrobe.busy = true;
     Wardrobe.render();
-    $('.wardrobe-status').text('Saving outfit...').removeClass('error success');
+    $('.wardrobe-status').text('Saving...').removeClass('error success');
     Wardrobe.post('save', {name});
 });
