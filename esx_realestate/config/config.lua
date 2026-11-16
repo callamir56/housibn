@@ -775,7 +775,7 @@ Config.Clothing = DetectActiveClothing()
 local function DetectActiveGarage()
     local resources = {
         'vms_garagesv2',
-        'rcore_garages',
+        'rcore_garage',
         'cd_garage',
         'loaf_garage',
         'jg-advancedgarages',

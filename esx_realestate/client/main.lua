@@ -78,6 +78,9 @@ RegisterNetEvent("vms_housing:cl:createdHouse", function(propertyId, newProperty
 
   -- Store the new property data
   Properties[propertyId] = newPropertyData
+  if CurrentProperty and tostring(CurrentProperty) == tostring(propertyId) then
+    CurrentPropertyData = newPropertyData
+  end
 
   -- If new is MLO, register doors if available
   local updated = Properties[propertyId]
@@ -1013,7 +1016,9 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
   elseif action == "changedWardrobePosition" then
-    Properties[propertyId].metadata.wardrobe = data.wardrobe
+    Properties[propertyId].metadata = Properties[propertyId].metadata or {}
+    local wardrobe = data and data.wardrobe
+    Properties[propertyId].metadata.wardrobe = wardrobe
 
     -- If player is inside this property, rebuild only wardrobe target
     if CurrentProperty and CurrentProperty == propertyId then
@@ -1026,18 +1031,20 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       end
 
       local inside = CurrentShell or CurrentIPL or IsInsideMLO()
-      if inside then
+      if inside and wardrobe and wardrobe.x and wardrobe.y and wardrobe.z then
         table.insert(TargetPoints, TargetHandler.Wardrobe(
           CurrentProperty,
-          CurrentPropertyData.metadata.wardrobe.x,
-          CurrentPropertyData.metadata.wardrobe.y,
-          CurrentPropertyData.metadata.wardrobe.z
+          wardrobe.x,
+          wardrobe.y,
+          wardrobe.z
         ))
       end
     end
 
   elseif action == "changedStoragePosition" then
-    Properties[propertyId].metadata.storage = data.storage
+    Properties[propertyId].metadata = Properties[propertyId].metadata or {}
+    local storage = data and data.storage
+    Properties[propertyId].metadata.storage = storage
 
     -- If player is inside this property, rebuild only storage target
     if CurrentProperty and CurrentProperty == propertyId then
@@ -1050,14 +1057,14 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       end
 
       local inside = CurrentShell or CurrentIPL or IsInsideMLO()
-      if inside then
+      if inside and storage and storage.x and storage.y and storage.z then
         table.insert(TargetPoints, TargetHandler.Storage(
           CurrentProperty,
-          CurrentPropertyData.metadata.storage.x,
-          CurrentPropertyData.metadata.storage.y,
-          CurrentPropertyData.metadata.storage.z,
-          CurrentPropertyData.metadata.storage.slots,
-          CurrentPropertyData.metadata.storage.weight
+          storage.x,
+          storage.y,
+          storage.z,
+          storage.slots,
+          storage.weight
         ))
       end
     end

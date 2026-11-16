@@ -1,3 +1,17 @@
+-- Clothing integrations load before this file. Keep wardrobe interactions safe
+-- when no supported clothing resource is running.
+if not OpenWardrobe then
+  function OpenWardrobe()
+    CL.Notification("No compatible clothing resource is configured for the wardrobe.", 5000, "error")
+  end
+end
+
+if not OpenGarage then
+  function OpenGarage()
+    CL.Notification("No compatible garage resource is configured for this property.", 5000, "error")
+  end
+end
+
 -- ============================================================================
 --  Shared Utility Library (deobfuscated)
 --  Keeps original behavior/logic, but rewritten for readability.

@@ -66,7 +66,7 @@ end
 --- Sync (re)register building parking floors with vms_garagesv2.
 --- IMPORTANT: This uses exports.vms_garagesv2 just like the original, and assumes it's available when called.
 local function reregisterBuildingParkingFloors(buildingId, buildingProperty)
-  if not (buildingProperty and buildingProperty.metadata and buildingProperty.metadata.parkingSpaces) then
+  if Config.Garages ~= "vms_garagesv2" or not (buildingProperty and buildingProperty.metadata and buildingProperty.metadata.parkingSpaces) then
     return
   end
 
@@ -533,8 +533,8 @@ RegisterNetEvent(EVENT_CREATE_HOUSE, function(houseType, houseData, existingHous
       RegisterGarage(tostring(houseId), property, false)
     end
 
-    -- Property parking re-registration (original does not gate this by Config.Garages)
-    if houseData.metadata.parking then
+    -- Property parking is supported only by vms_garagesv2.
+    if Config.Garages == "vms_garagesv2" and houseData.metadata.parking then
       exports.vms_garagesv2:registerPropertyParking(
         tostring(houseId),
         ("Property %s"):format(houseData.name),
