@@ -64,3 +64,12 @@ CREATE TABLE IF NOT EXISTS `housing_wardrobe_outfits` (
   `skin` longtext NOT NULL,
   PRIMARY KEY (`identifier`, `slot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `housing_garage_vehicles` (
+    `property_id` varchar(64) NOT NULL,
+    `owner` varchar(128) NOT NULL,
+    `plate` varchar(16) NOT NULL,
+    `vehicle` longtext NOT NULL,
+    PRIMARY KEY (`property_id`),
+    UNIQUE KEY `housing_garage_plate` (`plate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
