@@ -1058,6 +1058,49 @@ RegisterNUICallbackCompat("propertyFurniture:edit", function(_, _cb)
   closeFurnitureMenu()
 end)
 
+-- Edit a placed item belonging to the property currently occupied.
+RegisterNUICallbackCompat("propertyFurniture:editExisting", function(data, cb)
+  local id = CurrentProperty
+  local prop = id and Properties[tostring(id)]
+  local item
+  if prop and tostring(MotelManageId or id) == tostring(id) and library.HasPermissions(id, "furniture") then
+    for _, entry in pairs(prop.furniture or {}) do
+      if tonumber(entry.id) == tonumber(data.id) and entry.position and entry.position.environment == "inside" then
+        item = entry
+        break
+      end
+    end
+  end
+  if not item or Property.EditingFurniture then
+    CL.Notification("Enter the property and make sure the item is placed inside.", 5000, "error")
+    if cb then cb({ok = false}) end
+    return
+  end
+  closeManageMenu()
+  Property.EditingFurniture = true
+  if cb then cb({ok = true}) end
+  Citizen.CreateThread(function() manageFurniture(true, item.model, item.id) end)
+end)
+
+-- Begin a cash purchase by previewing it inside the current property.
+RegisterNUICallbackCompat("propertyFurniture:previewPurchase", function(data, cb)
+  local id = CurrentProperty
+  if not id or tostring(MotelManageId or id) ~= tostring(id) or not Furniture[data.model]
+    or not library.HasPermissions(id, "furniture") then
+    CL.Notification("Enter the property and make sure you have furniture permission first.", 5000, "error")
+    if cb then cb({ok = false}) end
+    return
+  end
+  if Property.EditingFurniture then
+    if cb then cb({ok = false}) end
+    return
+  end
+  closeManageMenu()
+  Property.EditingFurniture = true
+  if cb then cb({ok = true}) end
+  Citizen.CreateThread(function() manageFurniture(false, data.model, nil, true) end)
+end)
+
 RegisterNUICallbackCompat("propertyFurniture:placeNew", function(data, _cb)
   manageFurniture(false, data.model, data.id)
   closeFurnitureMenu()

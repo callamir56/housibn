@@ -541,7 +541,7 @@ Config.RemoveFurnitureOnRentEnd = true
 Config.FurnitureControls = {
     ['CLOSE'] = {controlIndex = 202},           -- Default: BACKSPACE / ESC
 
-    ['ACCEPT'] = {controlIndex = 201},          -- Default: Mouse Left
+    ['ACCEPT'] = {controlIndex = 38},           -- E: confirm placement
     ['UP'] = {controlIndex = 172},              -- Default: Arrow Up
     ['DOWN'] = {controlIndex = 173},            -- Default: Arrow Down
     ['ROTATE_LEFT'] = {controlIndex = 181},     -- Default: Scroll UP

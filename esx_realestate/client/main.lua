@@ -899,7 +899,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     if not data.furnitureId then return end
 
     for idx, f in pairs(Properties[propertyId].furniture) do
-      if f.id == data.furnitureId then
+      if tonumber(f.id) == tonumber(data.furnitureId) then
         table.remove(Properties[propertyId].furniture, idx)
         break
       end
@@ -908,6 +908,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     local ui = buildManageUpdateBase("furniture")
     ui.furniture = Properties[propertyId].furniture
     sendUiUpdate = ui
+    reloadWorldFurniture = true
 
     if isFromMe(sourceId) then
       SendNUIMessage({ action = "Property", actionName = "CloseModal" })

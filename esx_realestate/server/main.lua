@@ -874,6 +874,77 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
     cb(true)
 end)
 
+-- Immediate placement purchases: the client only proposes a model and transform.
+-- Price, access, player location, payment and persistence are server-controlled.
+local pendingPlacedFurniturePurchases = {}
+local function finiteFurnitureNumber(value)
+    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+library.RegisterCallback("vms_housing:purchasePlacedFurniture", function(src, cb, propertyId, payload)
+    if pendingPlacedFurniturePurchases[src] then return cb(false) end
+    local player = SV.GetPlayer(src)
+    local property = GetProperty(tostring(propertyId))
+    if not player or not property or not property.metadata or type(payload) ~= "table" or type(payload.model) ~= "string" then return cb(false) end
+    local identifier = SV.GetIdentifier(player)
+    if not identifier or not library.HasPermissions(propertyId, identifier, "furniture") then return cb(false) end
+    local state = Player(src).state
+    if not state.currentProperty or tostring(state.currentProperty) ~= tostring(propertyId) then return cb(false) end
+    if payload.isInside ~= true or property.metadata.allowFurnitureInside ~= true then return cb(false) end
+    local definition = Furniture[payload.model]
+    if not definition or not (definition.isIndoor == true or tonumber(definition.isIndoor) == 1) then return cb(false) end
+    local price = tonumber(definition.price)
+    if not finiteFurnitureNumber(price) or price < 0 or price > 1000000000 then return cb(false) end
+    local coords, rotation = payload.coords, payload.rotation
+    if (type(coords) ~= "table" and type(coords) ~= "vector3") or (type(rotation) ~= "table" and type(rotation) ~= "vector3") then return cb(false) end
+    for _, v in ipairs({coords.x, coords.y, coords.z, rotation.x, rotation.y, rotation.z}) do
+        if not finiteFurnitureNumber(v) then return cb(false) end
+    end
+    if coords.x == nil or coords.y == nil or coords.z == nil or rotation.x == nil or rotation.y == nil or rotation.z == nil then return cb(false) end
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return cb(false) end
+    local p = GetEntityCoords(ped)
+    local dx, dy, dz = coords.x - p.x, coords.y - p.y, coords.z - p.z
+    if dx*dx + dy*dy + dz*dz > 225.0 then return cb(false) end
+    if #(property.furniture or {}) >= GetFurnitureLimit(property.metadata.upgrades) then
+        library.Notification(src, TRANSLATE("notify.property:reached_furniture_limit"), 5000, "error")
+        return cb(false)
+    end
+    if (tonumber(SV.GetMoney(player, "cash")) or 0) < price then
+        library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
+        return cb(false)
+    end
+
+    pendingPlacedFurniturePurchases[src] = true
+    local position = {environment = "inside", x = coords.x, y = coords.y, z = coords.z, pitch = rotation.x, roll = rotation.y, yaw = rotation.z}
+    local metadata = definition.metadata and json.decode(json.encode(definition.metadata)) or {}
+    metadata.interactableName = definition.interactableName
+    SV.RemoveMoney(player, "cash", price)
+    local ok, id = pcall(function()
+        return MySQL.insert.await("INSERT INTO `houses_furniture` (`house_id`, `position`, `model`, `stored`, `metadata`) VALUES (?, ?, ?, 0, ?)",
+            {tonumber(propertyId), json.encode(position), payload.model, json.encode(metadata)})
+    end)
+    if not ok or not id then
+        SV.AddMoney(player, "cash", price)
+        pendingPlacedFurniturePurchases[src] = nil
+        library.Notification(src, "Could not save furniture; your cash was refunded.", 5000, "error")
+        return cb(false)
+    end
+    if metadata.interactableName == "storage" or metadata.interactableName == "safe" then
+        metadata.id = (metadata.interactableName == "safe" and "house_safe-" or "house_storage-") .. propertyId .. "-" .. id
+        if metadata.interactableName == "safe" then metadata.pin = "" end
+        MySQL.query("UPDATE `houses_furniture` SET `metadata` = ? WHERE `id` = ? AND `house_id` = ?", {json.encode(metadata), id, tonumber(propertyId)})
+        library.RegisterStorage(metadata)
+    end
+    local furnitureRow = {id = id, model = payload.model, stored = 0, position = position, metadata = metadata}
+    property.furniture = property.furniture or {}
+    table.insert(property.furniture, furnitureRow)
+    TriggerClientEvent("vms_housing:cl:updateProperty", -1, "addedFurniture", propertyId, {furniture = furnitureRow}, src)
+    pendingPlacedFurniturePurchases[src] = nil
+    library.Notification(src, TRANSLATE("notify.property:purchased_furniture", definition.label or payload.model, price), 5000, "success")
+    cb(true)
+end)
+
 -- Place furniture (server currently just approves)
 library.RegisterCallback("vms_housing:placeFurniture", function(sourceId, cb, propertyId, payload)
     local ply = SV.GetPlayer(sourceId)
@@ -2651,188 +2722,89 @@ end)
 RegisterNetEvent("vms_housing:sv:placeFurniture", function(propertyId, placementData)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
-  if not player then return end
-
-  local property = getPropertyOrReturn(propertyId)
-  if not property then return end
-
-  if not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then
-    return
+  local property = player and getPropertyOrReturn(propertyId)
+  if not property or not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then return end
+  if type(placementData) ~= "table" or not tonumber(placementData.id) or type(placementData.isInside) ~= "boolean" then return end
+  local coords, rotation = placementData.coords, placementData.rotation
+  if (type(coords) ~= "table" and type(coords) ~= "vector3") or (type(rotation) ~= "table" and type(rotation) ~= "vector3") then return end
+  if not finiteFurnitureNumber(coords.x) or not finiteFurnitureNumber(coords.y) or not finiteFurnitureNumber(coords.z)
+    or not finiteFurnitureNumber(rotation.x) or not finiteFurnitureNumber(rotation.y) or not finiteFurnitureNumber(rotation.z) then return end
+  if placementData.isInside then
+    local current = Player(src).state.currentProperty
+    if not current or tostring(current) ~= tostring(propertyId) or not property.metadata.allowFurnitureInside then return end
+  elseif not property.metadata.allowFurnitureOutside then return end
+  local ped = GetPlayerPed(src)
+  if not ped or ped == 0 then return end
+  local at = GetEntityCoords(ped)
+  local dx, dy, dz = coords.x - at.x, coords.y - at.y, coords.z - at.z
+  if dx*dx + dy*dy + dz*dz > 225.0 then return end
+  local item
+  for _, candidate in ipairs(property.furniture or {}) do
+    if tonumber(candidate.id) == tonumber(placementData.id) then item = candidate; break end
   end
-
-  -- Convert incoming placement payload into stored position format
-  local pos = {
-    environment = placementData.isInside and "inside" or "outside",
-    x = placementData.coords.x,
-    y = placementData.coords.y,
-    z = placementData.coords.z,
-    pitch = placementData.rotation.x,
-    roll = placementData.rotation.y,
-    yaw = placementData.rotation.z
-  }
-
-  -- Find item + ensure it’s delivered (if deliveryTime still exists -> block)
-  local isUndelivered = false
-  for _, item in pairs(property.furniture or {}) do
-    if item.id == placementData.id then
-      if item.metadata and item.metadata.deliveryTime then
-        isUndelivered = true
-        break
-      end
-
-      -- If this is a storage/safe, register it when it becomes placeable
-      if item.metadata and (item.metadata.interactableName == "storage" or item.metadata.interactableName == "safe") then
-        library.RegisterStorage(item.metadata)
-      end
-
-      item.stored = 0
-      item.position = pos
-      break
-    end
+  if not item or (item.metadata and item.metadata.deliveryTime) then return end
+  local definition = Furniture[item.model]
+  if not definition then return end
+  local flag = placementData.isInside and definition.isIndoor or definition.isOutdoor
+  if flag ~= true and tonumber(flag) ~= 1 then return end
+  local pos = {environment = placementData.isInside and "inside" or "outside", x = coords.x, y = coords.y, z = coords.z,
+    pitch = rotation.x, roll = rotation.y, yaw = rotation.z}
+  local affected = MySQL.update.await("UPDATE `houses_furniture` SET `position` = ?, `stored` = 0 WHERE `id` = ? AND `house_id` = ?",
+    {json.encode(pos), tonumber(placementData.id), tonumber(propertyId)})
+  if not affected or affected < 1 then return end
+  item.stored, item.position = 0, pos
+  if item.metadata and (item.metadata.interactableName == "storage" or item.metadata.interactableName == "safe") then
+    library.RegisterStorage(item.metadata)
   end
-
-  if isUndelivered then return end
-
-  -- ASYNC DB write
-  MySQL.query(
-    "UPDATE `houses_furniture` SET `position` = ?, `stored` = 0 WHERE `id` = ? AND `house_id` = ?",
-    { json.encode(pos), placementData.id, tonumber(propertyId) }
-  )
-
-  -- Broadcast update
-  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "placedFurniture", propertyId, {
-    furnitureId = placementData.id,
-    position = pos
-  }, src)
+  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "placedFurniture", propertyId, {furnitureId = item.id, position = pos}, src)
 end)
 
 --========================================================================
 -- Furniture: Sell furniture (only if stored=1 in DB delete condition)
 --========================================================================
-RegisterNetEvent("vms_housing:sv:sellFurniture", function(propertyId, furnitureId, modelName)
+RegisterNetEvent("vms_housing:sv:sellFurniture", function(propertyId, furnitureId, _modelName)
   local src = source
-  if not modelName or not Furniture[modelName] then return end
-
   local player, identifier = getPlayerAndIdentifier(src)
-  if not player then return end
-
-  local property = getPropertyOrReturn(propertyId)
-  if not property then return end
-
-  if not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then
-    return
+  local property = player and getPropertyOrReturn(propertyId)
+  if not property or not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then return end
+  local item, index
+  for i, candidate in ipairs(property.furniture or {}) do
+    if tonumber(candidate.id) == tonumber(furnitureId) then item, index = candidate, i; break end
   end
-
-  local furnitureDef = Furniture[modelName]
-  if not furnitureDef then
-    return library.Notification(src, TRANSLATE("notify.furniture:cannot_sold"), 5500, "error")
+  if not item or tonumber(item.stored) ~= 1 then return end
+  local definition = Furniture[item.model]
+  local price = definition and tonumber(definition.price) or 0
+  local refund = math.floor(price * (tonumber(Config.FurnitureSellPercentage) or 0) / 100)
+  if refund < 1 then return library.Notification(src, TRANSLATE("notify.furniture:cannot_sold"), 5500, "error") end
+  -- Delete first, atomically: invalid/repeated requests must never pay twice.
+  local affected = MySQL.update.await("DELETE FROM houses_furniture WHERE `house_id` = ? AND `id` = ? AND `stored` = 1", {tonumber(propertyId), tonumber(furnitureId)})
+  if not affected or affected < 1 then return end
+  for i, candidate in ipairs(property.furniture or {}) do
+    if tonumber(candidate.id) == tonumber(furnitureId) then table.remove(property.furniture, i); break end
   end
-
-  -- Calculate refund
-  if (furnitureDef.price or 0) < 1 or (Config.FurnitureSellPercentage or 0) < 1 then
-    return library.Notification(src, TRANSLATE("notify.furniture:cannot_sold"), 5500, "error")
-  end
-
-  local refund = math.floor((furnitureDef.price) * (Config.FurnitureSellPercentage / 100))
-  if refund < 1 then
-    return library.Notification(src, TRANSLATE("notify.furniture:cannot_sold"), 5500, "error")
-  end
-
-  -- Pay refund to bank
   SV.AddMoney(player, "bank", refund)
-
   library.Notification(src, TRANSLATE("notify.furniture:sold", furnitureId, refund), 5500, "success")
-
-  -- Webhook
-  SV.Webhook(
-    "SoldFurniture",
-    WebhookText["TITLE.SoldFurniture"],
-    WebhookText["DESCRIPTION.SoldFurniture"]:format(
-      SV.GetCharacterName(player),
-      src,
-      furnitureDef.label,
-      modelName,
-      furnitureId,
-      propertyId,
-      refund
-    ),
-    0,
-    identifier
-  )
-
-  -- Remove from memory list
-  for i, item in pairs(property.furniture or {}) do
-    if item.id == furnitureId then
-      table.remove(property.furniture, i)
-      break
-    end
-  end
-
-  -- DB: only deletes if stored=1 (matches original)
-  MySQL.prepare(
-    "DELETE FROM houses_furniture WHERE `house_id` = ? AND `id` = ? AND `stored` = 1",
-    { tonumber(propertyId), tonumber(furnitureId) }
-  )
-
-  -- Broadcast update
-  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "soldFurniture", propertyId, {
-    furnitureId = furnitureId
-  }, src)
+  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "soldFurniture", propertyId, {furnitureId = furnitureId}, src)
 end)
 
---========================================================================
--- Furniture: Remove furniture (admin-ish removal; also deletes if stored=1)
---========================================================================
-RegisterNetEvent("vms_housing:sv:removeFurniture", function(propertyId, furnitureId, modelName)
+-- Remove either stored or placed furniture from the current property.
+RegisterNetEvent("vms_housing:sv:removeFurniture", function(propertyId, furnitureId, _modelName)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
-  if not player then return end
-
-  local property = getPropertyOrReturn(propertyId)
-  if not property then return end
-
-  if not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then
-    return
+  local property = player and getPropertyOrReturn(propertyId)
+  if not property or not requirePermissionOrNotify(src, propertyId, identifier, "furniture") then return end
+  local item
+  for _, candidate in ipairs(property.furniture or {}) do
+    if tonumber(candidate.id) == tonumber(furnitureId) then item = candidate; break end
   end
-
-  -- Notify
-  library.Notification(src, TRANSLATE("notify.furniture:removed", furnitureId), 5500, "error")
-
-  -- Remove from memory
-  for i, item in pairs(property.furniture or {}) do
-    if item.id == furnitureId then
-      table.remove(property.furniture, i)
-      break
-    end
+  if not item then return end
+  local affected = MySQL.update.await("DELETE FROM houses_furniture WHERE `house_id` = ? AND `id` = ?", {tonumber(propertyId), tonumber(furnitureId)})
+  if not affected or affected < 1 then return end
+  for i, candidate in ipairs(property.furniture or {}) do
+    if tonumber(candidate.id) == tonumber(furnitureId) then table.remove(property.furniture, i); break end
   end
-
-  -- Webhook
-  local furnitureDef = Furniture[modelName]
-  SV.Webhook(
-    "RemovedFurniture",
-    WebhookText["TITLE.RemovedFurniture"],
-    WebhookText["DESCRIPTION.RemovedFurniture"]:format(
-      SV.GetCharacterName(player),
-      src,
-      furnitureDef and furnitureDef.label or "-",
-      modelName,
-      furnitureId,
-      propertyId
-    ),
-    0,
-    identifier
-  )
-
-  -- DB delete (stored=1)
-  MySQL.prepare(
-    "DELETE FROM houses_furniture WHERE `house_id` = ? AND `id` = ? AND `stored` = 1",
-    { tonumber(propertyId), tonumber(furnitureId) }
-  )
-
-  -- Broadcast update
-  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "removedFurniture", propertyId, {
-    furnitureId = furnitureId
-  }, src)
+  library.Notification(src, TRANSLATE("notify.furniture:removed", furnitureId), 5500, "success")
+  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "removedFurniture", propertyId, {furnitureId = furnitureId}, src)
 end)
 
 --========================================================================

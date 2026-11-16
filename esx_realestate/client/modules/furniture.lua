@@ -40,7 +40,7 @@ end
   furnitureId:
     - id for the existing furniture piece (when editing)
 ---------------------------------------------------------------------------]]
-local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
+local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, directPurchase)
   local propertyId = CurrentProperty
   if not propertyId then
     propertyId = GetCurrentPropertyId()
@@ -52,6 +52,8 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
   end
 
   local heightOffset = 0.0
+  local purchasePending = false
+  local zRotation = 0.0
   local isInside = false
 
   -- Determine if player is inside (special handling for MLO)
@@ -125,8 +127,17 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
     end
 
     if timedOut then
-      return library.Debug("Unable to load object...")
+      Property.EditingFurniture = false
+      Property.EditingFurnitureObj = nil
+      CL.Notification("Could not load this furniture model.", 5000, "error")
+      return
     end
+  end
+
+  if not Property.EditingFurnitureObj or not DoesEntityExist(Property.EditingFurnitureObj) then
+    Property.EditingFurniture = false
+    CL.Notification("Could not find this furniture item.", 5000, "error")
+    return
   end
 
   -- Prepare entity for editing/placement (no collision, frozen, invulnerable)
@@ -251,7 +262,6 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
       end
 
       -- Manual rotation around Z
-      local zRotation = 0 -- original behavior: starts at 0 for this session
       if IsControlPressed(0, Config.FurnitureControls.ROTATE_LEFT.controlIndex) then
         if IsControlReleased(0, Config.FurnitureControls.SPEED_DOWN.controlIndex) then
           zRotation = zRotation + Config.FurnitureSettings.RotateSpeed
@@ -325,7 +335,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
     end
 
     -- CLOSE key: delete/remove furniture
-    if IsControlJustPressed(0, Config.FurnitureControls.CLOSE.controlIndex) then
+    if not purchasePending and IsControlJustPressed(0, Config.FurnitureControls.CLOSE.controlIndex) then
       Property.EditingFurniture = false
       DeleteObject(Property.EditingFurnitureObj)
       Property.EditingFurnitureObj = nil
@@ -352,7 +362,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
 
     -- ACCEPT key: validate placement + save (or open purchase UI)
     EnableControlAction(0, Config.FurnitureControls.ACCEPT.controlIndex, true)
-    if IsControlJustPressed(0, Config.FurnitureControls.ACCEPT.controlIndex) then
+    if Property.EditingFurnitureObj and not purchasePending and IsControlJustPressed(0, Config.FurnitureControls.ACCEPT.controlIndex) then
       local placedCoords = GetEntityCoords(Property.EditingFurnitureObj)
 
       -- If outside, ensure within allowed polygon zone (when present)
@@ -413,7 +423,21 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId)
             isExisting = isEditingExisting,
           }
 
-          if Config.RequirePurchaseFurniture or isEditingExisting then
+          if directPurchase and not isEditingExisting then
+            if not purchasePending then
+              purchasePending = true
+              library.Callback("vms_housing:purchasePlacedFurniture", function(success)
+                purchasePending = false
+                if success and Property.EditingFurnitureObj then
+                  DeleteObject(Property.EditingFurnitureObj)
+                  Property.EditingFurnitureObj = nil
+                  Property.EditingFurniture = false
+                elseif not success then
+                  CL.Notification("Purchase was not completed; check your cash and furniture access.", 5000, "error")
+                end
+              end, propertyId, Property.EditingFurnitureData)
+            end
+          elseif Config.RequirePurchaseFurniture or isEditingExisting then
             -- [SERVER EVENT] Save placement immediately
             TriggerServerEvent("vms_housing:sv:placeFurniture", propertyId, Property.EditingFurnitureData)
 

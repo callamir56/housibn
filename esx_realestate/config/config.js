@@ -119,7 +119,7 @@ config.controlsList = {
         { control: 'BACKSPACE', label: 'Exit' },
     ],
     'Furniture:gizmo': [
-        { control: 'ENTER',     label: 'Place' },
+        { control: 'E',         label: 'Place / Confirm' },
         { control: 'RMB',       label: 'Toggle Cursor' },
         { control: 'G',         label: 'Change Mode' },
         { control: 'X',         label: 'Translation' },
@@ -128,7 +128,7 @@ config.controlsList = {
         { control: 'BACKSPACE', label: 'Cancel' },
     ],
     'Furniture:walkmode': [
-        { control: 'ENTER',     label: 'Place' },
+        { control: 'E',         label: 'Place / Confirm' },
         { control: 'SCROLL',    label: 'Rotate' },
         { control: 'G',         label: 'Change Mode' },
         { control: 'ARROW UP',  label: '+Z Axis' },

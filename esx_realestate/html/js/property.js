@@ -826,7 +826,11 @@ const Property = {
                                         <div class="clickable-btn sell" data-action="sell-furniture" data-furniture-id="${value.id}" data-model="${value.model}"><i class="fa-solid fa-dollar-sign"></i> ${translation.manage.furniture['table:button.sell']}</div>
                                         <div class="clickable-btn remove" data-action="remove-furniture" data-furniture-id="${value.id}" data-model="${value.model}"><i class="fa-solid fa-trash-can"></i> ${translation.manage.furniture['table:button.remove']}</div>
                                     ` : ''}
-                                    ${value.position?.environment ? `<div class="clickable-btn take-to-storage" data-action="take-to-storage" data-furniture-id="${value.id}"><i class="fa-solid fa-box-open"></i> ${translation.manage.furniture['table:button.take_to_storage']}</div>` : ''}
+                                    ${value.position?.environment ? `
+                                        <div class="clickable-btn" data-action="edit-placed-furniture" data-furniture-id="${value.id}" data-model="${value.model}"><i class="fa-solid fa-pen"></i> Edit position</div>
+                                        <div class="clickable-btn take-to-storage" data-action="take-to-storage" data-furniture-id="${value.id}"><i class="fa-solid fa-box-open"></i> ${translation.manage.furniture['table:button.take_to_storage']}</div>
+                                        <div class="clickable-btn remove" data-action="remove-furniture" data-furniture-id="${value.id}" data-model="${value.model}"><i class="fa-solid fa-trash-can"></i> ${translation.manage.furniture['table:button.remove']}</div>
+                                    ` : ''}
                                 </td>
                             </tr>
                         `;
@@ -1941,50 +1945,15 @@ $(document).on('click', '.housing_manage div.clickable-btn', function(e) {
             `
         );
         
+    } else if (action == 'edit-placed-furniture') {
+        $.post(`https://${GetParentResourceName()}/propertyFurniture:editExisting`, JSON.stringify({
+            id: $(this).data('furniture-id')
+        }));
+        return;
     } else if (action == 'order-furniture') {
-        let model = $(this).data('model');
-        let furnitureData = Property.FurnitureList[model];
-        if (furnitureData) {
-            $('.housing_manage>div>.menu>#order-furniture-menu>div>.data>.image').html(`<img src="./images/furniture/${model}.webp" draggable="false">`)
-
-            let deliveryCharge = furnitureData.deliveryCharge || Property.ManageData.deliveries[furnitureData.deliverySize].defaultDeliveryCharge
-
-            let informationsHTML = '';
-            informationsHTML += `<div>${translation.manage.order['checkout:modal']['description:section.informations']}</div>`
-            informationsHTML += `<span class="name"><i class="fa-solid fa-tag"></i> ${translation.manage.order['checkout:modal']['description.product']} <span>${furnitureData.label || model}</span></span>`
-            informationsHTML += `<span class="price"><i class="fa-solid fa-sack-dollar"></i> ${translation.manage.order['checkout:modal']['description.price']} <span>${translation.currency}${formatNumber(furnitureData.price, 2, 2)}</span></span>`
-            if (deliveryFurnitureType != 1) {
-                informationsHTML += `<span class="delivery-charge"><i class="fa-solid fa-truck"></i> ${translation.manage.order['checkout:modal']['description.delivery_charge']} <span>${translation.currency}${formatNumber(deliveryCharge, 2, 2)}</span></span>`
-                informationsHTML += `<span class="delivery-time"><i class="fa-solid fa-clock"></i> ${translation.manage.order['checkout:modal']['description.delivery_time']} <span>${furnitureData.deliveryTime ? formatDeliveryTime(furnitureData.deliveryTime) : formatDeliveryTime(Property.ManageData.deliveries[Number(furnitureData.deliverySize)].defaultDeliveryTime)}</span></span>`
-            }
-
-            if (furnitureData.interactableName) {
-                informationsHTML += `<div class="interactable-info">${translation.manage.order['checkout:modal']['description:section.interactable']}</div>`
-                if (config.interactableInfo[furnitureData.interactableName]) {
-                    informationsHTML += `<span>${translation.manage.order['checkout:modal']['description.type']} <span>${config.interactableInfo[furnitureData.interactableName].label}</span></span>`
-                    if (furnitureData.metadata) {
-                        for (const [metadataName, metadataValue] of Object.entries(furnitureData.metadata)) {
-                            if (metadataName == 'weight') {
-                                informationsHTML += `<span>${config.interactableInfo[furnitureData.interactableName][metadataName]}: <span>${metadataValue / 1000} ${translation['weight.kg']}</span></span>`
-                            } else {
-                                informationsHTML += `<span>${config.interactableInfo[furnitureData.interactableName][metadataName]}: <span>${metadataValue}</span></span>`
-                            }
-                        }
-                    }
-                    if (config.interactableInfo[furnitureData.interactableName].description) {
-                        informationsHTML += `<span>${translation.manage.order['checkout:modal']['description.description']} <span>${config.interactableInfo[furnitureData.interactableName].description}</span></span>`
-                    }
-                }
-            }
-
-            $('.housing_manage>div>.menu>#order-furniture-menu>div>.data>.informations').html(informationsHTML)
-
-            $('.housing_manage>div>.menu>#order-furniture-menu>div>.buttons').html(`
-                <div class="clickable-btn button" data-action="checkout-furniture" data-payment="bank" data-model="${model}">${(translation.manage.order['checkout:modal']['btn.pay']).format(translation.currency, formatNumber(Number(furnitureData.price) + Number(deliveryCharge), 0, 2))}</div>
-                <div class="clickable-btn button" data-action="checkout-furniture">${translation['button.cancel']}</div>
-            `)
-
-            $('.housing_manage>div>.menu>#order-furniture-menu').fadeIn(120);
+        const model = $(this).data('model');
+        if (model && Property.FurnitureList[model]) {
+            $.post(`https://${GetParentResourceName()}/propertyFurniture:previewPurchase`, JSON.stringify({model}));
         }
         return;
     } else if (action == 'checkout-furniture') {
