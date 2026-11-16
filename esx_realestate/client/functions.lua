@@ -633,11 +633,9 @@ function RefreshTargets()
                       )
                     end
 
-                    if not OpenGarage then
-                      return warn("")
+                    if OpenHousingGarage then
+                      OpenHousingGarage(currentZonePropertyId)
                     end
-
-                    OpenGarage(currentZonePropertyId, currentZonePropertyData)
                   end,
 
                   canInteract = function()

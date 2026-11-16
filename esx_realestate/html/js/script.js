@@ -194,6 +194,10 @@ window.addEventListener('message', function (event) {
             if (typeof Wardrobe[item.actionName] === 'function') Wardrobe[item.actionName](item);
             break;
 
+        case 'HousingGarage':
+            if (typeof HousingGarage[item.actionName] === 'function') HousingGarage[item.actionName](item);
+            break;
+
         case 'ProcessImage':
             removeGreenBackgroundEnhanced(item.image, (processedImage) => {
                 scalePhoto(processedImage, (photoData) => {
@@ -212,6 +216,7 @@ window.addEventListener('message', function (event) {
 $(document).on('keydown', 'body', function (e) {
     if (e.which == 27) {
         if (currentMenu === 'wardrobe') { Wardrobe.requestClose(); return; }
+        if (currentMenu === 'housing_garage') { HousingGarage.requestClose(); return; }
         closeKey(true)
     }
 })

@@ -12,14 +12,14 @@ const Wardrobe = {
         this.outfits = [];
         this.pendingDelete = null;
         this.busy = false;
-        $('.wardrobe-status').text('Loading...').removeClass('error success');
+        $('.wardrobe:not(.housing-garage) .wardrobe-status').text('Loading...').removeClass('error success');
         $('#wardrobe-name').val('');
         this.render();
-        $('.wardrobe').fadeIn(120);
+        $('.wardrobe:not(.housing-garage)').fadeIn(120);
         currentMenu = 'wardrobe';
     },
     Close: function() {
-        $('.wardrobe').fadeOut(120);
+        $('.wardrobe:not(.housing-garage)').fadeOut(120);
         this.busy = false;
         if (currentMenu === 'wardrobe') currentMenu = null;
     },
@@ -28,24 +28,24 @@ const Wardrobe = {
         this.pendingDelete = null;
         this.busy = false;
         this.render();
-        if ($('.wardrobe-status').text() === 'Loading...') $('.wardrobe-status').text('');
+        if ($('.wardrobe:not(.housing-garage) .wardrobe-status').text() === 'Loading...') $('.wardrobe:not(.housing-garage) .wardrobe-status').text('');
     },
     Error: function(message) {
         this.busy = false;
         this.render();
-        $('.wardrobe-status').text(message.data || 'Something went wrong.').removeClass('success').addClass('error');
+        $('.wardrobe:not(.housing-garage) .wardrobe-status').text(message.data || 'Something went wrong.').removeClass('success').addClass('error');
     },
     Success: function(message) {
         this.busy = false;
         this.render();
-        $('.wardrobe-status').text(message.data || 'Done.').removeClass('error').addClass('success');
+        $('.wardrobe:not(.housing-garage) .wardrobe-status').text(message.data || 'Done.').removeClass('error').addClass('success');
     },
     requestClose: function() { this.post('close'); },
     render: function() {
         const self = this;
-        const list = $('.wardrobe-list').empty();
+        const list = $('.wardrobe:not(.housing-garage) .wardrobe-list').empty();
         const bySlot = new Map(this.outfits.map(outfit => [Number(outfit.slot), outfit]));
-        $('.wardrobe-count').text(`${this.outfits.length} / 5`);
+        $('.wardrobe:not(.housing-garage) .wardrobe-count').text(`${this.outfits.length} / 5`);
         for (let slot = 1; slot <= 5; slot++) {
             const outfit = bySlot.get(slot);
             const row = $('<div class="wardrobe-row"></div>');
@@ -82,7 +82,7 @@ const Wardrobe = {
     }
 };
 
-$('.wardrobe-close').on('click', function() { Wardrobe.requestClose(); });
+$('.wardrobe:not(.housing-garage) .wardrobe-close').on('click', function() { Wardrobe.requestClose(); });
 $('.wardrobe-save').on('submit', function(event) {
     event.preventDefault();
     const name = String($('#wardrobe-name').val() || '').trim();
@@ -90,6 +90,6 @@ $('.wardrobe-save').on('submit', function(event) {
     if (!name || [...name].length > 40) return Wardrobe.Error({data: 'Enter a name (1–40 characters).'});
     Wardrobe.busy = true;
     Wardrobe.render();
-    $('.wardrobe-status').text('Saving...').removeClass('error success');
+    $('.wardrobe:not(.housing-garage) .wardrobe-status').text('Saving...').removeClass('error success');
     Wardrobe.post('save', {name});
 });
