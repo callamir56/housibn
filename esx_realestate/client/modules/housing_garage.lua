@@ -1,6 +1,41 @@
 local active, session, propertyId, busy = false, 0, nil, false
 local ghosts, ghostVersion = {}, 0
 local renderGhost
+local function setGhostState(vehicle, enabled)
+    if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then return end
+    if enabled then
+        SetEntityAlpha(vehicle, 102, false)
+        SetEntityCollision(vehicle, false, false)
+        SetEntityInvincible(vehicle, true)
+        SetVehicleDoorsLocked(vehicle, 2)
+        SetVehicleDoorsLockedForAllPlayers(vehicle, true)
+        SetVehicleUndriveable(vehicle, true)
+        SetVehicleEngineOn(vehicle, false, true, true)
+        FreezeEntityPosition(vehicle, true)
+    else
+        ResetEntityAlpha(vehicle)
+        SetEntityCollision(vehicle, true, true)
+        SetEntityInvincible(vehicle, false)
+        SetVehicleDoorsLocked(vehicle, 1)
+        SetVehicleDoorsLockedForAllPlayers(vehicle, false)
+        SetVehicleUndriveable(vehicle, false)
+        FreezeEntityPosition(vehicle, false)
+    end
+end
+
+AddStateBagChangeHandler('housingGarageGhost', nil, function(bagName, _, value)
+    CreateThread(function()
+        local deadline=GetGameTimer()+10000
+        local vehicle=GetEntityFromStateBagName(bagName)
+        while (not vehicle or vehicle==0 or not DoesEntityExist(vehicle)) and GetGameTimer()<deadline do
+            Wait(100); vehicle=GetEntityFromStateBagName(bagName)
+        end
+        -- Re-read the state: rapid park/take changes may overtake this thread.
+        if vehicle and vehicle~=0 and DoesEntityExist(vehicle) then
+            setGhostState(vehicle, Entity(vehicle).state.housingGarageGhost ~= nil)
+        end
+    end)
+end)
 
 local function send(action, data)
     SendNUIMessage({action='HousingGarage', actionName=action, data=data})
@@ -82,6 +117,7 @@ RegisterNUICallback('housingGarage:take',function(_,cb)
                 if NetworkDoesEntityExistWithNetworkId(result.netId) then
                     local vehicle=NetworkGetEntityFromNetworkId(result.netId)
                     if DoesEntityExist(vehicle) then
+                        setGhostState(vehicle, false)
                         NetworkRequestControlOfEntity(vehicle)
                         local controlDeadline=GetGameTimer()+5000
                         while not NetworkHasControlOfEntity(vehicle) and GetGameTimer()<controlDeadline do
@@ -141,14 +177,7 @@ renderGhost = function(row)
         -- Display safety must still be applied if a customization fails.
         local ok, err = pcall(ESX.Game.SetVehicleProperties, vehicle, row.props)
         if not ok then print(('[esx_realestate] Parked vehicle properties: %s'):format(tostring(err))) end
-        SetEntityAlpha(vehicle, 102, false)
-        SetEntityCollision(vehicle, false, false)
-        SetEntityInvincible(vehicle, true)
-        SetVehicleDoorsLocked(vehicle, 2)
-        SetVehicleDoorsLockedForAllPlayers(vehicle, true)
-        SetVehicleUndriveable(vehicle, true)
-        SetVehicleEngineOn(vehicle, false, true, true)
-        FreezeEntityPosition(vehicle, true)
+        setGhostState(vehicle, true)
         ghosts[id] = vehicle
     end)
 end
@@ -160,8 +189,18 @@ local function updateGhosts()
         if current ~= ghostVersion or type(rows) ~= 'table' then return end
         local wanted = {}
         for _, row in ipairs(rows or {}) do
-            wanted[tostring(row.id)] = true
-            renderGhost(row)
+            local id = tostring(row.id)
+            wanted[id] = true
+            if row.netId and row.netId ~= 0 then
+                if ghosts[id] and DoesEntityExist(ghosts[id]) then DeleteEntity(ghosts[id]) end
+                ghosts[id] = nil
+                if NetworkDoesEntityExistWithNetworkId(row.netId) then
+                    local vehicle = NetworkGetEntityFromNetworkId(row.netId)
+                    setGhostState(vehicle, Entity(vehicle).state.housingGarageGhost ~= nil)
+                end
+            else
+                renderGhost(row)
+            end
         end
         for id, vehicle in pairs(ghosts) do
             if not wanted[id] then

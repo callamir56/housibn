@@ -2,6 +2,14 @@ HousingDataReady=true
 local callbacks,stored, entities, props = {},nil,{[11]=true}, {model=123,plate='TEST'}
 local prop={metadata={garage={x=0,y=0,z=0,w=90}}}
 local identifier='owner'
+local bags = {}
+function Entity(e)
+  bags[e] = bags[e] or setmetatable({}, {__index={set=function(self,key,value) self[key]=value end}})
+  return {state=bags[e]}
+end
+function GetEntityHeading() return 0 end
+function SetEntityHeading() end
+function SetEntityCoords(entity,x,y,z) assert(entity==11 and x==0 and y==0 and z==0) end
 local inVehicle=false
 local failDelete=false
 local ownedStatus=0
@@ -41,13 +49,15 @@ local function call(name,...)
 end
 assert(call('status','1').ok)
 inVehicle=true; assert(not call('park','1',100,props).ok and entities[11] and not stored); inVehicle=false
-assert(call('park','1',100,props).ok and stored and not entities[11])
+assert(call('park','1',100,props).ok and stored and entities[11] and bags[11].housingGarageGhost)
 assert(call('status','1').parked.canTake)
 identifier='other';assert(not call('take','1').ok and stored)
-identifier='owner'; failDelete=true; assert(not call('take','1').ok and stored and not entities[12]); failDelete=false
-assert(call('take','1').ok and not stored and entities[12])
+identifier='owner'; failDelete=true; assert(not call('take','1').ok and stored and entities[11] and bags[11].housingGarageGhost); failDelete=false
+local released=call('take','1'); assert(released.ok and released.netId==100 and not stored and entities[11] and not bags[11].housingGarageGhost)
 entities[11]=true;entities[12]=nil
 assert(not call('park','1',100,{model=999,plate='TEST'}).ok and entities[11])
 ownedStatus=1; claimResult=0; assert(not call('park','1',100,props).ok and entities[11] and not stored and ownedStatus==1)
-claimResult=1; assert(call('park','1',100,props).ok and ownedStatus==0 and stored and not entities[11])
+claimResult=1; assert(call('park','1',100,props).ok and ownedStatus==0 and stored and entities[11] and bags[11].housingGarageGhost)
+-- Simulate server restart: original entity no longer exists; use fallback spawn.
+entities[11]=nil; assert(call('take','1').ok and not stored and entities[12])
 print('garage parking, ownership, model and retrieval tests passed')

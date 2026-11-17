@@ -24,6 +24,25 @@ local function decode(s)
     local ok,v=pcall(json.decode,s or '')
     return ok and type(v)=='table' and v or nil
 end
+-- Find only the marked, matching network vehicle. Never trust a client-supplied
+-- network ID when retrieving a car from persistent storage.
+local function findParkedEntity(id, plate, model)
+    local found, conflict
+    for _, entity in ipairs(GetAllVehicles()) do
+        if DoesEntityExist(entity)
+            and trim(GetVehicleNumberPlateText(entity)):upper() == trim(plate):upper()
+            and (GetEntityModel(entity) & 0xffffffff) == (model & 0xffffffff) then
+            local state = Entity(entity).state.housingGarageGhost
+            if type(state) == 'table' and tostring(state.propertyId) == id then
+                if found then conflict = true else found = entity end
+            else
+                -- Never respawn if the same car already exists without our marker.
+                conflict = true
+            end
+        end
+    end
+    return found, conflict or false
+end
 local function announce() TriggerClientEvent('vms_housing:garage:changed',-1) end
 local function guarded(src, cb, id, fn)
     id=tostring(id or '')
@@ -107,13 +126,24 @@ library.RegisterCallback('vms_housing:garage:park',function(src,cb,id,netId,prop
         -- Unique property and plate indexes reject concurrent attempts.
         local inserted=MySQL.update.await('INSERT INTO `housing_garage_vehicles` (`property_id`,`owner`,`plate`,`vehicle`) VALUES (?, ?, ?, ?)',{propertyId,identifier,plate,encoded})
         if not inserted or inserted~=1 then return {ok=false,reason='Could not park vehicle.'} end
-        local deleted = pcall(DeleteEntity,vehicle)
-        if not deleted or DoesEntityExist(vehicle) then
+        local p = property.metadata.garage
+        local old = GetEntityCoords(vehicle)
+        local oldHeading = GetEntityHeading(vehicle)
+        local moved, err = pcall(function()
+            Entity(vehicle).state:set('housingGarageGhost', {propertyId=propertyId}, true)
+            SetEntityCoords(vehicle, p.x, p.y, p.z, false, false, false, false)
+            SetEntityHeading(vehicle, p.w or 0.0)
+        end)
+        if not moved or not DoesEntityExist(vehicle) then
+            if DoesEntityExist(vehicle) then
+                pcall(function() Entity(vehicle).state:set('housingGarageGhost', nil, true); SetEntityCoords(vehicle, old.x, old.y, old.z, false, false, false, false); SetEntityHeading(vehicle, oldHeading) end)
+            end
             MySQL.update.await('DELETE FROM `housing_garage_vehicles` WHERE `property_id` = ? AND `owner` = ? AND `plate` = ?',{propertyId,identifier,plate})
+            if not moved then print(('[esx_realestate] Could not park vehicle: %s'):format(tostring(err))) end
             return {ok=false,reason='Could not move vehicle. Try again.'}
         end
         announce()
-        return {ok=true, ghost={id=propertyId, coords=property.metadata.garage, props=props}}
+        return {ok=true}
     end)
 end)
 
@@ -128,18 +158,34 @@ library.RegisterCallback('vms_housing:garage:take',function(src,cb,id)
         end
         if context(src,propertyId)~=identifier then return {ok=false,reason='Access denied or too far away.'} end
         local p=property.metadata.garage
-        for _,other in ipairs(GetAllVehicles()) do
-            if DoesEntityExist(other) and GetEntityRoutingBucket(other)==0 and distance(GetEntityCoords(other),p,3.5) then
-                return {ok=false,reason='Parking space is blocked.'}
+        local entity, ambiguous = findParkedEntity(propertyId, row.plate, data.model)
+        if ambiguous then return {ok=false,reason='Duplicate parked vehicles detected.'} end
+        local existing = entity ~= nil
+        if not existing then
+            for _,other in ipairs(GetAllVehicles()) do
+                if DoesEntityExist(other) and GetEntityRoutingBucket(other)==0 and distance(GetEntityCoords(other),p,3.5) then
+                    return {ok=false,reason='Parking space is blocked.'}
+                end
             end
+            -- After a server restart the original network entity may not exist.
+            entity=CreateVehicleServerSetter(data.model,'automobile',p.x,p.y,p.z,p.w or 0.0)
+            if not entity or entity==0 or not DoesEntityExist(entity) then return {ok=false,reason='Could not spawn vehicle.'} end
         end
-        -- Server-created entities avoid client-authorised spawning of duplicate cars.
-        local entity=CreateVehicleServerSetter(data.model,'automobile',p.x,p.y,p.z,p.w or 0.0)
-        if not entity or entity==0 or not DoesEntityExist(entity) then return {ok=false,reason='Could not spawn vehicle.'} end
         local net=NetworkGetNetworkIdFromEntity(entity)
-        if not net or net==0 then DeleteEntity(entity); return {ok=false,reason='Could not spawn vehicle.'} end
+        if not net or net==0 then if not existing then DeleteEntity(entity) end; return {ok=false,reason='Could not retrieve vehicle.'} end
+        if existing then
+            local released = pcall(function() Entity(entity).state:set('housingGarageGhost', nil, true) end)
+            if not released then return {ok=false,reason='Could not release vehicle.'} end
+        end
         local dbOk,removed=pcall(MySQL.update.await,'DELETE FROM `housing_garage_vehicles` WHERE `property_id` = ? AND `owner` = ? AND `plate` = ?',{propertyId,identifier,row.plate})
-        if not dbOk or removed~=1 then DeleteEntity(entity); return {ok=false,reason='Could not retrieve vehicle.'} end
+        if not dbOk or removed~=1 then
+            if existing then
+                pcall(function() Entity(entity).state:set('housingGarageGhost', {propertyId=propertyId}, true) end)
+            else
+                DeleteEntity(entity)
+            end
+            return {ok=false,reason='Could not retrieve vehicle.'}
+        end
         announce()
         return {ok=true,netId=net,props=data}
     end)
@@ -158,7 +204,11 @@ library.RegisterCallback('vms_housing:garage:ghosts',function(src,cb)
         local p=property and property.metadata and property.metadata.garage
         if p and distance(pos,p,100.0) then
             local data=decode(row.vehicle)
-            if data and type(data.model)=='number' then result[#result+1]={id=row.property_id,coords=p,props=data} end
+            if data and type(data.model)=='number' then
+                local entity, ambiguous = findParkedEntity(tostring(row.property_id), data.plate, data.model)
+                local net = not ambiguous and entity and NetworkGetNetworkIdFromEntity(entity) or nil
+                result[#result+1]={id=row.property_id,coords=p,props=data,netId=net}
+            end
         end
     end
     cb(result)

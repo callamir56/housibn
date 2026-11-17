@@ -10,6 +10,7 @@ function GetEntityCoords(id) return positions[id] end
 function NetworkGetEntityFromNetworkId(id) return id+100 end
 function DoesEntityExist(id) return positions[id] ~= nil end
 function GetEntityType() return 2 end
+function Entity() return {state={}} end
 function GetEntityRoutingBucket() return 0 end
 function GetPlayerRoutingBucket() return 0 end
 function GetVehicleNumberPlateText(id) return id==101 and ' OWNED ' or id==140 and ' other ' or 'FOREIGN' end

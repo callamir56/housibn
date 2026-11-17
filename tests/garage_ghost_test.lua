@@ -1,8 +1,13 @@
 -- Ghost display is a local, locked, non-colliding vehicle at the garage point.
 local events, callbacks, threads, states = {}, {}, {}, {}
+local changeHandler, marker
 function RegisterNUICallback(name, fn) callbacks[name]=fn end
 function RegisterNetEvent(name, fn) events[name]=fn end
 function AddEventHandler() end
+function AddStateBagChangeHandler(_, _, fn) changeHandler=fn end
+function GetEntityFromStateBagName() return 77 end
+function Entity() return {state={housingGarageGhost=marker}} end
+function ResetEntityAlpha() states.alpha=255 end
 function CreateThread(fn) threads[#threads+1]=fn end
 function DoesEntityExist(id) return id==77 and not states.deleted end
 function IsModelAVehicle(model) return model==123 end
@@ -33,4 +38,8 @@ assert(#threads==1) -- periodic refresh thread, not run in this mock
 events['vms_housing:garage:changed']()
 assert(#threads==2); threads[2]()
 assert(states.alpha==102 and states.collision==false and states.invincible and states.lock==2 and states.lockAll and states.undriveable and states.frozen)
-print('parked vehicle display position, opacity, locking and collision checks passed')
+marker={propertyId='42'}; changeHandler('entity:1',nil,marker); threads[3]()
+assert(states.alpha==102 and states.collision==false and states.undriveable)
+marker=nil; changeHandler('entity:1',nil,nil); threads[4]()
+assert(states.alpha==255 and states.collision==true and not states.undriveable and not states.frozen and not states.lockAll)
+print('parked vehicle display and network ghost state restore passed')

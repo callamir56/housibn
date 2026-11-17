@@ -42,6 +42,7 @@ library.RegisterCallback('vms_housing:garage:candidates', function(src, cb, prop
                 seen[id] = true
                 local vehicle = NetworkGetEntityFromNetworkId(id)
                 if vehicle and vehicle ~= 0 and DoesEntityExist(vehicle) and GetEntityType(vehicle) == 2
+                    and not Entity(vehicle).state.housingGarageGhost
                     and near(GetEntityCoords(vehicle), GetEntityCoords(ped), 12.0)
                     and GetEntityRoutingBucket(vehicle) == GetPlayerRoutingBucket(src) then
                     local key = plateKey(GetVehicleNumberPlateText(vehicle))
