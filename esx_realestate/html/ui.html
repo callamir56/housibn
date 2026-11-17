@@ -27,6 +27,28 @@
 </head>
 
 <body id="body">
+    <div class="property-deed" style="display:none">
+        <div>
+            <div class="card">
+                <div id="date"><div>PROPERTY RECORD</div><p class="deed-issued"></p></div>
+                <div class="center" id="title">PROPERTY DEED</div>
+                <hr>
+                <div>
+                    <div class="paragraph_1">PROPERTY</div>
+                    <div class="paragraph_text_1">Property <strong class="deed-id"></strong><br><span class="deed-name"></span><br><span class="deed-address"></span></div>
+                    <div class="paragraph_2">OWNER OF RECORD</div>
+                    <div class="paragraph_text_2"><strong class="deed-owner"></strong> is the current registered owner of this property in the housing records.</div>
+                    <div class="paragraph_3">DECLARATION</div>
+                    <div class="paragraph_text_3">This document reflects current ownership. Signing acknowledges the record and does not transfer ownership.</div>
+                </div>
+                <div class="signatures"><div class="seller"><div class="signature deed-signature"></div><div class="dots">.........................</div><div class="signature-text">Owner signature <span class="deed-signed-date"></span></div></div></div>
+                <div class="deed-actions"><button type="button" class="deed-sign">Sign deed</button><button type="button" class="deed-back">Back</button></div>
+                <div class="deed-status" role="status" aria-live="polite"></div>
+            </div>
+            <div class="card card_second"></div>
+        </div>
+    </div>
+
     <div class="contract">
         <div>
             <div class="card">
@@ -2379,6 +2401,7 @@
     <script src="js/housing_creator.js" type="text/javascript"></script>
     <script src="js/furniture.js" type="text/javascript"></script>
     <script src="js/property.js" type="text/javascript"></script>
+    <script src="js/deed.js" type="text/javascript"></script>
     <script src="js/marketplace.js" type="text/javascript"></script>
     <script src="js/safe.js" type="text/javascript"></script>
     <script src="js/wardrobe.js" type="text/javascript"></script>

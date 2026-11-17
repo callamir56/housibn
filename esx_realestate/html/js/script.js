@@ -290,6 +290,7 @@ function updateSection(menuClass, newMenu, _this, isEditingProperty) {
 }
 
 function closeKey(isESC) {
+    if (Deed.isOpen) { Deed.close(); return; }
     if (isESC && $('.marketplace').hasClass('contract-opened')) {
         $('.contract').fadeOut(150);
         $('.marketplace').fadeIn(150).removeClass('contract-opened');

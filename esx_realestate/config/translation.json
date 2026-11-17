@@ -77,22 +77,22 @@
             "purchase": {
                 "title": "Contract for Purchase",
                 "paragraph_1_title": "§1 - Subject of the Contract",
-                "paragraph_1_text": "The Seller grants the Buyer{0} the right to use the property located at {1}. The Buyer agrees to comply with the property usage regulations set forth by the city administration.",
+                "paragraph_1_text": "The Seller agrees to transfer ownership of the property at {1} to the Buyer{0}, subject to completion of this transaction.",
                 "paragraph_2_title": "§2 - Purchase Price and Payment",
-                "paragraph_2_text": "The Buyer agrees to pay the full amount of {0}{1}, selecting one of the available payment methods: {2}.",
+                "paragraph_2_text": "The purchase price is {0}{1}. Payment method: {2}.",
                 "paragraph_3_title": "§3 - Additional Fees",
-                "paragraph_3_text": "The Buyer agrees to regularly pay the following utility bills:{0}<br>Failure to pay for these services may result in disconnection.",
+                "paragraph_3_text": "The Buyer is responsible for applicable utility bills:{0}",
                 "seller_signature": "Seller's signature",
                 "buyer_signature": "Signature of the buyer"
             },
             "rent": {
                 "title": "Rental Contract",
                 "paragraph_1_title": "§1 - Subject of the Contract",
-                "paragraph_1_text": "The Lessor grants the Tenant{0} the right to use the property located at {1}. The Tenant agrees to comply with the property usage regulations set forth by the city administration.",
+                "paragraph_1_text": "The Lessor rents the property at {1} to the Tenant{0}, subject to the terms below.",
                 "paragraph_2_title": "§2 - Rental Price and Payment",
-                "paragraph_2_text": "Choose billing frequency: {0}<br>The rental cost is {1}{2} per {3}. Failure to make payments will result in automatic eviction after {4} {5}.<br>Select one of the available payment methods: {6}",
+                "paragraph_2_text": "Billing frequency: {0}<br>Rent: {1}{2} per {3}. Unpaid rent may result in eviction after {4} {5}.<br>Payment method: {6}",
                 "paragraph_3_title": "§3 - Additional Fees",
-                "paragraph_3_text": "The Tenant agrees to regularly pay the following utility bills:{0}<br>Failure to pay for these services may result in disconnection.",
+                "paragraph_3_text": "The Tenant is responsible for applicable utility bills:{0}",
                 "landlord_signature": "Landlord's signature",
                 "lessee_signature": "Signature of the lessee"
             }

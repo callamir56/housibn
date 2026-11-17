@@ -1625,3 +1625,16 @@ end)
 RegisterNUICallbackCompat("sendNotification", function(data, _cb)
   CL.Notification(TRANSLATE(data.name), 5000, data.type)
 end)
+
+-- Deeds are opened from property management and verified again by the server.
+RegisterNUICallbackCompat('deed:request', function(data, cb)
+  local action = type(data) == 'table' and data.action
+  local id = MotelManageId or CurrentProperty or GetCurrentPropertyId()
+  if openedMenu ~= 'PropertyManage' or not id or (action ~= 'view' and action ~= 'sign') then
+    return cb({ok=false,reason='Deed unavailable.'})
+  end
+  library.Callback('vms_housing:deed', function(result)
+    if openedMenu ~= 'PropertyManage' then return cb({ok=false,reason='Menu closed.'}) end
+    cb(result or {ok=false,reason='Deed unavailable.'})
+  end, action, tostring(id))
+end)

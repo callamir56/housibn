@@ -376,6 +376,12 @@ const Property = {
                 <i class="fa-solid fa-house"></i>
                 <p class="label">${translation.manage.side_menu['option:my_house']}</p>
             </li>
+            ${this.ManageData.isOwner && !this.ManageData.isDevice ? `
+                <li class="element" data-href="property-deed">
+                    <i class="fa-solid fa-file-signature"></i>
+                    <p class="label">Property deed</p>
+                </li>
+            ` : ''}
             
             <span>${translation.manage.side_menu['section:furniture']} <div class="separator"></div></span>
             ${this.HasPermission('furniture') ? `
@@ -1128,6 +1134,7 @@ const Property = {
     },
 
     CloseManage: function () {
+        Deed.hide();
         $(`
             .housing_manage,
             .housing_manage>div>.menu>#order-furniture-menu
@@ -1776,7 +1783,9 @@ $(document).on('click', '.housing_manage div[data-type="marketplace"] > div > .s
 $(document).on('click', '.housing_manage .menu ul > li', function(e) {
     let newMenu = $(this).data('href');
     
-    if (newMenu == 'rent-out') {
+    if (newMenu == 'property-deed') {
+        return Deed.open();
+    } else if (newMenu == 'rent-out') {
         reloadContract('rent-out', {
             data: {
                 address: Property.ManageData.address,

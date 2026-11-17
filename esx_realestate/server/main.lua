@@ -153,6 +153,8 @@ RegisterCommand("TebexProperty", function(src, args)
     end
 
     -- Assign owner + reset sale/rental
+    prop.metadata.deedSignature = nil
+    updateMetadata = true
     prop.owner = targetIdentifier
     prop.owner_name = SV.GetCharacterName(targetPlayer)
     prop.sale.active = false
@@ -1150,6 +1152,7 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
     end
 
     -- Reset property state
+    prop.metadata.deedSignature = nil
     prop.owner = nil
     prop.owner_name = nil
     prop.keys = json.encode({})
@@ -1294,6 +1297,8 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
     )
 
     -- Assign owner
+    prop.metadata.deedSignature = nil
+    updateMetadata = true
     prop.owner = identifier
     prop.owner_name = SV.GetCharacterName(ply)
 
@@ -3691,6 +3696,7 @@ RegisterNetEvent("vms_housing:sv:removeOwner", function(propertyId)
   local completelyRemoved = not property.renter
 
   property.permissions[property.owner] = nil
+  property.metadata.deedSignature = nil
   property.owner = nil
   property.owner_name = nil
 
@@ -3719,8 +3725,8 @@ RegisterNetEvent("vms_housing:sv:removeOwner", function(propertyId)
     payload.rental = property.rental
   else
     MySQL.query(
-      "UPDATE `houses` SET `owner` = NULL, `owner_name` = NULL WHERE `id` = ?",
-      { tonumber(propertyIdStr) }
+      "UPDATE `houses` SET `owner` = NULL, `owner_name` = NULL, `metadata` = ? WHERE `id` = ?",
+      { json.encode(property.metadata), tonumber(propertyIdStr) }
     )
   end
 
