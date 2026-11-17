@@ -3,6 +3,14 @@ Config={Inventory="ox_inventory"}
 function GetResourceState() return "started" end
 local granted
 exports={ox_inventory={AddItem=function(_,src,name,count,meta) granted={src=src,name=name,count=count,meta=meta}; return true end}}
+HousingDeedCopyCount=function() return 0 end
+HousingDeedIssue=function(src,id,identifier,kind)
+    local prop=GetProperty(id)
+    if not prop.metadata.deedSignature then return false,'Sign the deed first.' end
+    local metadata={propertyId=id,owner=identifier}
+    exports.ox_inventory:AddItem(src,'property_deed',1,metadata)
+    return true,'Issued.'
+end
 local callback, db = nil, nil
 local currentId='owner:a'
 local property={owner='owner:a',owner_name='A Player',name='My House',address='Example St',metadata={locked=true}}

@@ -4,6 +4,10 @@ const Deed = {
     generation: 0,
     mode: 'manage',
     picking: false,
+    copyButton: function(count) {
+        const n = Number(count || 0);
+        $('.property-deed .deed-item').text(n >= 2 ? 'Copy limit reached' : (n === 0 ? 'Get original' : 'Get copy')).prop('disabled', n >= 2);
+    },
     request: function(action) {
         if (this.busy) return;
         this.busy = true;
@@ -14,8 +18,8 @@ const Deed = {
             .done(data => {
                 if (!this.isOpen || current !== this.generation) return;
                 this.busy = false;
-                if (!data || !data.ok) { $('.property-deed .deed-status').text(data?.reason || 'Deed unavailable.'); $('.property-deed .deed-sign, .property-deed .deed-item').prop('disabled', false); return; }
-                if (action === 'item') { $('.property-deed .deed-status').text(data.message || 'Done.'); $('.property-deed .deed-item').prop('disabled', false); return; }
+                if (!data || !data.ok) { $('.property-deed .deed-status').text(data?.reason || 'Deed unavailable.'); $('.property-deed .deed-sign').prop('disabled', false); if (data?.copyCount != null) this.copyButton(data.copyCount); else $('.property-deed .deed-item').prop('disabled', false); return; }
+                if (action === 'item') { $('.property-deed .deed-status').text(data.message || 'Done.'); this.copyButton(data.copyCount); return; }
                 this.render(data);
             })
             .fail(() => { if (this.isOpen && current === this.generation) { this.busy = false; $('.property-deed .deed-status').text('Deed unavailable.'); $('.property-deed .deed-sign, .property-deed .deed-item').prop('disabled', false); } });
@@ -30,7 +34,8 @@ const Deed = {
         box.find('.deed-signature').text(data.signature || '');
         box.find('.deed-signed-date').text(data.signedAt ? `· ${data.signedAt}` : '');
         box.find('.deed-sign').toggle(this.mode === 'manage' && !data.signature).prop('disabled', false);
-        box.find('.deed-item').toggle(this.mode === 'manage' && !!data.signature).prop('disabled', false);
+        box.find('.deed-item').toggle(this.mode === 'manage' && !!data.signature);
+        this.copyButton(data.copyCount);
         box.find('.deed-status').text('');
     },
     open: function() {
@@ -62,22 +67,22 @@ const Deed = {
                     .fail(() => { $('.deed-picker-status').text('Try again.'); $('.deed-picker-list button').prop('disabled', false); });
             }).appendTo(list);
         });
-        $('.deed-picker').fadeIn(120); currentMenu = 'deed_picker';
+        $('.deed-picker:not(.deed-approval)').fadeIn(120); currentMenu = 'deed_picker';
     },
     closePicker: function() {
         if (!this.picking) return;
-        this.picking = false; $('.deed-picker').hide(); if (currentMenu === 'deed_picker') currentMenu = null;
+        this.picking = false; $('.deed-picker:not(.deed-approval)').hide(); if (currentMenu === 'deed_picker') currentMenu = null;
         $.post(`https://${GetParentResourceName()}/deedShare:cancel`, JSON.stringify({}));
     },
     Show: function(message) {
-        this.picking = false; $('.deed-picker').hide();
+        this.picking = false; $('.deed-picker:not(.deed-approval)').hide();
         this.mode = message.role === 'owner' ? 'owner' : 'viewer';
         this.isOpen = true; this.busy = false; this.generation++;
         $('.property-deed .deed-back').text('Close');
         this.render(message.data || {}); $('.property-deed').fadeIn(150); currentMenu = 'deed_share';
     },
     ForceClose: function() {
-        this.picking = false; $('.deed-picker').hide();
+        this.picking = false; $('.deed-picker:not(.deed-approval)').hide();
         if (this.mode !== 'manage') this.hide();
         if (currentMenu === 'deed_share' || currentMenu === 'deed_picker') currentMenu = null;
     }
@@ -86,3 +91,21 @@ $('.property-deed .deed-sign').on('click', function() { Deed.request('sign'); })
 $('.property-deed .deed-item').on('click', function() { Deed.request('item'); });
 $('.property-deed .deed-back, .property-deed .deed-close-x').on('click', function() { Deed.close(); });
 $('.deed-picker-close').on('click', function() { Deed.closePicker(); });
+
+const DeedAgency = {
+    isOpen: false,
+    Open: function(message) {
+        this.isOpen = true;
+        $('.deed-approval-agent').text(message.agent || 'An agent');
+        $('.deed-approval-property').text([message.property, message.address].filter(Boolean).join(' · '));
+        $('.deed-approval').fadeIn(120); currentMenu = 'deed_approval';
+    },
+    Close: function() { this.isOpen = false; $('.deed-approval').hide(); if (currentMenu === 'deed_approval') currentMenu = null; },
+    answer: function(accept) {
+        if (!this.isOpen) return;
+        this.Close();
+        $.post(`https://${GetParentResourceName()}/deedAgency:answer`, JSON.stringify({accept: !!accept}));
+    }
+};
+$('.deed-approval-actions button').on('click', function() { DeedAgency.answer($(this).data('answer') === 'accept'); });
+$('.deed-approval-close').on('click', function() { DeedAgency.answer(false); });

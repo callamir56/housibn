@@ -11,13 +11,14 @@ local function resultFor(src, propertyId)
 end
 local function deed(property, propertyId, identifier, player)
     local name = property.owner_name
-    if type(name) ~= 'string' or name == '' then name = SV.GetCharacterName(player) end
+    if (type(name) ~= 'string' or name == '') and player and SV.GetIdentifier(player) == identifier then name = SV.GetCharacterName(player) end
     if type(name) ~= 'string' or name == '' then name = 'Unknown owner' end
     local signature = property.metadata and property.metadata.deedSignature
     if type(signature) ~= 'table' or signature.owner ~= identifier then signature = nil end
     return {ok = true, id = propertyId, address = property.address or 'Not available',
         name = property.name or '', owner = name, issued = os.date('!%Y-%m-%d'),
-        signature = signature and signature.name or nil, signedAt = signature and signature.date or nil}
+        signature = signature and signature.name or nil, signedAt = signature and signature.date or nil,
+        copyCount = HousingDeedCopyCount and HousingDeedCopyCount(property,propertyId) or nil}
 end
 library.RegisterCallback('vms_housing:deed', function(src, cb, action, propertyId)
     propertyId = tostring(propertyId or '')
@@ -25,18 +26,10 @@ library.RegisterCallback('vms_housing:deed', function(src, cb, action, propertyI
     if not property then return cb({ok=false, reason='Access denied.'}) end
     if action == 'view' then return cb(deed(property, propertyId, identifier, player)) end
     if action == 'item' then
-        if Config.Inventory ~= 'ox_inventory' or GetResourceState('ox_inventory') ~= 'started' then
-            return cb({ok=false, reason='ox_inventory is not available.'})
-        end
-        local signature=property.metadata and property.metadata.deedSignature
-        if type(signature)~='table' or signature.owner~=identifier then return cb({ok=false,reason='Sign the deed first.'}) end
-        local metadata={propertyId=propertyId, owner=identifier}
-        local ok, added, reason=pcall(function() return exports.ox_inventory:AddItem(src,'property_deed',1,metadata) end)
-        if not ok or not added then
-            print(('[esx_realestate] Could not issue deed item: %s'):format(tostring(reason or added)))
-            return cb({ok=false,reason='Could not issue item. Check inventory space and item setup.'})
-        end
-        return cb({ok=true,message='Deed added to inventory.'})
+        if not HousingDeedIssue then return cb({ok=false,reason='Deed unavailable.'}) end
+        local ok,message=HousingDeedIssue(src,propertyId,identifier,'owner')
+        local count=HousingDeedCopyCount(property,propertyId)
+        return cb({ok=ok,reason=not ok and message or nil,message=ok and message or nil,copyCount=count})
     end
     if action ~= 'sign' or pending[propertyId] then return cb({ok=false, reason='Please try again.'}) end
     pending[propertyId] = true

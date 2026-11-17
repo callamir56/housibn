@@ -43,7 +43,7 @@
                     <div class="paragraph_text_3">This document reflects current ownership. Signing acknowledges the record and does not transfer ownership.</div>
                 </div>
                 <div class="signatures"><div class="seller"><div class="signature deed-signature"></div><div class="dots">.........................</div><div class="signature-text">Owner signature <span class="deed-signed-date"></span></div></div></div>
-                <div class="deed-actions"><button type="button" class="deed-sign">Sign deed</button><button type="button" class="deed-item" style="display:none">Get item</button><button type="button" class="deed-back">Back</button></div>
+                <div class="deed-actions"><button type="button" class="deed-sign">Sign deed</button><button type="button" class="deed-item" style="display:none">Get copy</button><button type="button" class="deed-back">Back</button></div>
                 <div class="deed-status" role="status" aria-live="polite"></div>
             </div>
             <div class="card card_second"></div>
@@ -54,6 +54,13 @@
       <div class="deed-picker-panel">
         <header><div><i class="fa-solid fa-users"></i> <strong>Show deed</strong></div><button type="button" class="deed-picker-close" aria-label="Close">×</button></header>
         <div class="deed-picker-content"><h2>Choose a player</h2><div class="deed-picker-list"></div><div class="deed-picker-status" role="status"></div></div>
+      </div>
+    </section>
+
+    <section class="deed-picker deed-approval" style="display:none" aria-label="Deed copy request">
+      <div class="deed-picker-panel">
+        <header><div><i class="fa-solid fa-file-signature"></i> <strong>Copy request</strong></div><button type="button" class="deed-approval-close" aria-label="Decline">×</button></header>
+        <div class="deed-picker-content"><h2>Allow this copy?</h2><p><strong class="deed-approval-agent"></strong> wants a copy of your deed.</p><p class="deed-approval-property"></p><div class="deed-approval-actions"><button type="button" data-answer="accept">Accept</button><button type="button" data-answer="decline">Decline</button></div></div>
       </div>
     </section>
 

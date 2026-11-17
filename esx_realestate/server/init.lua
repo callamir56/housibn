@@ -186,6 +186,20 @@ MySQL.ready(function()
         ]])
 
         MySQL.query.await([[
+            CREATE TABLE IF NOT EXISTS `housing_deed_issuances` (
+              `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+              `property_id` int NOT NULL,
+              `revision` varchar(64) NOT NULL,
+              `owner` varchar(128) NOT NULL,
+              `holder` varchar(128) NOT NULL,
+              `kind` varchar(16) NOT NULL,
+              `owner_slot` tinyint unsigned DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `deed_owner_slot` (`property_id`,`revision`,`owner_slot`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        ]])
+
+        MySQL.query.await([[
             CREATE TABLE IF NOT EXISTS `housing_wardrobe_outfits` (
                 `identifier` varchar(128) NOT NULL,
                 `slot` tinyint unsigned NOT NULL,

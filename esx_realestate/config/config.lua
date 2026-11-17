@@ -801,6 +801,9 @@ Config.Garages = DetectActiveGarage()
 -- ██║██║╚██╗██║╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝  
 -- ██║██║ ╚████║ ╚████╔╝ ███████╗██║ ╚████║   ██║   ╚██████╔╝██║  ██║   ██║   
 -- ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
+-- ESX job allowed to request additional deed copies (change to your job name).
+Config.DeedAgencyJob = 'realestateagent'
+
 local function DetectActiveInventory()
     local resources = {
         'codem-inventory',

@@ -202,6 +202,10 @@ window.addEventListener('message', function (event) {
             if (typeof Deed[item.actionName] === 'function') Deed[item.actionName](item);
             break;
 
+        case 'DeedAgency':
+            if (typeof DeedAgency[item.actionName] === 'function') DeedAgency[item.actionName](item);
+            break;
+
         case 'ProcessImage':
             removeGreenBackgroundEnhanced(item.image, (processedImage) => {
                 scalePhoto(processedImage, (photoData) => {
@@ -298,6 +302,7 @@ function updateSection(menuClass, newMenu, _this, isEditingProperty) {
 }
 
 function closeKey(isESC) {
+    if (DeedAgency.isOpen) { DeedAgency.answer(false); return; }
     if (Deed.picking) { Deed.closePicker(); return; }
     if (Deed.isOpen) { Deed.close(); return; }
     if (isESC && $('.marketplace').hasClass('contract-opened')) {

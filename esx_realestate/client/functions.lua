@@ -183,6 +183,18 @@ end
 ---- property type (building/motel/house/mlo)
 ---- whether player has permissions / keys
 ---- whether player is inside an interior (shell / IPL / MLO)
+local function DeedAgencyOption(propertyId, suffix)
+  local id = tostring(propertyId)
+  return {
+    name = 'property-deed-request-' .. id,
+    icon = 'fa-solid fa-file-signature',
+    label = 'Property deed' .. (suffix and (' · ' .. suffix) or ''),
+    distance = 2.5,
+    jobs = Config.DeedAgencyJob,
+    action = function() TriggerServerEvent('vms_housing:deedAgency:request', id) end,
+  }
+end
+
 function RefreshTargets()
   local currentZonePropertyId = GetCurrentPropertyId()
   local currentZonePropertyData = GetCurrentPropertyData()
@@ -197,6 +209,16 @@ function RefreshTargets()
     if currentZonePropertyData.type == "building" then
       local apartments = Property:GetApartments(currentZonePropertyData, true)
 
+      local buildingOptions = {{
+        name = "property-offer",
+        icon = "fa-solid fa-scroll",
+        label = TRANSLATE("target.view_house"),
+        action = function() Property:BuildingMenu(currentZonePropertyData, apartments) end,
+      }}
+      for _, apartment in ipairs(apartments) do
+        buildingOptions[#buildingOptions + 1] = DeedAgencyOption(apartment.id, tostring(apartment.name or apartment.id))
+      end
+
       -- Building "view house" target
       table.insert(TargetPoints, {
         type = "zone",
@@ -204,16 +226,7 @@ function RefreshTargets()
           coords = currentZonePropertyData.metadata.enter,
           size = vec(1.0, 1.5, 2.0),
           rotation = currentZonePropertyData.metadata.exit.w,
-          options = {
-            {
-              name = "property-offer",
-              icon = "fa-solid fa-scroll",
-              label = TRANSLATE("target.view_house"),
-              action = function()
-                Property:BuildingMenu(currentZonePropertyData, apartments)
-              end,
-            },
-          },
+          options = buildingOptions,
         }),
       })
 
@@ -267,7 +280,7 @@ function RefreshTargets()
 
       for _, room in pairs(rooms) do
         local roomIdStr = tostring(room.id)
-        local options = {}
+        local options = { DeedAgencyOption(roomIdStr) }
 
         -- Player has some connection to the room (owner/renter)
         if room.owner or room.renter then
@@ -441,7 +454,7 @@ function RefreshTargets()
       if not CurrentShell and not CurrentIPL then
         local hasEntryOrMenu = currentZonePropertyData.metadata.enter or currentZonePropertyData.metadata.menu
         if hasEntryOrMenu then
-          local options = {}
+          local options = { DeedAgencyOption(currentZonePropertyId) }
 
           -- Owned/rented path
           if currentZonePropertyData.owner or currentZonePropertyData.renter then

@@ -18,11 +18,21 @@ SV={GetPlayer=function(src) if positions[src] then return {id=src} end end,
     GetIdentifier=function(player) return player.id==1 and 'owner' or 'other' end,
     GetCharacterName=function(player) return 'Name '..player.id end}
 exports={ox_inventory={GetSlot=function(_,src,slot) if src==1 and slot==5 then return item end end}}
+function HousingDeedValidateItem(src,data)
+    local p=GetProperty(data.propertyId)
+    local player=SV.GetPlayer(src)
+    local actual=exports.ox_inventory:GetSlot(src,data.slot)
+    if p and player and p.owner==SV.GetIdentifier(player) and actual and actual.metadata.owner==p.owner then return p,p.owner,player end
+end
 function HousingDeedData(property,id) return {ok=true,id=id,owner=property.owner_name} end
 library={Notification=function() end,RegisterCallback=function(n,cb) callbacks[n]=cb end}
 function TriggerClientEvent(name,target,...) emitted[#emitted+1]={name=name,target=target,args={...}} end
 assert(loadfile('esx_realestate/server/modules/deed_share.lua'))()
 local used=handlers['ox_inventory:usedItem']
+-- With nobody nearby, the holder still sees their own deed.
+positions[2]={x=40,y=0,z=0}; used(1,'property_deed',5,item.metadata)
+assert(#emitted==1 and emitted[1].target==1 and emitted[1].args[2]=='owner')
+source=1; net['vms_housing:deedShare:close'](emitted[1].args[1]); emitted={}; positions[2]={x=1,y=0,z=0}
 used(1,'property_deed',5,item.metadata)
 assert(#emitted==2 and emitted[1].target==1 and emitted[2].target==2)
 local id=emitted[1].args[1]

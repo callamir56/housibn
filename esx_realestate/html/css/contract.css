@@ -223,3 +223,9 @@
 .deed-picker-status { color:#ff8585; font-size:.85em; padding-top:.7em; }
 
 .property-deed .deed-close-x { position:absolute; right:1.1em; top:1em; border:0; background:transparent; color:#555; font-size:1.6em; cursor:pointer; }
+
+.deed-approval-close { border:0; background:#ffffff0d; border-radius:.3em; color:white; width:2em; height:2em; cursor:pointer; }
+.deed-approval p { color:#c8c8c8; font-size:.9em; }
+.deed-approval-actions { display:flex; gap:.6em; margin-top:1.5em; }
+.deed-approval-actions button { border:0; border-radius:.35em; padding:.6em 1.1em; font:inherit; font-weight:700; color:white; background:var(--main-color); cursor:pointer; }
+.deed-approval-actions button[data-answer="decline"] { background:#ffffff18; }
