@@ -209,3 +209,17 @@
 .property-deed .deed-actions button:hover { background: #573cfa; }
 .property-deed .deed-actions button:disabled { opacity: .5; cursor: default; }
 .property-deed .deed-status { position: absolute; left: 2em; bottom: 1.3em; color: #a22; font-size: .8em; }
+
+.deed-picker { position:absolute; inset:0; z-index:5100; color:var(--primary-text-color); }
+.deed-picker-panel { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(30em,94vw); max-height:80vh; background:var(--menu-background); border-radius:.9em; box-shadow:0 0 4em #0d0d0d8c; overflow:hidden; }
+.deed-picker header { display:flex; align-items:center; justify-content:space-between; padding:1.4em 1.6em; border-bottom:1px solid #ffffff12; font-size:1.2em; }
+.deed-picker header i { color:#a99bff; margin-right:.5em; }
+.deed-picker-close { border:0; background:#ffffff0d; border-radius:.3em; color:white; width:2em; height:2em; cursor:pointer; }
+.deed-picker-content { padding:1.3em 1.8em; max-height:60vh; overflow:auto; }
+.deed-picker h2 { font-size:1em; margin:0 0 1em; }
+.deed-picker-list { display:grid; gap:.5em; }
+.deed-picker-list button { width:100%; padding:.75em 1em; text-align:left; color:white; font:inherit; font-weight:600; background:var(--submenu-background); border:1px solid #ffffff12; border-radius:.4em; cursor:pointer; }
+.deed-picker-list button:hover { background:var(--submenu-background-selected-hover); }
+.deed-picker-status { color:#ff8585; font-size:.85em; padding-top:.7em; }
+
+.property-deed .deed-close-x { position:absolute; right:1.1em; top:1em; border:0; background:transparent; color:#555; font-size:1.6em; cursor:pointer; }

@@ -198,6 +198,10 @@ window.addEventListener('message', function (event) {
             if (typeof HousingGarage[item.actionName] === 'function') HousingGarage[item.actionName](item);
             break;
 
+        case 'DeedShare':
+            if (typeof Deed[item.actionName] === 'function') Deed[item.actionName](item);
+            break;
+
         case 'ProcessImage':
             removeGreenBackgroundEnhanced(item.image, (processedImage) => {
                 scalePhoto(processedImage, (photoData) => {
@@ -214,6 +218,10 @@ window.addEventListener('message', function (event) {
 
 
 $(document).on('keydown', 'body', function (e) {
+    if (e.which === 88 && (Deed.picking || (Deed.isOpen && Deed.mode !== 'manage'))) {
+        if (Deed.picking) Deed.closePicker(); else Deed.close();
+        return;
+    }
     if (e.which == 27) {
         if (currentMenu === 'wardrobe') { Wardrobe.requestClose(); return; }
         if (currentMenu === 'housing_garage') { HousingGarage.requestClose(); return; }
@@ -290,6 +298,7 @@ function updateSection(menuClass, newMenu, _this, isEditingProperty) {
 }
 
 function closeKey(isESC) {
+    if (Deed.picking) { Deed.closePicker(); return; }
     if (Deed.isOpen) { Deed.close(); return; }
     if (isESC && $('.marketplace').hasClass('contract-opened')) {
         $('.contract').fadeOut(150);

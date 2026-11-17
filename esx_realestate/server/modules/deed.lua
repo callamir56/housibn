@@ -24,6 +24,20 @@ library.RegisterCallback('vms_housing:deed', function(src, cb, action, propertyI
     local property, identifier, player = resultFor(src, propertyId)
     if not property then return cb({ok=false, reason='Access denied.'}) end
     if action == 'view' then return cb(deed(property, propertyId, identifier, player)) end
+    if action == 'item' then
+        if Config.Inventory ~= 'ox_inventory' or GetResourceState('ox_inventory') ~= 'started' then
+            return cb({ok=false, reason='ox_inventory is not available.'})
+        end
+        local signature=property.metadata and property.metadata.deedSignature
+        if type(signature)~='table' or signature.owner~=identifier then return cb({ok=false,reason='Sign the deed first.'}) end
+        local metadata={propertyId=propertyId, owner=identifier}
+        local ok, added, reason=pcall(function() return exports.ox_inventory:AddItem(src,'property_deed',1,metadata) end)
+        if not ok or not added then
+            print(('[esx_realestate] Could not issue deed item: %s'):format(tostring(reason or added)))
+            return cb({ok=false,reason='Could not issue item. Check inventory space and item setup.'})
+        end
+        return cb({ok=true,message='Deed added to inventory.'})
+    end
     if action ~= 'sign' or pending[propertyId] then return cb({ok=false, reason='Please try again.'}) end
     pending[propertyId] = true
     local ok, result = pcall(function()
@@ -47,3 +61,6 @@ library.RegisterCallback('vms_housing:deed', function(src, cb, action, propertyI
     if not ok then print(('[esx_realestate] Deed error: %s'):format(tostring(result))); return cb({ok=false,reason='Deed unavailable.'}) end
     cb(result)
 end)
+
+-- Shared deed view is built only from server-held property data.
+HousingDeedData = function(property, propertyId, identifier, player) return deed(property, propertyId, identifier, player) end

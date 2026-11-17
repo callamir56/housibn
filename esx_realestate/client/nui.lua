@@ -1630,7 +1630,7 @@ end)
 RegisterNUICallbackCompat('deed:request', function(data, cb)
   local action = type(data) == 'table' and data.action
   local id = MotelManageId or CurrentProperty or GetCurrentPropertyId()
-  if openedMenu ~= 'PropertyManage' or not id or (action ~= 'view' and action ~= 'sign') then
+  if openedMenu ~= 'PropertyManage' or not id or (action ~= 'view' and action ~= 'sign' and action ~= 'item') then
     return cb({ok=false,reason='Deed unavailable.'})
   end
   library.Callback('vms_housing:deed', function(result)
