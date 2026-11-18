@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body,#player{margin:0;width:100%;height:100%;overflow:hidden;background:#000;border:0}</style></head><body><iframe id="player" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><script>
+let currentVideo = null;
+window.addEventListener('message',function(event){
+  let d=event.data;
+  if(typeof d==='string'){try{d=JSON.parse(d)}catch(_){return}}
+  if(!d || d.action!=='play' || !/^[A-Za-z0-9_-]{11}$/.test(d.video))return;
+  if(currentVideo===d.video)return;
+  currentVideo=d.video;
+  const start=Math.max(0,Math.floor(Number(d.elapsed)||0));
+  document.getElementById('player').src='https://www.youtube-nocookie.com/embed/'+d.video+'?autoplay=1&controls=0&rel=0&playsinline=1&start='+start;
+});
+</script></body></html>

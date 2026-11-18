@@ -896,3 +896,17 @@ Config.HousingSeats = {
     },
     Models = {}, -- optional model-specific {slots={{x=...,y=...,z=...}}, heading=...}
 }
+
+-- One YouTube channel per home, shared by all supported TVs in that home.
+-- Only placed indoor furniture is supported; fixed map screens are separate.
+Config.HousingTV = {
+    Enabled = true,
+    ControlPermission = 'furniture',
+    MaxDistance = 3.5,
+    Models = {
+        prop_tv_flat_01=true, prop_tv_flat_02=true, prop_tv_flat_02b=true,
+        prop_tv_flat_03=true, prop_tv_flat_03b=true, prop_tv_flat_michael=true,
+        prop_tv_01=true, prop_tv_02=true, prop_tv_03=true, prop_tv_04=true,
+        prop_tv_05=true, prop_tv_06=true, prop_tv_07=true, prop_trev_tv_01=true,
+    },
+}

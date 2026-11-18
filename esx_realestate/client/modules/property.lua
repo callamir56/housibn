@@ -465,6 +465,18 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
           end
         end
 
+        if environment == "inside" and HousingTV and Config.HousingTV and Config.HousingTV.Enabled
+            and Config.HousingTV.Models and Config.HousingTV.Models[furnitureData.model] then
+          local tvId, propertyId = furnitureData.id, tostring(permissionContext or CurrentProperty)
+          CL.Target("entity", {entity = entity, options = {
+            {name = ("housing-tv-play-%s"):format(tvId), icon = "fa-solid fa-tv", label = "Play YouTube",
+              action = function() HousingTV.Control(propertyId, tvId, "play") end},
+            {name = ("housing-tv-off-%s"):format(tvId), icon = "fa-solid fa-power-off", label = "Turn off TV",
+              action = function() HousingTV.Control(propertyId, tvId, "off") end},
+          }})
+          CreateThread(function() Wait(1500); if tostring(CurrentProperty or "") == propertyId then HousingTV.Refresh(propertyId) end end)
+        end
+
         if environment == "inside" and HousingSeats and HousingSeats.Layout(furnitureData.model) then
           local seatId, propertyId, model = furnitureData.id, permissionContext or CurrentProperty, furnitureData.model
           CL.Target("entity", {entity = entity, options = {{
