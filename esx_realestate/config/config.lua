@@ -876,8 +876,9 @@ Config.HousingRest = {
         ex_prop_exec_bed_01 = true,
         hei_heist_bed_double_08 = true,
     },
-    DurationSeconds = 30,
-    TickSeconds = 5,
+    BedOffset = {x=0.0, y=0.0, z=0.6, heading=0.0}, -- adjust for your beds
+    DurationSeconds = 6,
+    TickSeconds = 1,
     HealPerTick = 5,
     CooldownSeconds = 300,
     MaxDistance = 3.0,
@@ -912,4 +913,15 @@ Config.HousingTV = {
         prop_tv_01=true, prop_tv_02=true, prop_tv_03=true, prop_tv_04=true,
         prop_tv_05=true, prop_tv_06=true, prop_tv_07=true, prop_trev_tv_01=true,
     },
+}
+
+-- Bathroom targets are available only while inside a housing property.
+-- Add the model names used by your separate map/shell resource here.
+Config.HousingBathroom = {
+    Enabled = true,
+    DurationMs = 10000,
+    ToiletModels = { 'prop_toilet_01', 'prop_toilet_02', 'prop_ld_toilet_01' },
+    ShowerModels = { 'prop_shower_01', 'v_ilev_mm_shower', 'prop_shower_rack_01' },
+    ToiletOffset = {x=0.0, y=0.0, z=0.45, heading=180.0},
+    ShowerOffset = {x=0.0, y=-0.4, z=0.0, heading=0.0},
 }

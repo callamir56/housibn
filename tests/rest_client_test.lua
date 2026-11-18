@@ -8,6 +8,7 @@ function PlayerPedId() return 10 end
 function CreateThread(fn) end
 function StopAnimTask() end
 function IsEntityDead() return false end
+function IsPedInAnyVehicle() return false end
 local playing=true
 function IsEntityPlayingAnim() return playing end
 local health=198

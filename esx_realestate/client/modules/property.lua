@@ -490,7 +490,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
           local bedId, propertyId = furnitureData.id, permissionContext or CurrentProperty
           CL.Target("entity", {entity = entity, options = {{
             name = ("housing-rest-%s"):format(bedId), icon = "fa-solid fa-bed", label = "Rest",
-            action = function() HousingRest.Start(propertyId, bedId) end,
+            action = function() HousingRest.Start(propertyId, bedId, entity) end,
           }}})
         end
 
