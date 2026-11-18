@@ -29,3 +29,20 @@ cb['vms_housing:tv:state'](2,function(r) result=r end,'7'); assert(result.ok and
 properties['7'].owner='new-owner'; cb['vms_housing:tv:state'](2,function(r) result=r end,'7'); assert(result.ok and not result.state.on)
 source=3; events['vms_housing:tv:control']('8',6,'play','ABCDEFGHIJK'); assert(emitted[3].src==3 and emitted[3].id=='8')
 print('TV URL validation, permission, proximity, property isolation and ownership change passed')
+
+-- Test each supported provider and reject non-video URLs and internal literals.
+local realTime=os.time; local clock=realTime(); os.time=function() return clock end
+local function play(url) clock=clock+3; source=3; events['vms_housing:tv:control']('8',6,'play',url); return emitted[#emitted].state end
+local before=#emitted
+for _, url in ipairs({'http://example.com/movie.mp4','https://127.0.0.1/movie.mp4','https://example.local/movie.mp4','https://example.com/home','https://user@example.com/movie.mp4','https://www.aparat.com.evil.example/v/BNMK5'}) do
+  play(url); assert(#emitted==before, 'unexpectedly accepted '..url)
+end
+local a=play('https://www.aparat.com/v/BNMK5'); assert(a.provider=='aparat' and a.video=='BNMK5')
+local b=play('https://cdn.example.com/media/movie.MP4?token=abc'); assert(b.provider=='direct' and b.video:match('movie.MP4'))
+assert(play('https://vimeo.com/123456789').provider=='vimeo')
+local c=play('https://www.youtube.com/watch?feature=share&v=abcdefghijk'); assert(c.provider=='youtube' and c.video=='abcdefghijk')
+Config.HousingTV.DirectAllowedHosts={['safe.example.com']=true}; before=#emitted
+play('https://cdn.example.com/test.mp4'); assert(#emitted==before)
+assert(play('https://safe.example.com/test.webm').provider=='direct')
+os.time=realTime
+print('TV provider parsing, internal host rejection and direct host allowlist passed')

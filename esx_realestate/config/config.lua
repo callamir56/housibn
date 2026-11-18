@@ -902,6 +902,9 @@ Config.HousingSeats = {
 Config.HousingTV = {
     Enabled = true,
     ControlPermission = 'furniture',
+    -- nil accepts any public-looking HTTPS host for direct media files.
+    -- Set a table such as {['cdn.example.com']=true} to restrict direct URLs.
+    DirectAllowedHosts = nil,
     MaxDistance = 3.5,
     Models = {
         prop_tv_flat_01=true, prop_tv_flat_02=true, prop_tv_flat_02b=true,

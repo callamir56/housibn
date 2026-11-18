@@ -28,17 +28,51 @@ local function canControl(src,id,furnitureId)
     if x*x+y*y+z*z>distance*distance then return end
     return item
 end
-local function videoId(input)
-    if type(input)~='string' or #input>512 then return end
+-- Only media URLs we can safely canonicalize are accepted. Arbitrary websites
+-- are not embedded as privileged NUI pages.
+local function parseMedia(input)
+    if type(input)~='string' or #input>2048 then return end
     input=input:match('^%s*(.-)%s*$')
-    local id
-    if #input==11 and input:match('^[A-Za-z0-9_-]+$') then id=input end
-    if not id then id=input:match('^https://youtu%.be/([A-Za-z0-9_-]+)[?&#/]?') end
-    if not id then id=input:match('^https://www%.youtube%.com/watch%?v=([A-Za-z0-9_-]+)[&#]?') end
-    if not id then id=input:match('^https://www%.youtube%.com/shorts/([A-Za-z0-9_-]+)[?&#/]?') end
-    if not id then id=input:match('^https://www%.youtube%.com/embed/([A-Za-z0-9_-]+)[?&#/]?') end
-    if id and #id==11 then return id end
+    if input:find('[%c%s\\]') then return end
+    if #input==11 and input:match('^[A-Za-z0-9_-]+$') then return {provider='youtube',video=input} end
+    local authority,rest=input:match('^https://([^/?#]+)(.*)$')
+    if not authority then return end
+    local host=authority:lower()
+    if #host>253 or not host:match('^[a-z0-9%.%-]+$') or not host:find('%.')
+        or host:find('%.%.',1,false) or host:match('^%.') or host:match('%.$')
+        or host:match('%.local$') or host:match('%.localhost$') or host:match('%.internal$')
+        or host:match('^[0-9%.]+$') then return end
+    local youtube=host=='youtube.com' or host=='www.youtube.com' or host=='m.youtube.com'
+    if youtube or host=='youtu.be' then
+        local id
+        if host=='youtu.be' then id=rest:match('^/([A-Za-z0-9_-]+)')
+        else
+            id=rest:match('^/shorts/([A-Za-z0-9_-]+)') or rest:match('^/embed/([A-Za-z0-9_-]+)')
+            if not id and rest:match('^/watch%?') then id=rest:match('[?&]v=([A-Za-z0-9_-]+)') end
+        end
+        if id and #id==11 then return {provider='youtube',video=id} end
+        return
+    end
+    if host=='vimeo.com' or host=='www.vimeo.com' or host=='player.vimeo.com' then
+        local id = rest:match('^/(%d+)') or rest:match('^/video/(%d+)')
+        if id and #id>=1 and #id<=20 then return {provider='vimeo',video=id} end
+        return
+    end
+    if host=='aparat.com' or host=='www.aparat.com' then
+        local hash=rest:match('^/v/([A-Za-z0-9_-]+)') or rest:match('^/embed/([A-Za-z0-9_-]+)')
+            or rest:match('^/video/video/embed/videohash/([A-Za-z0-9_-]+)')
+        if hash and #hash>=4 and #hash<=32 then return {provider='aparat',video=hash} end
+        return
+    end
+    local path=rest:match('^([^?#]*)') or ''
+    local extension=path:lower():match('%.([a-z0-9]+)$')
+    if extension=='mp4' or extension=='webm' or extension=='ogv' then
+        local allowed=Config.HousingTV.DirectAllowedHosts
+        if allowed ~= nil and (type(allowed)~='table' or allowed[host]~=true) then return end
+        return {provider='direct',video=input}
+    end
 end
+
 local function snapshot(id)
     local state=playing[id]
     if not state then return {on=false} end
@@ -46,7 +80,7 @@ local function snapshot(id)
     if not prop or prop.owner~=state.owner or prop.renter~=state.renter or not findTV(prop,state.furniture) then
         playing[id]=nil; return {on=false}
     end
-    return {on=true,video=state.video,elapsed=math.max(0,os.time()-state.started),furniture=state.furniture,version=state.version}
+    return {on=true,provider=state.provider,video=state.video,elapsed=math.max(0,os.time()-state.started),furniture=state.furniture,version=state.version}
 end
 local function broadcast(id)
     local state=snapshot(id)
@@ -65,9 +99,9 @@ RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
     local id=tostring(rawId or '')
     if not canControl(src,id,furnitureId) then return end
     if action~='play' and action~='off' then return end
-    local video=action=='play' and videoId(url)
-    if action=='play' and not video then
-        return library.Notification(src,'Use a valid YouTube video URL or ID.',4000,'error')
+    local media=action=='play' and parseMedia(url)
+    if action=='play' and not media then
+        return library.Notification(src,'Use YouTube, Aparat, Vimeo or a direct HTTPS MP4, WebM or OGV link.',5000,'error')
     end
     local now=os.time()
     if lastChange[src] and now-lastChange[src]<2 then return end
@@ -75,7 +109,7 @@ RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
     local prop=GetProperty(id)
     if action=='off' then playing[id]=nil else
         sequence=sequence+1
-        playing[id]={video=video,started=now,furniture=furnitureId,owner=prop.owner,renter=prop.renter,version=sequence}
+        playing[id]={provider=media.provider,video=media.video,started=now,furniture=furnitureId,owner=prop.owner,renter=prop.renter,version=sequence}
     end
     broadcast(id)
 end)

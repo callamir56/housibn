@@ -10,6 +10,7 @@
     <link href="css/style.css" rel="stylesheet">
     <link href="css/safe.css" rel="stylesheet">
     <link href="css/wardrobe.css" rel="stylesheet">
+    <link href="css/housing_tv_input.css" rel="stylesheet">
     <link href="css/housing_creator.css" rel="stylesheet">
     <link href="css/property_manage.css" rel="stylesheet">
     <link href="css/property_offer.css" rel="stylesheet">
@@ -2393,6 +2394,15 @@
         </div>
     </section>
 
+    <section id="housing-tv-input" hidden aria-label="TV video link">
+        <form class="housing-tv-input-card">
+            <h2>Play video</h2>
+            <p>Paste a YouTube, Aparat, Vimeo or direct video link.</p>
+            <input id="housing-tv-url" type="text" maxlength="2048" autocomplete="off" spellcheck="false" placeholder="https://..." aria-label="Video link">
+            <div class="housing-tv-input-actions"><button type="button" id="housing-tv-cancel">Cancel</button><button type="submit">Play</button></div>
+            <small>Ctrl+V to paste · ESC to close</small>
+        </form>
+    </section>
     <div class="door_peephole"></div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -2423,6 +2433,7 @@
     <script src="js/wardrobe.js" type="text/javascript"></script>
     <script src="js/housing_garage.js" type="text/javascript"></script>
     <script src="js/script.js" type="text/javascript"></script>
+    <script src="js/housing_tv_input.js" type="text/javascript"></script>
     
     <script src="nui://vms_cityhall/html/js/shared.js" type="text/javascript"></script>
 </body>

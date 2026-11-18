@@ -9,7 +9,8 @@ end
 local function show(id,state)
     if tostring(CurrentProperty or '')~=tostring(id) then return end
     if not state or not state.on then return stop() end
-    if type(state.video)~='string' or not state.video:match('^[%w_-]+$') or #state.video~=11 then return end
+    if type(state.video)~='string' or #state.video>2048 then return end
+    if state.provider~='youtube' and state.provider~='aparat' and state.provider~='vimeo' and state.provider~='direct' then return end
     if property==id and activeVideo==state.video and activeVersion==state.version and dui then return end
     stop()
     property=id; activeVideo=state.video; activeVersion=state.version
@@ -35,7 +36,7 @@ local function show(id,state)
         while dui and revision==thisRevision and not IsDuiAvailable(dui) and GetGameTimer()<deadline do Wait(100) end
         if not dui or revision~=thisRevision then return end
         if not IsDuiAvailable(dui) then stop(); return CL.Notification('TV player failed to load.',4000,'error') end
-        local message=json.encode({action='play',video=state.video,elapsed=state.elapsed or 0})
+        local message=json.encode({action='play',provider=state.provider,video=state.video,elapsed=state.elapsed or 0})
         -- DUI availability can precede the page's message handler. Re-send a
         -- few times; the page ignores duplicates once it has accepted the URL.
         CreateThread(function()
@@ -63,16 +64,38 @@ function HousingTV.Refresh(id)
         if requestRevision==revision and data and data.ok then show(id,data.state) end
     end,id)
 end
+local inputContext
+local function closeInput()
+    if not inputContext then return end
+    inputContext=nil
+    SendNUIMessage({action='HousingTVInput',open=false})
+    if openedMenu=='HousingTVInput' then openedMenu=nil; SetNuiFocus(false,false) end
+end
 function HousingTV.Control(id,furnitureId,action)
     if tostring(CurrentProperty or '')~=tostring(id) then return end
     if action=='off' then return TriggerServerEvent('vms_housing:tv:control',tostring(id),furnitureId,'off') end
-    AddTextEntry('HOUSING_TV_URL','YouTube URL or video ID')
-    DisplayOnscreenKeyboard(1,'HOUSING_TV_URL','','','','','',512)
-    while UpdateOnscreenKeyboard()==0 do Wait(0) end
-    local url=GetOnscreenKeyboardResult()
-    if url and tostring(CurrentProperty or '')==tostring(id) then
-        TriggerServerEvent('vms_housing:tv:control',tostring(id),furnitureId,'play',url)
-    end
+    if openedMenu or inputContext then return end
+    local context={id=tostring(id),furniture=furnitureId}
+    inputContext=context
+    openedMenu='HousingTVInput'
+    SetNuiFocus(true,true)
+    SendNUIMessage({action='HousingTVInput',open=true})
+    CreateThread(function()
+        while inputContext==context do
+            Wait(500)
+            if tostring(CurrentProperty or '')~=context.id then closeInput(); break end
+        end
+    end)
 end
+RegisterNUICallback('housingTV:submit',function(data,cb)
+    local context=inputContext
+    local url=type(data)=='table' and data.url
+    if not context or type(url)~='string' or #url>2048 or not url:match('%S') then return cb({ok=false}) end
+    if tostring(CurrentProperty or '')~=context.id then closeInput(); return cb({ok=false}) end
+    closeInput()
+    TriggerServerEvent('vms_housing:tv:control',context.id,context.furniture,'play',url)
+    cb({ok=true})
+end)
+RegisterNUICallback('housingTV:close',function(_,cb) closeInput(); cb({ok=true}) end)
 RegisterNetEvent('vms_housing:tv:update',function(id,state) show(tostring(id),state) end)
-AddEventHandler('onResourceStop',function(resource) if resource==GetCurrentResourceName() then stop() end end)
+AddEventHandler('onResourceStop',function(resource) if resource==GetCurrentResourceName() then closeInput(); stop() end end)

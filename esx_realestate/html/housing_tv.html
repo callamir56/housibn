@@ -1,12 +1,45 @@
-<!doctype html><html><head><meta charset="utf-8"><style>html,body,#player{margin:0;width:100%;height:100%;overflow:hidden;background:#000;border:0}</style></head><body><iframe id="player" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><script>
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+html,body,iframe,video{margin:0;width:100%;height:100%;overflow:hidden;background:#000;border:0}
+video{object-fit:contain} iframe[hidden],video[hidden]{display:none}
+</style></head><body>
+<iframe id="embed" hidden allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+<video id="direct" hidden autoplay playsinline></video>
+<script>
 let currentVideo = null;
-window.addEventListener('message',function(event){
-  let d=event.data;
-  if(typeof d==='string'){try{d=JSON.parse(d)}catch(_){return}}
-  if(!d || d.action!=='play' || !/^[A-Za-z0-9_-]{11}$/.test(d.video))return;
-  if(currentVideo===d.video)return;
-  currentVideo=d.video;
-  const start=Math.max(0,Math.floor(Number(d.elapsed)||0));
-  document.getElementById('player').src='https://www.youtube-nocookie.com/embed/'+d.video+'?autoplay=1&controls=0&rel=0&playsinline=1&start='+start;
+window.addEventListener('message', function(event) {
+  let d = event.data;
+  if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { return; } }
+  if (!d || d.action !== 'play' || typeof d.video !== 'string') return;
+  const elapsed = Math.max(0, Math.floor(Number(d.elapsed) || 0));
+  let src;
+  if (d.provider === 'youtube' && /^[A-Za-z0-9_-]{11}$/.test(d.video)) {
+    src = 'https://www.youtube-nocookie.com/embed/' + d.video + '?autoplay=1&controls=0&rel=0&playsinline=1&start=' + elapsed;
+  } else if (d.provider === 'vimeo' && /^[0-9]{1,20}$/.test(d.video)) {
+    src = 'https://player.vimeo.com/video/' + d.video + '?autoplay=1#t=' + elapsed + 's';
+  } else if (d.provider === 'aparat' && /^[A-Za-z0-9_-]{4,32}$/.test(d.video)) {
+    src = 'https://www.aparat.com/video/video/embed/videohash/' + d.video + '/vt/frame?autoplay=true';
+  } else if (d.provider === 'direct') {
+    try {
+      const url = new URL(d.video);
+      const host = url.hostname.toLowerCase();
+      if (url.protocol !== 'https:' || url.username || url.password || url.port || !host.includes('.') ||
+          /^[0-9.]+$/.test(host) || /\.(local|localhost|internal)$/.test(host) ||
+          !/\.(mp4|webm|ogv)$/i.test(url.pathname)) return;
+      src = url.href;
+    } catch (_) { return; }
+  } else return;
+  const key = d.provider + ':' + d.video;
+  if (currentVideo === key) return;
+  currentVideo = key;
+  const frame = document.getElementById('embed'), video = document.getElementById('direct');
+  if (d.provider === 'direct') {
+    frame.hidden = true; video.hidden = false;
+    video.addEventListener('loadedmetadata', () => { if (elapsed) video.currentTime = elapsed; }, {once:true});
+    video.src = src;
+    video.play().catch(() => {});
+  } else {
+    video.hidden = true; frame.hidden = false; frame.src = src;
+  }
 });
 </script></body></html>
