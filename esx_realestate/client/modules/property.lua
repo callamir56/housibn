@@ -465,6 +465,14 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
           end
         end
 
+        if environment == "inside" and HousingSeats and HousingSeats.Layout(furnitureData.model) then
+          local seatId, propertyId, model = furnitureData.id, permissionContext or CurrentProperty, furnitureData.model
+          CL.Target("entity", {entity = entity, options = {{
+            name = ("housing-seat-%s"):format(seatId), icon = "fa-solid fa-chair", label = "Sit",
+            action = function() HousingSeats.Sit(propertyId, seatId, entity, model) end,
+          }}})
+        end
+
         if environment == "inside" and Config.HousingRest and Config.HousingRest.Enabled
             and Config.HousingRest.Models and Config.HousingRest.Models[furnitureData.model] then
           local bedId, propertyId = furnitureData.id, permissionContext or CurrentProperty

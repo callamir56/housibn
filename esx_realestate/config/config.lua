@@ -882,3 +882,17 @@ Config.HousingRest = {
     CooldownSeconds = 300,
     MaxDistance = 3.0,
 }
+
+-- Sitting on placed furniture. Offsets are relative to the furniture object;
+-- override individual models after testing their orientation and seat height.
+Config.HousingSeats = {
+    Enabled = true,
+    RequirePermission = false, -- true: owner/renter or someone with a house permission
+    MaxDistance = 3.5,
+    LeaseSeconds = 30,
+    Types = {
+        chair = { slots = {{x=0.0, y=0.0, z=0.45}}, heading = 180.0 },
+        sofa = { slots = {{x=-0.45, y=0.0, z=0.45}, {x=0.45, y=0.0, z=0.45}}, heading = 180.0 },
+    },
+    Models = {}, -- optional model-specific {slots={{x=...,y=...,z=...}}, heading=...}
+}
