@@ -865,3 +865,20 @@ local function DetectActiveDispatch()
 end
 
 Config.Dispatch = DetectActiveDispatch()
+
+-- Rest is available on these placed, indoor bed models. Values may be tuned.
+Config.HousingRest = {
+    Enabled = true,
+    Models = {
+        apa_mp_h_bed_double_09 = true,
+        apa_mp_h_bed_wide_05 = true,
+        apa_mp_h_bed_with_table_02 = true,
+        ex_prop_exec_bed_01 = true,
+        hei_heist_bed_double_08 = true,
+    },
+    DurationSeconds = 30,
+    TickSeconds = 5,
+    HealPerTick = 5,
+    CooldownSeconds = 300,
+    MaxDistance = 3.0,
+}
