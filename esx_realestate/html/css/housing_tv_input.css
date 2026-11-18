@@ -1,5 +1,6 @@
-#housing-tv-input:not([hidden]){position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);font-family:Arial,sans-serif;color:#f7f7f7}
-.housing-tv-input-card{width:min(540px,85vw);padding:26px;border-radius:14px;background:#19212d;box-shadow:0 12px 48px #0009}
-.housing-tv-input-card h2{font-size:24px;margin:0 0 8px}.housing-tv-input-card p,.housing-tv-input-card small{color:#b7c3d0}
-#housing-tv-url{width:100%;box-sizing:border-box;padding:12px;border:1px solid #718096;border-radius:6px;background:#111821;color:white;font-size:16px;user-select:text}
-.housing-tv-input-actions{display:flex;justify-content:flex-end;gap:10px;margin:18px 0}.housing-tv-input-actions button{border:0;border-radius:6px;padding:10px 20px;color:white;background:#365675;cursor:pointer}.housing-tv-input-actions button[type=submit]{background:#268b66}
+#housing-tv-input:not([hidden]){position:fixed;inset:0;z-index:20000;display:grid;place-items:center;background:#000a;color:#fff;font-family:Arial,sans-serif}
+.housing-tv-input-card{width:min(480px,88vw);padding:22px;border-radius:8px;background:#202020}
+.housing-tv-input-card h2{font-size:20px;margin:0 0 8px}.housing-tv-input-card p,.housing-tv-input-card small{color:#bbb;font-size:14px}
+#housing-tv-url{width:100%;box-sizing:border-box;padding:10px;border:1px solid #777;border-radius:4px;background:#111;color:#fff;font-size:16px;user-select:text}
+.housing-tv-input-actions{display:flex;justify-content:flex-end;gap:8px;margin:14px 0}.housing-tv-input-actions button{border:0;border-radius:4px;padding:9px 16px;color:white;background:#555;cursor:pointer}.housing-tv-input-actions button[type=submit]{background:#26845d}
+#housing-tv-error:not([hidden]){margin:10px 0 0;color:#ff9d9d}

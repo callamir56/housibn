@@ -46,3 +46,10 @@ play('https://cdn.example.com/test.mp4'); assert(#emitted==before)
 assert(play('https://safe.example.com/test.webm').provider=='direct')
 os.time=realTime
 print('TV provider parsing, internal host rejection and direct host allowlist passed')
+
+local callbackResult
+cb['vms_housing:tv:play'](2,function(r) callbackResult=r end,'7',5,'https://www.aparat.com/v/BNMK5')
+assert(not callbackResult.ok and callbackResult.reason:match('Access denied'))
+cb['vms_housing:tv:play'](3,function(r) callbackResult=r end,'8',6,'https://invalid.example/page')
+assert(not callbackResult.ok and callbackResult.reason:match('YouTube'))
+print('TV play callback reports validation and access errors passed')

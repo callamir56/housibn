@@ -1,9 +1,10 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><style>
+<html><head><meta charset="utf-8"><meta name="referrer" content="strict-origin-when-cross-origin"><style>
 html,body,iframe,video{margin:0;width:100%;height:100%;overflow:hidden;background:#000;border:0}
-video{object-fit:contain} iframe[hidden],video[hidden]{display:none}
+video{object-fit:contain} #status{position:absolute;inset:0;display:grid;place-items:center;color:white;font:24px Arial;background:#111} #status[hidden]{display:none} iframe[hidden],video[hidden]{display:none}
 </style></head><body>
-<iframe id="embed" hidden allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+<div id="status">Loading video...</div>
+<iframe id="embed" hidden referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
 <video id="direct" hidden autoplay playsinline></video>
 <script>
 let currentVideo = null;
@@ -32,14 +33,20 @@ window.addEventListener('message', function(event) {
   const key = d.provider + ':' + d.video;
   if (currentVideo === key) return;
   currentVideo = key;
-  const frame = document.getElementById('embed'), video = document.getElementById('direct');
+  const frame = document.getElementById('embed'), video = document.getElementById('direct'), status = document.getElementById('status');
+  status.hidden = false; status.textContent = 'Loading video...';
   if (d.provider === 'direct') {
     frame.hidden = true; video.hidden = false;
     video.addEventListener('loadedmetadata', () => { if (elapsed) video.currentTime = elapsed; }, {once:true});
+    video.addEventListener('playing', () => { status.hidden = true; }, {once:true});
+    video.addEventListener('error', () => { status.textContent = 'Video could not be loaded.'; status.hidden = false; }, {once:true});
     video.src = src;
-    video.play().catch(() => {});
+    video.play().catch(() => { status.textContent = 'Video autoplay was blocked.'; status.hidden = false; });
   } else {
-    video.hidden = true; frame.hidden = false; frame.src = src;
+    video.hidden = true; frame.hidden = false;
+    frame.onload = () => { status.hidden = true; };
+    frame.onerror = () => { status.textContent = 'Video could not be loaded.'; status.hidden = false; };
+    frame.src = src;
   }
 });
 </script></body></html>

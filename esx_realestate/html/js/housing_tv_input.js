@@ -3,6 +3,7 @@
   const input = document.getElementById('housing-tv-url');
   const form = panel.querySelector('form');
   const cancel = document.getElementById('housing-tv-cancel');
+  const error = document.getElementById('housing-tv-error');
   let pending = false;
   const post = (name, data = {}) => fetch(`https://${GetParentResourceName()}/housingTV:${name}`, {
     method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
@@ -11,7 +12,7 @@
   window.addEventListener('message', event => {
     if (!event.data || event.data.action !== 'HousingTVInput') return;
     panel.hidden = !event.data.open;
-    if (event.data.open) { input.value = ''; pending = false; setTimeout(() => input.focus(), 0); }
+    if (event.data.open) { input.value = ''; error.hidden = true; error.textContent = ''; pending = false; setTimeout(() => input.focus(), 0); }
   });
   window.addEventListener('keydown', event => {
     if (!panel.hidden && event.key === 'Escape') {
@@ -23,7 +24,9 @@
     event.preventDefault();
     const url = input.value.trim();
     if (pending || !url) { input.focus(); return; }
-    pending = true;
-    post('submit', {url}).then(result => { if (!result.ok) input.focus(); }).finally(() => { pending = false; });
+    pending = true; error.hidden = true;
+    post('submit', {url}).then(result => {
+      if (!result.ok) { error.textContent = result.reason || 'Unable to play. Try again.'; error.hidden = false; input.focus(); }
+    }).finally(() => { pending = false; });
   });
 })();

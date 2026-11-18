@@ -36,7 +36,11 @@ print('TV stale response, property isolation and DUI cleanup passed')
 
 HousingTV.Control('7',5,'play'); assert(message.open and focus and openedMenu=='HousingTVInput')
 local result; events['housingTV:submit']({url='https://www.aparat.com/v/BNMK5'},function(v) result=v end)
-assert(result.ok and not focus and not openedMenu and sent[1]=='vms_housing:tv:control' and sent[5]=='https://www.aparat.com/v/BNMK5')
+callbacks[2]({ok=false,reason='Access denied.'})
+assert(not result.ok and focus and openedMenu=='HousingTVInput')
+events['housingTV:submit']({url='https://www.aparat.com/v/BNMK5'},function(v) result=v end)
+callbacks[3]({ok=true})
+assert(result.ok and not focus and not openedMenu)
 HousingTV.Control('7',5,'play'); CurrentProperty='8'
 events['housingTV:submit']({url='https://example.com/test.mp4'},function(v) result=v end)
 assert(not result.ok and not focus and not openedMenu)

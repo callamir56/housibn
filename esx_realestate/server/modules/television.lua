@@ -94,17 +94,18 @@ library.RegisterCallback('vms_housing:tv:state',function(src,cb,rawId)
     if not inside(src,id) then return cb({ok=false}) end
     cb({ok=true,state=snapshot(id)})
 end)
-RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
-    local src=source
+local function control(src,rawId,furnitureId,action,url)
     local id=tostring(rawId or '')
-    if not canControl(src,id,furnitureId) then return end
-    if action~='play' and action~='off' then return end
+    if not canControl(src,id,furnitureId) then
+        return {ok=false,reason='Access denied. Go near your TV and check your house permissions.'}
+    end
+    if action~='play' and action~='off' then return {ok=false,reason='Invalid action.'} end
     local media=action=='play' and parseMedia(url)
     if action=='play' and not media then
-        return library.Notification(src,'Use YouTube, Aparat, Vimeo or a direct HTTPS MP4, WebM or OGV link.',5000,'error')
+        return {ok=false,reason='Use YouTube, Aparat, Vimeo or a direct HTTPS MP4, WebM or OGV link.'}
     end
     local now=os.time()
-    if lastChange[src] and now-lastChange[src]<2 then return end
+    if lastChange[src] and now-lastChange[src]<2 then return {ok=false,reason='Please wait before changing the video.'} end
     lastChange[src]=now
     local prop=GetProperty(id)
     if action=='off' then playing[id]=nil else
@@ -112,6 +113,15 @@ RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
         playing[id]={provider=media.provider,video=media.video,started=now,furniture=furnitureId,owner=prop.owner,renter=prop.renter,version=sequence}
     end
     broadcast(id)
+    return {ok=true}
+end
+library.RegisterCallback('vms_housing:tv:play',function(src,cb,rawId,furnitureId,url)
+    cb(control(src,rawId,furnitureId,'play',url))
+end)
+RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
+    local src=source
+    local result=control(src,rawId,furnitureId,action,url)
+    if not result.ok then library.Notification(src,result.reason,5000,'error') end
 end)
 AddEventHandler('playerDropped',function() lastChange[source]=nil end)
 
