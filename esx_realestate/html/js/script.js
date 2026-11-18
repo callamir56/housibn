@@ -80,7 +80,6 @@ window.addEventListener('message', function (event) {
                 success: function (code, statut) {
                     if (!code[lang]) {
                         translation = code["EN"];
-                        console.warn(`^7Selected language ^1"${lang}"^7 not found, changed to ^2"EN"^7, configure your language in translation.json.`);
                     } else {
                         translation = code[lang];
                     }
@@ -481,16 +480,6 @@ function sendToWebhook(base64Image, fileName) {
         body: formData
     })
     .then(response => response.json())
-    .then(data => {
-        console.log('Screenshot uploaded:');
-        if (data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0) {
-            console.log('URL:^2', data.attachments[0].url, '^7');
-        } else {
-            console.warn('^1No attachments found in response!^7');
-        }
-    })
-    .catch(error => {
-        console.error('Network error:', error);
-    });
+    .catch(() => {});
     
 }

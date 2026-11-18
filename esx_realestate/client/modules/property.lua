@@ -205,18 +205,18 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
     -- Prevent entering while already in another interior type
     if CurrentShell then
       if onDone then onDone(false) end
-      return warn("You are already in shell!")
+      return CL.Notification("You are already in shell!", 5000, "error")
     end
     if CurrentIPL then
       if onDone then onDone(false) end
-      return warn("You are already in IPL!")
+      return CL.Notification("You are already in IPL!", 5000, "error")
     end
 
     -- Validate/load shell or IPL definitions before fading (original checks)
     if propertyData.type == "shell" then
       if not AvailableShells[propertyData.metadata.shell] then
         if onDone then onDone(false) end
-        return warn(('Could not find shell "%s"!'):format(propertyData.metadata.shell))
+        return CL.Notification(('Could not find shell "%s"!'):format(propertyData.metadata.shell), 5000, "error")
       end
 
       if AvailableShells[propertyData.metadata.shell].needsCalibration then
@@ -228,12 +228,12 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
       local ok = library.RequestHousingShell(propertyData.metadata.shell)
       if not ok then
         if onDone then onDone(false) end
-        return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
+        return CL.Notification(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell), 5000, "error")
       end
     elseif propertyData.type == "ipl" then
       if not AvailableIPLS[propertyData.metadata.ipl] then
         if onDone then onDone(false) end
-        return warn(('Could not find ipl "%s"!'):format(propertyData.metadata.ipl))
+        return CL.Notification(('Could not find ipl "%s"!'):format(propertyData.metadata.ipl), 5000, "error")
       end
     end
 

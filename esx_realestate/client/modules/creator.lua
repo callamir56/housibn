@@ -1076,7 +1076,7 @@ end
 
 function HousingCreator:EnterShell(shellName, cb)
   if CurrentShell then
-    return warn("You are already in shell!")
+    return CL.Notification("You are already in shell!", 5000, "error")
   end
 
   if not shellName then
@@ -1088,7 +1088,7 @@ function HousingCreator:EnterShell(shellName, cb)
   if not AvailableShells[shellName] then
     SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })
     SetNuiFocus(true, true)
-    return warn(("Could not find shell \"%s\"!"):format(shellName))
+    return CL.Notification(("Could not find shell \"%s\"!"):format(shellName), 5000, "error")
   end
 
   if AvailableShells[shellName].needsCalibration then
@@ -1102,7 +1102,7 @@ function HousingCreator:EnterShell(shellName, cb)
   if not loaded then
     SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })
     SetNuiFocus(true, true)
-    return warn(("Failed to load shell \"%s\" - make sure it is running!"):format(shellName))
+    return CL.Notification(("Failed to load shell \"%s\" - make sure it is running!"):format(shellName), 5000, "error")
   end
 
   -- Save previous coords
@@ -1131,7 +1131,7 @@ end
 
 function HousingCreator:EnterIPL(iplName, cb, theme)
   if CurrentIPL then
-    return warn("You are already in IPL!")
+    return CL.Notification("You are already in IPL!", 5000, "error")
   end
 
   if not iplName then
@@ -1143,7 +1143,7 @@ function HousingCreator:EnterIPL(iplName, cb, theme)
   if not AvailableIPLS[iplName] then
     SendNUIMessage({ action = "HousingCreator", actionName = "Update", data = { type = "show-menu" } })
     SetNuiFocus(true, true)
-    return warn(("Could not find shell \"%s\"!"):format(iplName))
+    return CL.Notification(("Could not find shell \"%s\"!"):format(iplName), 5000, "error")
   end
 
   houseConfiguration.previousCoords = GetEntityCoords(PlayerPedId())

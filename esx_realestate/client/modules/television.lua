@@ -2,16 +2,25 @@ HousingTV = {}
 local dui, target, ownedTarget, texture, property, activeVideo, activeVersion, revision = nil,nil,false,nil,nil,nil,nil,0
 local textureSerial = 0
 local mode = nil
-local function stop()
+local function clearPlayback()
+    -- Keep the registered target during on/off/channel transitions. Releasing
+    -- and re-registering it in the same frame can fail and require a retry.
     revision=revision+1
     if dui then DestroyDui(dui); dui=nil end
+    texture,activeVideo,activeVersion,mode=nil,nil,nil,nil
+end
+local function stop()
+    clearPlayback()
     if ownedTarget then ReleaseNamedRendertarget('tvscreen') end
-    target,ownedTarget,texture,property,activeVideo,activeVersion=nil,false,nil,nil,nil,nil
-    mode=nil
+    target,ownedTarget,property=nil,false,nil
 end
 -- Keep the game's named render target while the TV is off: simply releasing it
 -- brings back GTA's default TV picture rather than a black screen.
 local function attachTarget(id)
+    if ownedTarget and target and property==id then
+        clearPlayback()
+        return true
+    end
     stop()
     property=id
     local already=IsNamedRendertargetRegistered('tvscreen')
@@ -27,6 +36,9 @@ local function attachTarget(id)
         if not IsNamedRendertargetLinked(hash) then LinkNamedRendertarget(hash) end
     end
     target=GetNamedRendertargetRenderId('tvscreen')
+    if not target or target <= 0 then
+        stop(); CL.Notification('TV render target unavailable.',4000,'error'); return false
+    end
     return true
 end
 local function show(id,state)
@@ -69,13 +81,13 @@ local function show(id,state)
         -- Do not bind a texture to a DUI before the browser is available.
         texture=CreateRuntimeTextureFromDuiHandle(txd,'screen',GetDuiHandle(dui))
         local message=json.encode({action='play',provider=state.provider,video=state.video,elapsed=state.elapsed or 0})
-        -- DUI availability can precede the page's message handler. Re-send a
-        -- few times; the page ignores duplicates once it has accepted the URL.
+        -- DUI availability can precede the page's message handler. Re-send
+        -- during initial load; the page ignores duplicates once it accepts the URL.
         CreateThread(function()
-            for _=1,4 do
+            for _=1,30 do
                 if not dui or revision~=thisRevision then return end
                 SendDuiMessage(dui,message)
-                Wait(1000)
+                Wait(500)
             end
         end)
         while dui and revision==thisRevision do

@@ -156,7 +156,7 @@ renderGhost = function(row)
     CreateThread(function()
         local model = tonumber(row.props.model)
         if not model or not IsModelAVehicle(model) then
-            print(('[esx_realestate] Invalid parked vehicle model for garage %s'):format(id))
+            if Config and Config.Debug then print(('[esx_realestate] Invalid parked vehicle model for garage %s'):format(id)) end
             return
         end
         RequestModel(model)
@@ -171,12 +171,12 @@ renderGhost = function(row)
         local vehicle = CreateVehicle(model, p.x, p.y, p.z, p.w or 0.0, false, false)
         SetModelAsNoLongerNeeded(model)
         if not vehicle or vehicle == 0 or not DoesEntityExist(vehicle) then
-            print(('[esx_realestate] Failed to create parked vehicle for garage %s'):format(id))
+            if Config and Config.Debug then print(('[esx_realestate] Failed to create parked vehicle for garage %s'):format(id)) end
             return
         end
         -- Display safety must still be applied if a customization fails.
         local ok, err = pcall(ESX.Game.SetVehicleProperties, vehicle, row.props)
-        if not ok then print(('[esx_realestate] Parked vehicle properties: %s'):format(tostring(err))) end
+        if not ok and Config and Config.Debug then print(('[esx_realestate] Parked vehicle properties: %s'):format(tostring(err))) end
         setGhostState(vehicle, true)
         ghosts[id] = vehicle
     end)

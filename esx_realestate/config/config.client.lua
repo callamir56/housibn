@@ -175,7 +175,7 @@ CL.Target = function(targetType, data)
 
             return uniqueName
         else
-            warn('You need to prepare CL.Target for the target system')
+            if Config and Config.Debug then warn('You need to prepare CL.Target for the target system') end
         end
         
     elseif targetType == 'remove-zone' then
@@ -184,7 +184,7 @@ CL.Target = function(targetType, data)
         elseif Config.TargetResource == 'qb-target' then
             exports['qb-target']:RemoveZone(data)
         else
-            warn('You need to prepare CL.Target for the target system')
+            if Config and Config.Debug then warn('You need to prepare CL.Target for the target system') end
         end
         
     elseif targetType == 'entity' then
@@ -303,7 +303,7 @@ CL.Target = function(targetType, data)
                 distance = 1.2
             })
         else
-            warn('You need to prepare CL.Target for the target system')
+            if Config and Config.Debug then warn('You need to prepare CL.Target for the target system') end
         end
         
     elseif targetType == 'remove-entity' then
@@ -312,7 +312,7 @@ CL.Target = function(targetType, data)
         elseif Config.TargetResource == 'qb-target' then
             exports['qb-target']:RemoveTargetEntity(data)
         else
-            warn('You need to prepare CL.Target for the target system')
+            if Config and Config.Debug then warn('You need to prepare CL.Target for the target system') end
         end
 
     end
@@ -329,7 +329,7 @@ end
 CL.Minigame = function(type, cb, data)
     if type == 'lockpick' then
         if GetResourceState('t3_lockpick') ~= 'started' then
-            warn('The required resource ^1t3_lockpick^7 was not found!')
+            if Config and Config.Debug then warn('The required resource ^1t3_lockpick^7 was not found!') end
             return cb(false)
         end
 
@@ -351,7 +351,7 @@ CL.Minigame = function(type, cb, data)
 
     elseif type == 'police_raid' then
         if GetResourceState('tgiann-skillbar') ~= 'started' then
-            warn('The required resource ^1tgiann-skillbar^7 was not found!')
+            if Config and Config.Debug then warn('The required resource ^1tgiann-skillbar^7 was not found!') end
             return cb(false)
         end
 

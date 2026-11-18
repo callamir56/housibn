@@ -39,7 +39,7 @@ Config.AutoSeedFurniture = true
 
 ---@class Debug<boolean>
 -- By running debugging, you will receive prints at various activities, in case of any problems, this will be able to help you find the cause of the misconfiguration.
-Config.Debug = true                 -- Enables debug prints for various system events.
+Config.Debug = false                -- Enables debug prints for various system events.
 Config.DebugTarget = false          -- Enables debug related to target zones.
 Config.DebugPolyZone = false        -- Enables debug related to PolyZone entries/exits.
 Config.DebugRegionsZone = false     -- Enables debug related to Regions PolyZone.

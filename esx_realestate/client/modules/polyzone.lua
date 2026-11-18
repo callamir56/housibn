@@ -335,7 +335,7 @@ Citizen.CreateThread(function()
     RegisterCommand("getRegion", function()
       local coords = GetEntityCoords(PlayerPedId())
       local region = library.GetCurrentRegion(coords.xyz) or "None"
-      print(("Region: ^3%s"):format(region))
+      if Config and Config.Debug then print(("Region: ^3%s"):format(region)) end
     end)
   end
 

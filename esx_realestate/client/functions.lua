@@ -772,16 +772,16 @@ function SpawnInLastProperty(onDone)
       -- Validate shell/IPL availability before proceeding
       if propertyData.type == "shell" then
         if not AvailableShells[propertyData.metadata.shell] then
-          return warn(('Could not find shell "%s"!'):format(propertyData.metadata.shell))
+          return CL.Notification(('Could not find shell "%s"!'):format(propertyData.metadata.shell), 5000, "error")
         end
 
         if not library.RequestHousingShell(propertyData.metadata.shell) then
-          return warn(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell))
+          return CL.Notification(('Failed to load shell "%s" - make sure it is running!'):format(propertyData.metadata.shell), 5000, "error")
         end
 
       elseif propertyData.type == "ipl" then
         if not AvailableIPLS[propertyData.metadata.ipl] then
-          return warn(('Could not find ipl "%s"!'):format(propertyData.metadata.ipl))
+          return CL.Notification(('Could not find ipl "%s"!'):format(propertyData.metadata.ipl), 5000, "error")
         end
       end
 

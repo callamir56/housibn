@@ -23,7 +23,7 @@ function CreateRuntimeTextureFromDuiHandle() order[#order+1]='texture'; return 3
 function SetTextRenderId() end
 function SetScriptGfxDrawBehindPausemenu() end
 function SetScriptGfxDrawOrder(v) assert(v==4 or v==0); if v==4 then order[#order+1]='layer' end end
-function DrawSprite(txd) assert(txd=='housing_tv_1'); order[#order+1]='draw' end
+function DrawSprite(txd) assert(txd=='housing_tv_1' or txd=='housing_tv_2'); order[#order+1]='draw' end
 function DrawRect(x,y,w,h,r,g,b,a) assert(r==0 and g==0 and b==0 and a==255); order[#order+1]='black' end
 function GetDefaultScriptRendertargetRenderId() return 1 end
 function DestroyDui() end
@@ -42,5 +42,13 @@ events['vms_housing:tv:update']('7',{on=false})
 assert(coroutine.resume(threads[1])) -- old video thread terminates
 assert(coroutine.resume(threads[3])) -- off-state render thread draws black
 assert(order[#order]=='black' and registered)
-CurrentProperty='8'; assert(coroutine.resume(threads[3])); assert(not registered)
+-- One play action after an off state reuses the same target without a release.
+events['vms_housing:tv:update']('7',{on=true,provider='aparat',video='BNMK5',version=2})
+assert(registered and coroutine.resume(threads[3])) -- off loop exits
+assert(coroutine.resume(threads[4])); assert(order[#order]=='draw')
+-- One off action stops the stream and draws black immediately.
+events['vms_housing:tv:update']('7',{on=false})
+assert(coroutine.resume(threads[4]))
+assert(coroutine.resume(threads[6])); assert(order[#order]=='black')
+CurrentProperty='8'; assert(coroutine.resume(threads[6])); assert(not registered)
 print('TV DUI readiness, black off screen and target cleanup passed')

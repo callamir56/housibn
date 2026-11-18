@@ -260,7 +260,7 @@ function spawnNextProp()
           deliverySize = getDeliverySizeFromDimensions(minDim, maxDim)
         }
       else
-        print('Entity "' .. tostring(modelName) .. '" does not exist')
+        if Config and Config.Debug then print('Entity "' .. tostring(modelName) .. '" does not exist') end
       end
 
       -- Advance index (wrap to 0 to signal completion)
@@ -271,7 +271,7 @@ function spawnNextProp()
     end)
   else
     -- Spawn failed: report and still advance
-    print('Entity "' .. tostring(modelName) .. '" does not exist')
+    if Config and Config.Debug then print('Entity "' .. tostring(modelName) .. '" does not exist') end
 
     currentIndex = currentIndex + 1
     if currentIndex > #propsToRegister then

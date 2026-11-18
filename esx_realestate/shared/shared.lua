@@ -20,7 +20,7 @@ function addShells(shells)
       AvailableShells[shellName] = shellData
     else
       -- Keep original warning wording/behavior
-      warn(("Duplicated shell %s! (CANCELED ACTION)"):format(shellName))
+      if Config and Config.Debug then warn(("Duplicated shell %s! (CANCELED ACTION)"):format(shellName)) end
     end
   end
 end
@@ -56,7 +56,7 @@ function addIPLS(ipls)
     if AvailableIPLS[iplName] == nil then
       AvailableIPLS[iplName] = iplData
     else
-      warn(("Duplicated IPL %s! (CANCELED ACTION)"):format(iplName))
+      if Config and Config.Debug then warn(("Duplicated IPL %s! (CANCELED ACTION)"):format(iplName)) end
     end
   end
 end

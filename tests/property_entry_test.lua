@@ -34,3 +34,10 @@ Property:EnterProperty(data)
 assert(entered == '6' and CurrentProperty == '6' and CurrentPropertyData == data)
 assert(fades == 1 and frozen == false)
 print('property entry async context test passed')
+-- A missing interior definition should notify the player and stop cleanly.
+CurrentShell=nil; CurrentIPL=nil
+local alerted, complete = false, nil
+CL.Notification=function() alerted=true end
+Property:EnterProperty({id=6,type='shell',metadata={shell='missing'}}, '6', function(ok) complete=ok end)
+assert(alerted and complete==false)
+print('missing property shell reports to player and aborts')
