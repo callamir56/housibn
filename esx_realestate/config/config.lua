@@ -875,9 +875,16 @@ Config.HousingRest = {
         apa_mp_h_bed_with_table_02 = true,
         ex_prop_exec_bed_01 = true,
         hei_heist_bed_double_08 = true,
+        prop_rub_matress_01 = true, prop_t_sofa_02 = true, p_lestersbed_s = true,
+        sum_mp_h_yacht_bed_01 = true, sum_mp_h_yacht_bed_02 = true,
+        v_res_d_bed = true, v_res_mbbed = true, v_res_mdbed = true,
+        v_res_msonbed = true, v_res_tre_bed1 = true, v_res_tre_bed1_messy = true,
+        v_res_tt_bed = true,
     },
-    BedOffset = {x=0.0, y=0.0, z=0.6, heading=0.0}, -- adjust for your beds
-    DurationSeconds = 6,
+    BedOffset = {x=0.0, y=0.0, z=0.6, heading=0.0}, -- default; calibrate per model
+    BedOffsets = {}, -- [model] = {x=..., y=..., z=..., heading=...}
+    FixedBeds = true, -- model targets on fixed map beds; cosmetic only
+    DurationSeconds = 12, -- permits animation loading; client wakes after four seconds black
     TickSeconds = 1,
     HealPerTick = 5,
     CooldownSeconds = 300,
@@ -922,6 +929,9 @@ Config.HousingBathroom = {
     DurationMs = 10000,
     ToiletModels = { 'prop_toilet_01', 'prop_toilet_02', 'prop_ld_toilet_01' },
     ShowerModels = { 'prop_shower_01', 'v_ilev_mm_shower', 'prop_shower_rack_01' },
+    BathModels = { 'v_res_mbath' }, -- add your map's bathtub models
+    BathOffset = {x=0.0, y=0.0, z=0.45, heading=0.0},
+    BathOffsets = {}, -- optional per-model offsets
     ToiletOffset = {x=0.0, y=0.0, z=0.45, heading=180.0},
     ShowerOffset = {x=0.0, y=-0.4, z=0.0, heading=0.0},
 }

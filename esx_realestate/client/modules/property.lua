@@ -486,11 +486,11 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
         end
 
         if environment == "inside" and Config.HousingRest and Config.HousingRest.Enabled
-            and Config.HousingRest.Models and Config.HousingRest.Models[furnitureData.model] then
+            and HousingRest.IsBed(furnitureData.model) then
           local bedId, propertyId = furnitureData.id, permissionContext or CurrentProperty
           CL.Target("entity", {entity = entity, options = {{
             name = ("housing-rest-%s"):format(bedId), icon = "fa-solid fa-bed", label = "Rest",
-            action = function() HousingRest.Start(propertyId, bedId, entity) end,
+            action = function() HousingRest.Start(propertyId, bedId, entity, furnitureData.model) end,
           }}})
         end
 

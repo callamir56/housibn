@@ -18,7 +18,7 @@ local function context(src, propertyId, furnitureId)
         if tostring(item.id) == tostring(furnitureId) then bed = item; break end
     end
     if not bed or tonumber(bed.stored) ~= 0 or not bed.position or bed.position.environment ~= 'inside'
-        or not cfg.Models or not cfg.Models[bed.model] then return end
+        or not ((cfg.Models and cfg.Models[bed.model]) or (Furniture and Furniture[bed.model] and Furniture[bed.model].tag == 'bed')) then return end
     local pos, target = GetEntityCoords(ped), bed.position
     if not pos or not target.x or not target.y or not target.z then return end
     local x, y, z = pos.x-target.x, pos.y-target.y, pos.z-target.z

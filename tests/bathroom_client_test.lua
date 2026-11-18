@@ -1,5 +1,5 @@
 local threads, handlers, targets, frozen, calls = {}, {}, {}, false, {}
-Config={TargetResource='ox_target',HousingBathroom={Enabled=true,DurationMs=10000,ToiletModels={'toilet'},ShowerModels={'shower'},ToiletOffset={x=0,y=0,z=0},ShowerOffset={x=0,y=0,z=0}}}
+Config={TargetResource='ox_target',HousingBathroom={Enabled=true,DurationMs=10000,ToiletModels={'toilet'},ShowerModels={'shower'},BathModels={'bath'},BathOffset={x=0,y=0,z=0},ToiletOffset={x=0,y=0,z=0},ShowerOffset={x=0,y=0,z=0}}}
 CurrentProperty='7'
 Property={}
 exports={ox_target={addModel=function(_,models,opts) targets[models[1]]=opts[1] end,removeModel=function() end}}
@@ -11,6 +11,9 @@ function IsEntityDead() return false end
 function IsPedInAnyVehicle() return false end
 function GetOffsetFromEntityInWorldCoords() return {x=1,y=2,z=3} end
 function GetEntityHeading() return 0 end
+function GetEntityCoords() return {x=0,y=0,z=0} end
+function HasAnimDictLoaded() return true end
+function TaskPlayAnim(_,dict) calls[dict]=true end
 function SetEntityCoordsNoOffset() end
 function SetEntityHeading() end
 function FreezeEntityPosition(_,v) frozen=v end
@@ -23,14 +26,19 @@ function Wait() end
 function GetCurrentResourceName() return 'housing' end
 function GetResourceState() return 'started' end
 CL={Notification=function() end}
-library={PlayAnimation=function() calls.shower=true end}
+library={LoadDict=function() end}
 assert(loadfile('esx_realestate/client/modules/bathroom.lua'))()
 table.remove(threads,1)()
-assert(targets.toilet and targets.shower)
+assert(targets.toilet and targets.shower and targets.bath)
 CurrentProperty=nil; assert(not targets.toilet.canInteract(8))
 CurrentProperty='7'; targets.toilet.onSelect({entity=8}); assert(calls.toilet and not targets.shower.canInteract(8))
 table.remove(threads,1)(); assert(calls.clear)
-targets.shower.onSelect({entity=8}); assert(calls.shower and frozen)
+targets.shower.onSelect({entity=8}); assert(frozen)
+table.remove(threads,1)(); assert(calls['mp_safehouseshower@female@'])
 table.remove(threads,1)(); assert(calls.stop and not frozen)
+targets.bath.onSelect({entity=8}); assert(frozen)
+table.remove(threads,1)(); assert(calls['amb@world_human_sunbathe@male@back@base'])
+table.remove(threads,1)(); assert(not frozen)
 targets.shower.onSelect({entity=8}); assert(frozen); handlers.onResourceStop('housing'); assert(not frozen)
+table.remove(threads,1)() -- delayed animation must not restart after stop
 print('bathroom targets, interruption and cleanup passed')
