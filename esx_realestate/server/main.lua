@@ -570,8 +570,12 @@ end
 
 -- Export helper: mark admin and tell client to enter house (used by other resources)
 EnterProperty = function(targetSource, propertyId)
-    adminAllowedSources[targetSource] = true
-    TriggerClientEvent("vms_housing:cl:enterHouse", propertyId, targetSource)
+    local token = { propertyId = tostring(propertyId) }
+    adminAllowedSources[targetSource] = token
+    SetTimeout(30000, function()
+        if adminAllowedSources[targetSource] == token then adminAllowedSources[targetSource] = nil end
+    end)
+    TriggerClientEvent("vms_housing:cl:enterHouse", targetSource, propertyId)
 end
 
 -- Weekly period helper (W<week>:<year>)
@@ -646,24 +650,31 @@ end)
 
 library.RegisterCallback("vms_housing:openManageMenu", function(sourceId, cb, propertyId)
     local prop = GetProperty(propertyId)
-
-    -- Power/water usage bookkeeping (side effects)
+    local player = SV.GetPlayer(sourceId)
+    local identifier = player and SV.GetIdentifier(player)
+    if not prop or not identifier or not (library.HasAnyPermission(propertyId, identifier) or prop.renter == identifier) then
+        return cb({error = true})
+    end
     library.HandleLightStateMonthOverlap(propertyId)
     library.ApplyCurrentLightUsage(propertyId, os.time(), true)
-
     local bills = library.GetOrCreateBills(propertyId)
-    cb({
-        bills = bills,
-        unpaidRentBills = prop.unpaidRentBills,
-        unpaidBills = prop.unpaidBills,
-    })
+    library.RefreshUtilityDebt(prop)
+    cb({ bills = bills, unpaidRentBills = prop.unpaidRentBills, unpaidBills = prop.unpaidBills })
 end)
 
-library.RegisterCallback("vms_housing:canEnterHouse", function(sourceId, cb)
+library.RegisterCallback("vms_housing:canEnterHouse", function(sourceId, cb, propertyId)
     local ply = SV.GetPlayer(sourceId)
-    local identifier = SV.GetIdentifier(ply)
-    local canEnter = SV.CanEnterHouse(sourceId, ply)
-    cb(canEnter)
+    local prop = propertyId and GetProperty(propertyId)
+    if not ply or not prop then return cb(false) end
+    local blocked, count = library.UtilityEntryBlocked(prop)
+    if blocked then
+        library.Notification(sourceId, "Entry blocked: pay overdue utility bills from the outside management menu.", 6000, "error")
+        return cb(false)
+    end
+    if count > 0 and Config.UtilityAccess and Config.UtilityAccess.ReminderOnEntry then
+        library.Notification(sourceId, ("Utility reminder: %d overdue bill(s). Pay from property management."):format(count), 5000, "info")
+    end
+    cb(SV.CanEnterHouse(sourceId, ply))
 end)
 
 library.RegisterCallback("vms_housing:canExitHouse", function(sourceId, cb)
@@ -1098,6 +1109,18 @@ library.RegisterCallback("vms_housing:checkLastProperty", function(sourceId, cb)
         if lastPropData and lastPropData.id then
             local prop = GetProperty(tostring(lastPropData.id))
             if prop then
+                if library.UtilityEntryBlocked(prop) then
+                    local exit = prop.metadata and prop.metadata.exit
+                    if exit and exit.x and exit.y and exit.z then
+                        SetEntityCoords(GetPlayerPed(sourceId), vector3(exit.x, exit.y, exit.z))
+                        if exit.w then SetEntityHeading(GetPlayerPed(sourceId), exit.w) end
+                    end
+                    SetPlayerRoutingBucket(sourceId, 0)
+                    MySQL.query(("UPDATE `%s` SET `last_property` = NULL WHERE `%s` = ?"):format(tableName, idColumn), { SV.GetIdentifier(ply) })
+                    if Config.Core == "ESX" then ply.set("lastProperty", nil) end
+                    library.Notification(sourceId, "Entry blocked: pay overdue utility bills from outside.", 6000, "error")
+                    return cb(false)
+                end
                 local buildingProp = nil
                 if prop.object_id then
                     buildingProp = GetProperty(tostring(prop.object_id))
@@ -1114,8 +1137,7 @@ end)
 
 -- Admin usage gate (read+clear adminAllowedSources[source])
 library.RegisterCallback("vms_housing:isAllowedToUseAdmin", function(sourceId, cb)
-    cb(adminAllowedSources[sourceId])
-    adminAllowedSources = nil -- kept as original behavior (clears the whole table reference)
+    cb(adminAllowedSources[sourceId] ~= nil)
 end)
 
 -- ============================================================================
@@ -1522,6 +1544,20 @@ AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return end
 
+    local blocked = library.UtilityEntryBlocked(prop)
+    local adminToken = adminAllowedSources[src]
+    local admin = adminToken and adminToken.propertyId == tostring(propertyId)
+    adminAllowedSources[src] = nil
+    local raidAllowed = false
+    if blocked and Config.UtilityAccess and Config.UtilityAccess.AllowPoliceDuringRaid and prop.isUnderRaid then
+        raidAllowed = IsAllowedToRaid(src, ply, prop) == true
+    end
+    if blocked and not admin and not raidAllowed then
+        library.Notification(src, "Entry blocked: pay overdue utility bills from outside.", 6000, "error")
+        TriggerClientEvent("vms_housing:cl:utilityEntryDenied", src, tostring(propertyId))
+        return
+    end
+
     if prop.type == "shell" then
         local shell = prop.metadata and AvailableShells[prop.metadata.shell]
         if not shell or shell.needsCalibration then return end
@@ -1733,6 +1769,9 @@ AddEventHandler("vms_housing:sv:toggleLight", function(propertyId)
     if not prop then return end
 
     if not IsPlayerInProperty(src, propertyId) then return end
+    if Config.UseServiceBills and not prop.metadata.lightState and library.RefreshUtilityDebt(prop) >= Config.AllowedUnpaidBills then
+        return library.Notification(src, "Electricity is unavailable until overdue bills are paid.", 4000, "error")
+    end
 
     if prop.metadata.lightState == nil then
         prop.metadata.lightState = false
@@ -3186,120 +3225,77 @@ end)
 --  - Debits bank
 --  - Marks paid, adjusts counters, webhooks, updates DB + broadcast
 --========================================================================
+local utilityPaymentLocks = {}
 RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billType)
-  if billType ~= "services" and billType ~= "rent" then return end
-  if type(period) ~= "string" then return end
-
+  if (billType ~= "services" and billType ~= "rent") or type(period) ~= "string" then return end
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
-  if not player then return end
-
   local property = getPropertyOrReturn(propertyId)
-  if not property then return end
-
-  if not requirePermissionOrNotify(src, propertyId, identifier, "billPayments") then
-    return
-  end
-
-  local currentPeriod = os.date("%m:%Y")
-  if billType ~= "rent" and currentPeriod == period then
-    -- matches original “if not rent and same period -> return”
-    return
-  end
-
-  -- Find bill entry
-  local bill
-  for _, b in pairs(property.bills or {}) do
-    if b.period == period and b.type == billType then
-      bill = b
-      break
+  if not player or not property or not requirePermissionOrNotify(src, propertyId, identifier, "billPayments") then return end
+  if billType == "services" and period == os.date("%m:%Y") then return end
+  if billType == "services" then
+    local finalized, err = pcall(library.HandleLightStateMonthOverlap, propertyId)
+    if not finalized then
+      print('[esx_realestate] Cannot finalize utility usage: ' .. tostring(err))
+      return library.Notification(src, "Could not calculate the bill. Please try again.", 5000, "error")
     end
   end
-  if not bill or bill.paid == true or tonumber(bill.paid) == 1 then return end
+  local bill
+  for _, candidate in ipairs(property.bills or {}) do
+    if candidate.period == period and candidate.type == billType then bill = candidate; break end
+  end
+  if not bill or not tonumber(bill.id) or bill.paid == true or tonumber(bill.paid) == 1 then return end
+  local amount = tonumber(bill.total)
+  if not amount or amount ~= amount or amount < 0 or amount == math.huge then return end
+  local total = math.floor(amount)
+  local key = tostring(propertyId) .. ':' .. tostring(bill.id)
+  if utilityPaymentLocks[key] then return end
+  utilityPaymentLocks[key] = true
 
-  local billTotal = tonumber(bill.total)
-  if not billTotal or billTotal ~= billTotal or billTotal < 0 or billTotal == math.huge then return end
-
-  local bankBalance = SV.GetMoney(player, "bank")
-  if not tonumber(bankBalance) then return end
-
-  local total = math.floor(billTotal)
-  if total > tonumber(bankBalance) then
+  -- ESX/QB accounts and SQL cannot share a transaction. Keep a per-invoice lock,
+  -- debit synchronously, then compare-and-set the invoice; refund on SQL failure.
+  local balance = tonumber(SV.GetMoney(player, "bank"))
+  if not balance or balance < total then
+    utilityPaymentLocks[key] = nil
     return library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
   end
-
-  -- Debit
-  SV.RemoveMoney(player, "bank", total)
-
-  if billType == "services" then
-    library.Notification(src, TRANSLATE("notify.property:paid_services", total, period), 5000, "success")
-    bill.paid = 1
-    property.unpaidBills = (property.unpaidBills or 0) - 1
-
-    SV.Webhook(
-      "PaidBillServices",
-      WebhookText["TITLE.PaidBillServices"],
-      WebhookText["DESCRIPTION.PaidBillServices"]:format(
-        SV.GetCharacterName(player),
-        src,
-        total,
-        propertyId,
-        period
-      ),
-      0,
-      identifier
-    )
-
-  elseif billType == "rent" then
-    library.Notification(src, TRANSLATE("notify.property:paid_rent", total, period), 5000, "success")
-
-    -- pay owner + optional rental income tax
-    if property.owner then
-      local ownerPlayer = SV.GetPlayerByIdentifier(property.owner)
-
+  local debited, debitError = pcall(SV.RemoveMoney, player, "bank", total)
+  if not debited then
+    utilityPaymentLocks[key] = nil
+    print('[esx_realestate] Bill debit failed: ' .. tostring(debitError))
+    return
+  end
+  local ok, affected = pcall(function()
+    return MySQL.update.await("UPDATE houses_bills SET paid = 1 WHERE id = ? AND house_id = ? AND paid = 0", {bill.id, tonumber(propertyId)})
+  end)
+  if not ok or affected ~= 1 then
+    local refunded, err = pcall(SV.AddMoney, player, "bank", total)
+    utilityPaymentLocks[key] = nil
+    if not refunded then print('[esx_realestate] CRITICAL bill refund failed: ' .. tostring(err)) end
+    return library.Notification(src, "Bill payment failed; please try again.", 5000, "error")
+  end
+  bill.paid = 1
+  library.RefreshUtilityDebt(property)
+  if billType == "rent" then property.unpaidRentBills = math.max(0, (property.unpaidRentBills or 0) - 1) end
+  utilityPaymentLocks[key] = nil
+  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "paidBill", tostring(propertyId), {
+    type = billType, period = period, unpaidBills = property.unpaidBills, unpaidRentBills = property.unpaidRentBills
+  }, src)
+  library.Notification(src, TRANSLATE(billType == "rent" and "notify.property:paid_rent" or "notify.property:paid_services", total, period), 5000, "success")
+  if billType == "rent" and property.owner then
+    local paidOwner, err = pcall(function()
+      local owner = SV.GetPlayerByIdentifier(property.owner)
       if Config.CityHallTaxes and Config.CityHallTaxes.RentalIncome and Config.CityHallTaxes.RentalIncome.Enabled then
         SV.AddTax(property.owner, property.owner_name, property.name, property.address, "rental_income_tax", total)
       end
-
-      if ownerPlayer then
-        SV.AddMoney(ownerPlayer, "bank", total)
-      else
-        -- offline payment
-        SV.AddMoneyOffline(property.owner, "bank", total)
-      end
-    end
-
-    bill.paid = 1
-    property.unpaidRentBills = (property.unpaidRentBills or 0) - 1
-
-    SV.Webhook(
-      "PaidBillRent",
-      WebhookText["TITLE.PaidBillRent"],
-      WebhookText["DESCRIPTION.PaidBillRent"]:format(
-        SV.GetCharacterName(player),
-        src,
-        total,
-        propertyId,
-        period
-      ),
-      0,
-      identifier
-    )
+      if owner then SV.AddMoney(owner, "bank", total) else SV.AddMoneyOffline(property.owner, "bank", total) end
+    end)
+    if not paidOwner then print('[esx_realestate] Rent owner payment failed; review bill ' .. tostring(bill.id) .. ': ' .. tostring(err)) end
   end
-
-  -- Persist paid flag
-  MySQL.query(
-    "UPDATE `houses_bills` SET `paid` = 1 WHERE `house_id` = ? AND `period` = ? AND `type` = ?",
-    { tonumber(propertyId), period, billType }
-  )
-
-  -- Broadcast update
-  TriggerClientEvent("vms_housing:cl:updateProperty", -1, "paidBill", propertyId, {
-    type = billType,
-    period = period,
-    unpaidBills = property.unpaidBills,
-    unpaidRentBills = property.unpaidRentBills
-  }, src)
+  pcall(function()
+    local kind = billType == "rent" and "PaidBillRent" or "PaidBillServices"
+    SV.Webhook(kind, WebhookText["TITLE." .. kind], WebhookText["DESCRIPTION." .. kind]:format(SV.GetCharacterName(player), src, total, propertyId, period), 0, identifier)
+  end)
 end)
 
 --========================================================================

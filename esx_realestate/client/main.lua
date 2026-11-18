@@ -1358,3 +1358,13 @@ RegisterNetEvent("vms_housing:cl:reloadFurniture", function(furnitureId, updated
     })
   end
 end)
+-- A debt can change between the entry callback and the final server event.
+RegisterNetEvent("vms_housing:cl:utilityEntryDenied", function(propertyId)
+  if tostring(CurrentProperty or "") ~= tostring(propertyId) then return end
+  Property:ExitProperty(nil, false, true, true)
+end)
+
+RegisterNetEvent("vms_housing:cl:utilityDebtSync", function(propertyId, overdue)
+  local property = Properties[tostring(propertyId)]
+  if property then property.unpaidBills = tonumber(overdue) or 0 end
+end)

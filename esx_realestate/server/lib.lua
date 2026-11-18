@@ -310,7 +310,10 @@ function library.HandleLightStateMonthOverlap(propertyId)
         end
     end
 
-    if prevServicesBill then
+    -- Reserve the interval before the awaited DB write so simultaneous menu,
+    -- rollover and payment requests cannot count the same seconds twice.
+    metadata.lightStartTime = startOfCurrentMonth
+    if prevServicesBill and prevServicesBill.paid ~= true and tonumber(prevServicesBill.paid) ~= 1 then
         local details = json.decode(prevServicesBill.details or "{}")
 
         local regionCfg = Config.Regions[property.region] or Config.NoRegion
@@ -334,8 +337,6 @@ function library.HandleLightStateMonthOverlap(propertyId)
         )
     end
 
-    -- Move lightStartTime to beginning of current month (so new usage counts in this month)
-    metadata.lightStartTime = startOfCurrentMonth
 end
 
 --=====================================================================
@@ -351,7 +352,7 @@ function library.GenerateMonthlyBill(propertyId, period)
     end
 
     local property = GetProperty(propertyId)
-    if not property then
+    if not property or not (property.owner or property.renter) then
         return nil
     end
 
@@ -465,6 +466,33 @@ end
 --  Bills: Get or create bills for property (monthly services + rent)
 --=====================================================================
 -- paidRentFlag passed through to GenerateRentBill.
+-- Count completed service periods, rather than trusting stale startup counters.
+function library.RefreshUtilityDebt(property, now)
+    if not property then return 0 end
+    local date = os.date("*t", now or os.time())
+    local current = date.year * 12 + date.month
+    local count = 0
+    if Config.UseServiceBills then
+        for _, bill in ipairs(property.bills or {}) do
+            local month, year = tostring(bill.period or ""):match("^(%d%d):(%d%d%d%d)$")
+            month, year = tonumber(month), tonumber(year)
+            if bill.type == "services" and bill.paid ~= true and tonumber(bill.paid) ~= 1
+                and month and month >= 1 and month <= 12 and year * 12 + month < current then
+                count = count + 1
+            end
+        end
+    end
+    property.unpaidBills = count
+    return count
+end
+
+function library.UtilityEntryBlocked(property, now)
+    local cfg = Config.UtilityAccess or {}
+    local count = library.RefreshUtilityDebt(property, now)
+    local threshold = math.max(1, math.floor(tonumber(cfg.OverdueBillsToBlock) or 2))
+    return Config.UseServiceBills and cfg.BlockEntry == true and count >= threshold, count
+end
+
 function library.GetOrCreateBills(propertyId, paidRentFlag)
     local property = GetProperty(propertyId)
     if not property then
@@ -498,7 +526,11 @@ function library.GetOrCreateBills(propertyId, paidRentFlag)
     if not hasServices then
         local newServices = library.GenerateMonthlyBill(propertyId, currentMonthPeriod)
         if newServices then
-            table.insert(property.bills, 1, newServices)
+            local exists = false
+            for _, existing in ipairs(property.bills) do
+                if existing.id == newServices.id then exists = true; break end
+            end
+            if not exists then table.insert(property.bills, 1, newServices) end
 
             -- Original code increments unpaidBills if bill period != currentMonthPeriod (rare),
             -- kept as-is for parity.
@@ -518,6 +550,7 @@ function library.GetOrCreateBills(propertyId, paidRentFlag)
         end
     end
 
+    library.RefreshUtilityDebt(property)
     return property.bills
 end
 

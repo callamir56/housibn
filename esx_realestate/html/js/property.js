@@ -681,6 +681,11 @@ const Property = {
             }
 
             if (this.HasPermission('billPayments') && this.ManageData['bills']) {
+                const cfg = this.ManageData.utilityAccess || {};
+                const overdue = Number(this.ManageData.unpaidBills) || 0;
+                const limit = Math.max(1, Math.floor(Number(cfg.OverdueBillsToBlock) || 2));
+                const status = this.ManageData.utilityBillsEnabled && cfg.BlockEntry ? (overdue >= limit ? 'Entry blocked' : `Entry lock at ${limit} overdue bills`) : 'Entry lock disabled';
+                $('.housing_manage .utility-summary').text(`Overdue utility bills: ${overdue} · ${status}`);
                 let billsListHTML = '';
                 this.ManageData['bills'].forEach(element => {
                     let status = ''

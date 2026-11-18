@@ -108,6 +108,10 @@ function openManageMenu(propertyId, isDevice)
 
     lastManageFetchPropertyId = resolvedPropertyId
     manageServerData = Citizen.Await(p)
+    if not manageServerData or manageServerData.error or not Properties[resolvedPropertyId] then
+      manageFetchCacheExpiresAt = nil
+      return
+    end
 
     -- Persist returned financial info into Properties table (matches original behavior)
     Properties[resolvedPropertyId].bills = manageServerData.bills
@@ -149,6 +153,8 @@ function openManageMenu(propertyId, isDevice)
   payload.data.bills = propertyData.bills
   payload.data.unpaidBills = propertyData.unpaidBills
   payload.data.unpaidRentBills = propertyData.unpaidRentBills
+  payload.data.utilityAccess = Config.UtilityAccess
+  payload.data.utilityBillsEnabled = Config.UseServiceBills
 
   payload.data.keys = decodedKeys
   payload.data.deliveries = Config.Deliveries

@@ -306,7 +306,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
     end
 
     FreezeEntityPosition(PlayerPedId(), false)
-  end)
+  end, targetId)
 end
 
 function Property.ExitProperty(self, onDone, skipRefreshTargets, skipServerLeave, bypassAudio)

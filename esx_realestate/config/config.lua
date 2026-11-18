@@ -357,6 +357,16 @@ Config.UseServiceBills = true
 -- Max number of unpaid utility bills before services are disabled
 Config.AllowedUnpaidBills = 2
 
+-- Utility invoices become overdue after their billing month.
+-- Access is restored as soon as enough overdue invoices are paid.
+Config.UtilityAccess = {
+    BlockEntry = true,
+    OverdueBillsToBlock = 2,
+    ReminderOnEntry = true,
+    AllowPoliceDuringRaid = true,
+}
+
+
 ---@class AllowedUnpaidRentBills<number>
 -- Max number of unpaid rent bills before tenant is evicted
 -- Do not set to 1 to avoid instant eviction!

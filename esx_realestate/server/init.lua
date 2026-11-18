@@ -410,13 +410,13 @@ MySQL.ready(function()
                 local house = Properties[propertyId]
 
                 if house and house.type ~= "building" and house.type ~= "motel" then
-                    if not bill.paid then
-                        if bill.type == "rent" then
+                    if bill.paid ~= true and tonumber(bill.paid) ~= 1 then
+                        -- Preserve the original rent behaviour; changing eviction policy
+                        -- must not unexpectedly evict existing tenants during this upgrade.
+                        if bill.type == "rent" and not bill.paid then
                             house.unpaidRentBills = (house.unpaidRentBills or 0) + 1
-                        else
-                            if Config.UseServiceBills and bill.period ~= monthPeriod then
-                                house.unpaidBills = (house.unpaidBills or 0) + 1
-                            end
+                        elseif bill.type == "services" and Config.UseServiceBills and bill.period ~= monthPeriod then
+                            house.unpaidBills = (house.unpaidBills or 0) + 1
                         end
                     end
 
@@ -445,14 +445,11 @@ MySQL.ready(function()
                     -- Scan existing bills
                     local bills = house.bills or {}
                     for _, bill in ipairs(bills) do
-                        if bill.period == monthPeriod then
-                            if bill.type == "services" then
-                                hasServiceBillThisMonth = true
-                            end
-                        else
-                            if bill.period == rentPeriod and bill.type == "rent" and house.renter then
-                                hasRentBillForCycle = true
-                            end
+                        if bill.period == monthPeriod and bill.type == "services" then
+                            hasServiceBillThisMonth = true
+                        end
+                        if bill.period == rentPeriod and bill.type == "rent" and house.renter then
+                            hasRentBillForCycle = true
                         end
 
                         -- Early exit similar to original logic
@@ -472,6 +469,7 @@ MySQL.ready(function()
                         end
                     end
 
+                    library.RefreshUtilityDebt(house)
                     -- Light shutoff logic when unpaid bills exceed limit
                     if Config.UseServiceBills and house.unpaidBills then
                         if house.unpaidBills >= Config.AllowedUnpaidBills then
