@@ -3187,7 +3187,8 @@ end)
 --  - Marks paid, adjusts counters, webhooks, updates DB + broadcast
 --========================================================================
 RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billType)
-  if not billType then return end
+  if billType ~= "services" and billType ~= "rent" then return end
+  if type(period) ~= "string" then return end
 
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -3214,12 +3215,15 @@ RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billT
       break
     end
   end
-  if not bill then return end
+  if not bill or bill.paid == true or tonumber(bill.paid) == 1 then return end
+
+  local billTotal = tonumber(bill.total)
+  if not billTotal or billTotal ~= billTotal or billTotal < 0 or billTotal == math.huge then return end
 
   local bankBalance = SV.GetMoney(player, "bank")
   if not tonumber(bankBalance) then return end
 
-  local total = tonumber(math.floor(bill.total))
+  local total = math.floor(billTotal)
   if total > tonumber(bankBalance) then
     return library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
   end
@@ -3261,7 +3265,7 @@ RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billT
         SV.AddMoney(ownerPlayer, "bank", total)
       else
         -- offline payment
-        SV.AddMoneyOffline(ownerPlayer, "bank", total)
+        SV.AddMoneyOffline(property.owner, "bank", total)
       end
     end
 
