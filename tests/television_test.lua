@@ -44,6 +44,9 @@ local c=play('https://www.youtube.com/watch?feature=share&v=abcdefghijk'); asser
 Config.HousingTV.DirectAllowedHosts={['safe.example.com']=true}; before=#emitted
 play('https://cdn.example.com/test.mp4'); assert(#emitted==before)
 assert(play('https://safe.example.com/test.webm').provider=='direct')
+-- Turning off immediately after play must not be blocked by the play cooldown.
+local count=#emitted; source=3; events['vms_housing:tv:control']('8',6,'off')
+assert(#emitted==count+1 and emitted[#emitted].state.on==false)
 os.time=realTime
 print('TV provider parsing, internal host rejection and direct host allowlist passed')
 

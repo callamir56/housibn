@@ -24,6 +24,7 @@ function SetTextRenderId() end
 function SetScriptGfxDrawBehindPausemenu() end
 function SetScriptGfxDrawOrder(v) assert(v==4 or v==0); if v==4 then order[#order+1]='layer' end end
 function DrawSprite(txd) assert(txd=='housing_tv_1'); order[#order+1]='draw' end
+function DrawRect(x,y,w,h,r,g,b,a) assert(r==0 and g==0 and b==0 and a==255); order[#order+1]='black' end
 function GetDefaultScriptRendertargetRenderId() return 1 end
 function DestroyDui() end
 json={encode=function() return '{}' end}
@@ -38,5 +39,8 @@ assert(#order==0 and #threads==1)
 assert(coroutine.resume(threads[1]))
 assert(table.concat(order,',')=='available,available,texture,layer,draw')
 events['vms_housing:tv:update']('7',{on=false})
-assert(coroutine.resume(threads[1]))
-print('TV DUI readiness, texture binding and render layer passed')
+assert(coroutine.resume(threads[1])) -- old video thread terminates
+assert(coroutine.resume(threads[3])) -- off-state render thread draws black
+assert(order[#order]=='black' and registered)
+CurrentProperty='8'; assert(coroutine.resume(threads[3])); assert(not registered)
+print('TV DUI readiness, black off screen and target cleanup passed')

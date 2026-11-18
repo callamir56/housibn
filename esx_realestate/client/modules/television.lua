@@ -1,33 +1,61 @@
 HousingTV = {}
 local dui, target, ownedTarget, texture, property, activeVideo, activeVersion, revision = nil,nil,false,nil,nil,nil,nil,0
 local textureSerial = 0
+local mode = nil
 local function stop()
     revision=revision+1
     if dui then DestroyDui(dui); dui=nil end
     if ownedTarget then ReleaseNamedRendertarget('tvscreen') end
     target,ownedTarget,texture,property,activeVideo,activeVersion=nil,false,nil,nil,nil,nil
+    mode=nil
 end
-local function show(id,state)
-    if tostring(CurrentProperty or '')~=tostring(id) then return end
-    if not state or not state.on then return stop() end
-    if type(state.video)~='string' or #state.video>2048 then return end
-    if state.provider~='youtube' and state.provider~='aparat' and state.provider~='vimeo' and state.provider~='direct' then return end
-    if property==id and activeVideo==state.video and activeVersion==state.version and dui then return end
+-- Keep the game's named render target while the TV is off: simply releasing it
+-- brings back GTA's default TV picture rather than a black screen.
+local function attachTarget(id)
     stop()
-    property=id; activeVideo=state.video; activeVersion=state.version
+    property=id
     local already=IsNamedRendertargetRegistered('tvscreen')
     if already then
-        stop(); return CL.Notification('TV screen is in use by another resource.',4000,'error')
+        stop(); CL.Notification('TV screen is in use by another resource.',4000,'error'); return false
     end
     RegisterNamedRendertarget('tvscreen',false); ownedTarget=true
     if not IsNamedRendertargetRegistered('tvscreen') then
-        stop(); return CL.Notification('TV render target unavailable.',4000,'error')
+        stop(); CL.Notification('TV render target unavailable.',4000,'error'); return false
     end
     for model in pairs(Config.HousingTV.Models or {}) do
         local hash=GetHashKey(model)
         if not IsNamedRendertargetLinked(hash) then LinkNamedRendertarget(hash) end
     end
     target=GetNamedRendertargetRenderId('tvscreen')
+    return true
+end
+local function show(id,state)
+    if tostring(CurrentProperty or '')~=tostring(id) then return end
+    if not state or not state.on then
+        if property==id and mode=='off' and target then return end
+        if not attachTarget(id) then return end
+        mode='off'
+        local thisRevision=revision
+        CreateThread(function()
+            while revision==thisRevision and mode=='off' and target do
+                if tostring(CurrentProperty or '')~=id then stop(); break end
+                SetTextRenderId(target)
+                SetScriptGfxDrawBehindPausemenu(true)
+                SetScriptGfxDrawOrder(4)
+                DrawRect(0.5,0.5,1.0,1.0,0,0,0,255)
+                SetTextRenderId(GetDefaultScriptRendertargetRenderId())
+                SetScriptGfxDrawOrder(0)
+                SetScriptGfxDrawBehindPausemenu(false)
+                Wait(0)
+            end
+        end)
+        return
+    end
+    if type(state.video)~='string' or #state.video>2048 then return end
+    if state.provider~='youtube' and state.provider~='aparat' and state.provider~='vimeo' and state.provider~='direct' then return end
+    if property==id and activeVideo==state.video and activeVersion==state.version and dui then return end
+    if not attachTarget(id) then return end
+    mode='on'; activeVideo=state.video; activeVersion=state.version
     textureSerial=textureSerial+1
     local textureName=('housing_tv_%d'):format(textureSerial)
     local txd=CreateRuntimeTxd(textureName)

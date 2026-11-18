@@ -1,6 +1,6 @@
 -- One transient playback state per property. Only occupants in the property's
 -- routing bucket receive it; no external media service is called server-side.
-local playing, lastChange, sequence = {}, {}, 0
+local playing, lastChange, lastOff, sequence = {}, {}, {}, 0
 local function inside(src,id)
     local player=SV.GetPlayer(src)
     local identifier=player and SV.GetIdentifier(player)
@@ -105,8 +105,14 @@ local function control(src,rawId,furnitureId,action,url)
         return {ok=false,reason='Use YouTube, Aparat, Vimeo or a direct HTTPS MP4, WebM or OGV link.'}
     end
     local now=os.time()
-    if lastChange[src] and now-lastChange[src]<2 then return {ok=false,reason='Please wait before changing the video.'} end
-    lastChange[src]=now
+    if action=='play' then
+        if lastChange[src] and now-lastChange[src]<2 then return {ok=false,reason='Please wait before changing the video.'} end
+        lastChange[src]=now
+    elseif not playing[id] and lastOff[src] and now-lastOff[src]<2 then
+        return {ok=true}
+    else
+        lastOff[src]=now
+    end
     local prop=GetProperty(id)
     if action=='off' then playing[id]=nil else
         sequence=sequence+1
@@ -123,7 +129,7 @@ RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
     local result=control(src,rawId,furnitureId,action,url)
     if not result.ok then library.Notification(src,result.reason,5000,'error') end
 end)
-AddEventHandler('playerDropped',function() lastChange[source]=nil end)
+AddEventHandler('playerDropped',function() lastChange[source]=nil; lastOff[source]=nil end)
 
 -- Stop a channel if its TV is removed or the property's occupants change.
 CreateThread(function()
