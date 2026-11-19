@@ -43,6 +43,7 @@ local function use(entity, kind)
     if not offset then return end
     local pos = GetOffsetFromEntityInWorldCoords(entity, offset.x, offset.y, offset.z)
     local heading = GetEntityHeading(entity) + (offset.heading or 0.0)
+    if kind == 'bath' then heading = heading + (tonumber(cfg.BathHeadingAdjustment) or 180.0) end
     local s = {ped=ped, entity=entity, property=tostring(CurrentProperty), kind=kind}
     session = s
     if kind == 'toilet' then
@@ -59,8 +60,8 @@ local function use(entity, kind)
         s.frozen = true
         CreateThread(function()
             local bathAnim = cfg.BathAnimation or {}
-            local dict = kind == 'bath' and (bathAnim.dict or 'switch@trevor@annoys_sunbathers') or 'mp_safehouseshower@female@'
-            local anim = kind == 'bath' and (bathAnim.name or 'trev_annoys_sunbathers_loop_guy') or 'shower_idle_a'
+            local dict = kind == 'bath' and (bathAnim.dict or 'timetable@ron@ig_3_couch') or 'mp_safehouseshower@female@'
+            local anim = kind == 'bath' and (bathAnim.name or 'base') or 'shower_idle_a'
             s.dict, s.anim = dict, anim
             library.LoadDict(dict)
             if session ~= s then return end

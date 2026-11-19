@@ -6,7 +6,7 @@ function AddEventHandler(name,fn) registered[name]=fn end
 function TriggerServerEvent(name,token) events[#events+1]={name,token} end
 function PlayerPedId() return 10 end
 function CreateThread(fn) end
-function StopAnimTask() end
+function ClearPedTasksImmediately() end
 function DoesEntityExist() return true end
 function IsEntityDead() return false end
 function IsPedInAnyVehicle() return false end

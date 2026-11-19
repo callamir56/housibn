@@ -16,7 +16,7 @@ function GetPedBoneCoords() return {x=1,y=2,z=3} end
 function HasAnimDictLoaded() return true end
 function TaskPlayAnim(_,dict) calls[dict]=true end
 function SetEntityCoordsNoOffset() end
-function SetEntityHeading() end
+function SetEntityHeading(_,v) calls.heading=v end
 function FreezeEntityPosition(_,v) frozen=v end
 function GetEntityCollisionDisabled() return false end
 function SetEntityCollision(_,v) calls.collision=v end
@@ -40,8 +40,8 @@ table.remove(threads,1)(); assert(calls.clear)
 targets.shower.onSelect({entity=8}); assert(frozen)
 table.remove(threads,1)(); assert(calls['mp_safehouseshower@female@'])
 table.remove(threads,1)(); assert(calls.stop and not frozen)
-targets.bath.onSelect({entity=8}); assert(frozen and calls.collision==false)
-table.remove(threads,1)(); assert(calls['switch@trevor@annoys_sunbathers'])
+targets.bath.onSelect({entity=8}); assert(frozen and calls.collision==false and calls.heading==180)
+table.remove(threads,1)(); assert(calls['timetable@ron@ig_3_couch'])
 table.remove(threads,1)(); assert(not frozen and calls.collision==true)
 targets.shower.onSelect({entity=8}); assert(frozen); handlers.onResourceStop('housing'); assert(not frozen)
 table.remove(threads,1)() -- delayed animation must not restart after stop
