@@ -17,6 +17,8 @@ function TaskPlayAnim(_,dict) calls[dict]=true end
 function SetEntityCoordsNoOffset() end
 function SetEntityHeading() end
 function FreezeEntityPosition(_,v) frozen=v end
+function GetEntityCollisionDisabled() return false end
+function SetEntityCollision(_,v) calls.collision=v end
 function TaskStartScenarioAtPosition() calls.toilet=true end
 function ClearPedTasks() calls.clear=true end
 function StopAnimTask() calls.stop=true end
@@ -27,6 +29,7 @@ function GetCurrentResourceName() return 'housing' end
 function GetResourceState() return 'started' end
 CL={Notification=function() end}
 library={LoadDict=function() end}
+assert(loadfile('esx_realestate/client/modules/interaction_position.lua'))()
 assert(loadfile('esx_realestate/client/modules/bathroom.lua'))()
 table.remove(threads,1)()
 assert(targets.toilet and targets.shower and targets.bath)
@@ -36,9 +39,9 @@ table.remove(threads,1)(); assert(calls.clear)
 targets.shower.onSelect({entity=8}); assert(frozen)
 table.remove(threads,1)(); assert(calls['mp_safehouseshower@female@'])
 table.remove(threads,1)(); assert(calls.stop and not frozen)
-targets.bath.onSelect({entity=8}); assert(frozen)
+targets.bath.onSelect({entity=8}); assert(frozen and calls.collision==false)
 table.remove(threads,1)(); assert(calls['amb@world_human_sunbathe@male@back@base'])
-table.remove(threads,1)(); assert(not frozen)
+table.remove(threads,1)(); assert(not frozen and calls.collision==true)
 targets.shower.onSelect({entity=8}); assert(frozen); handlers.onResourceStop('housing'); assert(not frozen)
 table.remove(threads,1)() -- delayed animation must not restart after stop
 print('bathroom targets, interruption and cleanup passed')

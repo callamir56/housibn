@@ -1,5 +1,7 @@
 -- Cosmetic interactions only: no needs, inventory, or server rewards are changed.
 local session
+HousingBathroom = {}
+function HousingBathroom.IsBusy() return session ~= nil end
 local options = {toilet='housing-use-toilet', shower='housing-use-shower', bath='housing-use-bath'}
 local function stop()
     local s = session
@@ -13,17 +15,18 @@ local function stop()
         else
             ClearPedTasks(s.ped)
         end
-        if s.frozen then FreezeEntityPosition(s.ped, false) end
         if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped) and tostring(CurrentProperty or '') == s.property then
             SetEntityCoordsNoOffset(s.ped, s.origin.x, s.origin.y, s.origin.z, false, false, false)
             SetEntityHeading(s.ped, s.heading)
         end
+        if s.collisionChanged then SetEntityCollision(s.ped, true, true) end
+        if s.frozen then FreezeEntityPosition(s.ped, false) end
     end
 end
 local function usable(entity)
     local ped = PlayerPedId()
     return Config.HousingBathroom and Config.HousingBathroom.Enabled and CurrentProperty ~= nil
-        and not session and DoesEntityExist(entity) and not IsEntityDead(ped)
+        and not session and not (HousingRest and HousingRest.IsBusy()) and DoesEntityExist(entity) and not IsEntityDead(ped)
         and not IsPedInAnyVehicle(ped, false)
         and not (Property and (Property.EditingFurniture or Property.EditingTheme))
 end
@@ -36,6 +39,7 @@ local function use(entity, kind)
             if GetHashKey(model) == GetEntityModel(entity) then offset = custom; break end
         end
     end
+    if kind == 'bath' then offset = HousingInteractionPosition.Resolve(entity, offset, 'bath') end
     if not offset then return end
     local pos = GetOffsetFromEntityInWorldCoords(entity, offset.x, offset.y, offset.z)
     local heading = GetEntityHeading(entity) + (offset.heading or 0.0)
@@ -45,6 +49,10 @@ local function use(entity, kind)
         TaskStartScenarioAtPosition(ped, 'PROP_HUMAN_SEAT_CHAIR_MP_PLAYER', pos.x, pos.y, pos.z, heading, -1, true, true)
     else
         s.origin, s.heading = GetEntityCoords(ped), GetEntityHeading(ped)
+        if kind == 'bath' and type(GetEntityCollisionDisabled) == 'function' and not GetEntityCollisionDisabled(ped) then
+            SetEntityCollision(ped, false, false)
+            s.collisionChanged = true
+        end
         SetEntityCoordsNoOffset(ped, pos.x, pos.y, pos.z, false, false, false)
         SetEntityHeading(ped, heading)
         FreezeEntityPosition(ped, true)

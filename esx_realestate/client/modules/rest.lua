@@ -2,6 +2,8 @@ HousingRest = {}
 local active, starting = nil, false
 local dict, anim = 'amb@world_human_sunbathe@male@back@base', 'base'
 
+function HousingRest.IsBusy() return active ~= nil or starting end
+
 function HousingRest.IsBed(model)
     local cfg = Config.HousingRest
     local def = Furniture and Furniture[model]
@@ -15,19 +17,25 @@ local function finish(notifyServer)
     if notifyServer and s.token then TriggerServerEvent('vms_housing:rest:cancel', s.token) end
     if s.faded then DoScreenFadeIn(500) end
     StopAnimTask(s.ped, dict, anim, 1.0)
-    if s.frozen and DoesEntityExist(s.ped) then FreezeEntityPosition(s.ped, false) end
     if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped)
         and tostring(CurrentProperty or '') == s.property then
         SetEntityCoordsNoOffset(s.ped, s.origin.x, s.origin.y, s.origin.z, false, false, false)
         SetEntityHeading(s.ped, s.heading)
-        library.PlayAnimation(s.ped, 'switch@franklin@bed', 'sleep_getup_rubeyes', 3.0, 3.0, 2500, 0)
+    end
+    if DoesEntityExist(s.ped) then
+        if s.collisionChanged then SetEntityCollision(s.ped, true, true) end
+        if s.frozen then FreezeEntityPosition(s.ped, false) end
+        if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped) and tostring(CurrentProperty or '') == s.property then
+            library.PlayAnimation(s.ped, 'switch@franklin@bed', 'sleep_getup_rubeyes', 3.0, 3.0, 2500, 0)
+        end
     end
 end
 
 local function begin(propertyId, entity, model, token)
     local ped = PlayerPedId()
     if tostring(CurrentProperty or '') ~= tostring(propertyId) or IsEntityDead(ped)
-        or IsPedInAnyVehicle(ped, false) or (entity and not DoesEntityExist(entity)) then
+        or IsPedInAnyVehicle(ped, false) or (HousingBathroom and HousingBathroom.IsBusy())
+        or (entity and not DoesEntityExist(entity)) then
         if token then TriggerServerEvent('vms_housing:rest:cancel', token) end
         return
     end
@@ -35,9 +43,14 @@ local function begin(propertyId, entity, model, token)
     active = s
     if entity then
         local cfg = Config.HousingRest or {}
-        local offset = (cfg.BedOffsets and cfg.BedOffsets[model]) or cfg.BedOffset or {x=0.0,y=0.0,z=0.6,heading=0.0}
+        local override = (cfg.BedOffsets and cfg.BedOffsets[model]) or cfg.BedOffset
+        local offset = HousingInteractionPosition.Resolve(entity, override, 'bed')
         s.origin, s.heading = GetEntityCoords(ped), GetEntityHeading(ped)
         local pos = GetOffsetFromEntityInWorldCoords(entity, offset.x, offset.y, offset.z)
+        if type(GetEntityCollisionDisabled) == 'function' and not GetEntityCollisionDisabled(ped) then
+            SetEntityCollision(ped, false, false)
+            s.collisionChanged = true
+        end
         SetEntityCoordsNoOffset(ped, pos.x, pos.y, pos.z, false, false, false)
         SetEntityHeading(ped, GetEntityHeading(entity) + (offset.heading or 0.0))
         FreezeEntityPosition(ped, true)
@@ -67,7 +80,7 @@ local function begin(propertyId, entity, model, token)
 end
 
 function HousingRest.Start(propertyId, furnitureId, entity, model)
-    if active or starting or not propertyId or tostring(CurrentProperty or '') ~= tostring(propertyId) then return end
+    if active or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not propertyId or tostring(CurrentProperty or '') ~= tostring(propertyId) then return end
     starting = true
     library.Callback('vms_housing:rest:start', function(result)
         starting = false
@@ -85,7 +98,7 @@ CreateThread(function()
     for model, enabled in pairs(cfg.Models or {}) do if enabled then models[#models+1] = model end end
     if #models == 0 then return end
     local function fixed(entity)
-        if not CurrentProperty or active or starting or not DoesEntityExist(entity) then return false end
+        if not CurrentProperty or active or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not DoesEntityExist(entity) then return false end
         if Property and (Property.EditingFurniture or Property.EditingTheme) then return false end
         for _, item in ipairs((Property and Property.LoadedFurnitures) or {}) do
             if item.entity == entity then return false end
