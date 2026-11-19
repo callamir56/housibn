@@ -12,6 +12,7 @@ function IsPedInAnyVehicle() return false end
 function GetOffsetFromEntityInWorldCoords() return {x=1,y=2,z=3} end
 function GetEntityHeading() return 0 end
 function GetEntityCoords() return {x=0,y=0,z=0} end
+function GetPedBoneCoords() return {x=1,y=2,z=3} end
 function HasAnimDictLoaded() return true end
 function TaskPlayAnim(_,dict) calls[dict]=true end
 function SetEntityCoordsNoOffset() end

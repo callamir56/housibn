@@ -64,6 +64,9 @@ local function use(entity, kind)
             if session ~= s then return end
             if not HasAnimDictLoaded(dict) then stop(); return CL.Notification('Animation unavailable.', 4000, 'error') end
             TaskPlayAnim(ped, dict, anim, 8.0, 8.0, -1, 1, 0, false, false, false)
+            if kind == 'bath' then
+                HousingInteractionPosition.AlignPose(ped, pos, function() return session == s end)
+            end
         end)
     end
     CL.Notification('Press X to stop.', 4000, 'info')

@@ -47,6 +47,7 @@ local function begin(propertyId, entity, model, token)
         local offset = HousingInteractionPosition.Resolve(entity, override, 'bed')
         s.origin, s.heading = GetEntityCoords(ped), GetEntityHeading(ped)
         local pos = GetOffsetFromEntityInWorldCoords(entity, offset.x, offset.y, offset.z)
+        s.surface = pos
         if type(GetEntityCollisionDisabled) == 'function' and not GetEntityCollisionDisabled(ped) then
             SetEntityCollision(ped, false, false)
             s.collisionChanged = true
@@ -62,7 +63,8 @@ local function begin(propertyId, entity, model, token)
         if active ~= s then return end
         if not HasAnimDictLoaded(dict) then finish(true); return CL.Notification('Sleep animation unavailable.', 4000, 'error') end
         TaskPlayAnim(ped, dict, anim, 3.0, 3.0, -1, 1, 0, false, false, false)
-        Wait(750)
+        if s.surface then HousingInteractionPosition.AlignPose(ped, s.surface, function() return active == s end) end
+        Wait(150)
         if active ~= s then return end
         s.faded = true
         DoScreenFadeOut(300)
