@@ -75,7 +75,7 @@ function EnterZone(_, propertyId, __)
   RefreshTargets()
 
   -- Load furniture for this property if present
-  if currentPropertyData.furniture then
+  if currentPropertyData.furniture and not CurrentShell and not CurrentIPL then
     -- Outside furniture
     Property:LoadFurniture("outside", currentPropertyData.furniture, currentPropertyId)
 
@@ -153,8 +153,9 @@ function ExitZone(_, __, ___)
   currentPropertyId = nil
   currentPropertyData = nil
 
-  -- Remove loaded furniture
-  Property:RemoveFurniture()
+  -- Leaving an exterior zone during a shell/IPL transition must not delete
+  -- the interior furniture just loaded for the active property.
+  if not CurrentShell and not CurrentIPL then Property:RemoveFurniture() end
 
   -- If player was editing furniture, clean up the preview object and state
   if Property.EditingFurnitureObj then

@@ -301,8 +301,8 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
     DoScreenFadeIn(1500)
 
     -- Load furniture for inside environment (if provided)
-    if propertyData and propertyData.furniture then
-      self:LoadFurniture("inside", propertyData.furniture, CurrentProperty)
+    if CurrentPropertyData and CurrentPropertyData.furniture then
+      self:LoadFurniture("inside", CurrentPropertyData.furniture, CurrentProperty)
     end
 
     FreezeEntityPosition(PlayerPedId(), false)
@@ -406,9 +406,11 @@ end
 -- ============================================================================
 
 function Property.LoadFurniture(self, environment, furnitureList, permissionContext)
+  local generation = self.FurnitureGeneration or 0
   local spawnedDelivery = false
 
-  for _, furnitureData in pairs(furnitureList) do
+  for _, furnitureData in pairs(furnitureList or {}) do
+    if (self.FurnitureGeneration or 0) ~= generation then return end
     -- Spawn placed furniture (stored == 0) for the requested environment
     if furnitureData.stored == 0 then
       if furnitureData.position and furnitureData.position.environment == environment then
@@ -418,9 +420,16 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
           false
         )
 
-        while not DoesEntityExist(entity) do
+        local deadline = GetGameTimer() + 5000
+        while entity and entity ~= 0 and not DoesEntityExist(entity) and GetGameTimer() < deadline
+            and (self.FurnitureGeneration or 0) == generation do
           Citizen.Wait(5)
         end
+        if (self.FurnitureGeneration or 0) ~= generation then
+          if entity and entity ~= 0 and DoesEntityExist(entity) then DeleteObject(entity) end
+          return
+        end
+        if not entity or entity == 0 or not DoesEntityExist(entity) then return end
 
         SetEntityCoordsNoOffset(entity, furnitureData.position.x, furnitureData.position.y, furnitureData.position.z)
         SetEntityRotation(entity, furnitureData.position.pitch, furnitureData.position.roll, furnitureData.position.yaw, 0, false)
@@ -516,9 +525,16 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
               false
             )
 
-            while not DoesEntityExist(deliveryEntity) do
+            local deadline = GetGameTimer() + 5000
+            while deliveryEntity and deliveryEntity ~= 0 and not DoesEntityExist(deliveryEntity)
+                and GetGameTimer() < deadline and (self.FurnitureGeneration or 0) == generation do
               Citizen.Wait(5)
             end
+            if (self.FurnitureGeneration or 0) ~= generation then
+              if deliveryEntity and deliveryEntity ~= 0 and DoesEntityExist(deliveryEntity) then DeleteObject(deliveryEntity) end
+              return
+            end
+            if not deliveryEntity or deliveryEntity == 0 or not DoesEntityExist(deliveryEntity) then return end
 
             SetEntityCoordsNoOffset(deliveryEntity, cur.metadata.delivery.x, cur.metadata.delivery.y, cur.metadata.delivery.z)
             SetEntityHeading(deliveryEntity, cur.metadata.delivery.w)
@@ -774,6 +790,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
 end
 
 function Property.RemoveFurniture(self, furnitureId, onDone)
+  if not furnitureId then self.FurnitureGeneration = (self.FurnitureGeneration or 0) + 1 end
   if not next(self.LoadedFurnitures) then
     if onDone then onDone() end
     return

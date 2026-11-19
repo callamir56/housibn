@@ -252,9 +252,10 @@ MySQL.ready(function()
         local furnitureListRows   = MySQL.query.await("SELECT * FROM `houses_furniture_list`", {})
         -- Seed only a genuinely empty catalog. Never replace a server's custom items.
         if furnitureListRows and #furnitureListRows == 0 and Config.AutoSeedFurniture then
-            local seedSql = LoadResourceFile(GetCurrentResourceName(), "[SQL]/Furniture.sql")
+            local sqlFile = LoadResourceFile(GetCurrentResourceName(), "[SQL]/housing.sql")
+            local seedSql = sqlFile and sqlFile:match("%-%- HOUSING_FURNITURE_SEED_BEGIN%s*(.-)%s*%-%- HOUSING_FURNITURE_SEED_END")
             if not seedSql or seedSql == "" then
-                print("[esx_realestate] Cannot find [SQL]/Furniture.sql; furniture catalog remains empty.")
+                print("[esx_realestate] Cannot find [SQL]/housing.sql; furniture catalog remains empty.")
             else
                 local ok, err = pcall(function() MySQL.query.await(seedSql, {}) end)
                 if ok then
@@ -645,7 +646,7 @@ MySQL.ready(function()
         -- All caches are now populated; waiting clients may receive them.
         HousingDataReady = true
         if not furnitureListRows or #furnitureListRows == 0 then
-            print("[esx_realestate] Furniture catalog is empty; import [SQL]/Furniture.sql once and restart the resource.")
+            print("[esx_realestate] Furniture catalog is empty; import [SQL]/housing.sql once and restart the resource.")
         end
 
         -- Debug output

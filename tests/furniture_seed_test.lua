@@ -6,7 +6,7 @@ local fn = assert(load(block .. '\nreturn furnitureListRows'))
 local rows, imports, loads, fail = {}, 0, 0, false
 Config = {AutoSeedFurniture = true}
 function GetCurrentResourceName() return 'housing' end
-function LoadResourceFile(_, path) loads = loads + 1; assert(path == '[SQL]/Furniture.sql'); return 'INSERT' end
+function LoadResourceFile(_, path) loads = loads + 1; assert(path == '[SQL]/housing.sql'); return '-- HOUSING_FURNITURE_SEED_BEGIN\nINSERT\n-- HOUSING_FURNITURE_SEED_END' end
 MySQL = {query = {await = function(sql)
   if sql == 'INSERT' then
     imports = imports + 1

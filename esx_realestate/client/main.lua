@@ -836,13 +836,15 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       local deliveredPropertyId = tostring(rawPropertyId)
 
       -- Track property id if player is inside/on-zone for that property
-      local zoneId = GetCurrentPropertyId()
-      if zoneId == deliveredPropertyId or CurrentProperty == deliveredPropertyId then
+      local contextId = CurrentProperty or GetCurrentPropertyId()
+      local property = Properties[deliveredPropertyId]
+      local relevant = property and contextId and tostring(contextId) == deliveredPropertyId
+      if relevant then
         propertyId = deliveredPropertyId
         resolvedPropertyId = deliveredPropertyId
       end
 
-      for _, furnitureId in pairs(deliveredList) do
+      for _, furnitureId in pairs(property and deliveredList or {}) do
         if not Properties[deliveredPropertyId].furniture then
           Properties[deliveredPropertyId].furniture = {}
         end
@@ -857,7 +859,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
                 local meta = Properties[deliveredPropertyId].metadata
                 if meta and meta.deliveryType and meta.delivery then
                   f.metadata.delivered = true
-                  anyDeliveredFlag = true
+                  if relevant then anyDeliveredFlag = true end
                 end
               end
             end
@@ -1235,9 +1237,13 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- Reload world furniture when needed (async callback style preserved)
-  if reloadWorldFurniture then
+  -- Ignore broadcasts for other homes: otherwise a shared map interior can
+  -- remove the current home's objects and replace them with another home's.
+  local furnitureContext = CurrentProperty or GetCurrentPropertyId()
+  if reloadWorldFurniture and furnitureContext and tostring(furnitureContext) == tostring(propertyId) then
     Property:RemoveFurniture(nil, function()
+      local currentContext = CurrentProperty or GetCurrentPropertyId()
+      if not currentContext or tostring(currentContext) ~= tostring(propertyId) or not Properties[propertyId] then return end
       Property:LoadFurniture(
         (CurrentProperty and "inside") or "outside",
         Properties[propertyId].furniture,
@@ -1257,7 +1263,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
 
   -- Apply IPL theme reload (preserved reposition callback)
   if reloadIplTheme then
-    if CurrentIPL then
+    if CurrentIPL and CurrentProperty and tostring(CurrentProperty) == tostring(propertyId) then
       IPL.LoadSettings(
         CurrentIPL,
         Properties[propertyId].metadata.iplTheme,

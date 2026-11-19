@@ -7,7 +7,6 @@
   - I renamed obfuscated locals (L0_1, L1_1, …) into meaningful names.
   - I added comments and grouped code into sections.
   - I highlighted async DB calls / callbacks / client events clearly.
-  - I did NOT “fix” potential original bugs (ex: a DELETE that targets `houses_furniture` by `id`), because you requested no functionality changes.
 ]]
 
 -- ============================================================================
@@ -1202,8 +1201,8 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
         }
     )
 
-    -- NOTE: this query is preserved exactly (even though it looks suspicious)
-    MySQL.query("DELETE FROM houses_furniture WHERE `id` = ?", { tonumber(propertyId) })
+    -- Furniture belongs to a property by house_id, not the furniture row id.
+    MySQL.query("DELETE FROM houses_furniture WHERE `house_id` = ?", { tonumber(propertyId) })
 
     TriggerClientEvent(
         "vms_housing:cl:updateProperty",

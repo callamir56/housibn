@@ -55,7 +55,7 @@ files {
 	'html/**/*.*',
 	'config/*.js',
 	'config/*.json',
-	'[SQL]/Furniture.sql',
+	'[SQL]/housing.sql',
 }
 escrow_ignore {
     'stream/*.*',
