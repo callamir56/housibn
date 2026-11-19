@@ -41,7 +41,7 @@ targets.shower.onSelect({entity=8}); assert(frozen)
 table.remove(threads,1)(); assert(calls['mp_safehouseshower@female@'])
 table.remove(threads,1)(); assert(calls.stop and not frozen)
 targets.bath.onSelect({entity=8}); assert(frozen and calls.collision==false)
-table.remove(threads,1)(); assert(calls['amb@world_human_sunbathe@male@back@base'])
+table.remove(threads,1)(); assert(calls['switch@trevor@annoys_sunbathers'])
 table.remove(threads,1)(); assert(not frozen and calls.collision==true)
 targets.shower.onSelect({entity=8}); assert(frozen); handlers.onResourceStop('housing'); assert(not frozen)
 table.remove(threads,1)() -- delayed animation must not restart after stop

@@ -930,6 +930,7 @@ Config.HousingBathroom = {
     ToiletModels = { 'prop_toilet_01', 'prop_toilet_02', 'prop_ld_toilet_01' },
     ShowerModels = { 'prop_shower_01', 'v_ilev_mm_shower', 'prop_shower_rack_01' },
     BathModels = { 'v_res_mbath' }, -- add your map's bathtub models
+    BathAnimation = {dict='switch@trevor@annoys_sunbathers', name='trev_annoys_sunbathers_loop_guy'},
     BathOffset = nil, -- nil: estimate position from model bounds
     BathOffsets = {}, -- optional per-model offsets
     ToiletOffset = {x=0.0, y=0.0, z=0.45, heading=180.0},

@@ -1,8 +1,8 @@
 HousingRest = {}
-local active, starting = nil, false
+local active, waking, starting = nil, nil, false
 local dict, anim = 'amb@world_human_sunbathe@male@back@base', 'base'
 
-function HousingRest.IsBusy() return active ~= nil or starting end
+function HousingRest.IsBusy() return active ~= nil or waking ~= nil or starting end
 
 function HousingRest.IsBed(model)
     local cfg = Config.HousingRest
@@ -10,25 +10,50 @@ function HousingRest.IsBed(model)
     return cfg and cfg.Enabled and ((cfg.Models and cfg.Models[model]) or (def and def.tag == 'bed'))
 end
 
-local function finish(notifyServer)
-    local s = active
-    if not s then return end
-    active = nil
-    if notifyServer and s.token then TriggerServerEvent('vms_housing:rest:cancel', s.token) end
-    if s.faded then DoScreenFadeIn(500) end
-    StopAnimTask(s.ped, dict, anim, 1.0)
-    if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped)
-        and tostring(CurrentProperty or '') == s.property then
-        SetEntityCoordsNoOffset(s.ped, s.origin.x, s.origin.y, s.origin.z, false, false, false)
-        SetEntityHeading(s.ped, s.heading)
-    end
+local wakeDict, wakeAnim = 'switch@franklin@bed', 'sleep_getup_rubeyes'
+local function validWake(s)
+    return s.origin and s.entity and DoesEntityExist(s.entity) and DoesEntityExist(s.ped)
+        and PlayerPedId() == s.ped and not IsEntityDead(s.ped)
+        and tostring(CurrentProperty or '') == s.property
+end
+local function cleanup(s)
+    if waking == s then waking = nil end
+    if s.faded then DoScreenFadeIn(500); s.faded = false end
     if DoesEntityExist(s.ped) then
+        StopAnimTask(s.ped, dict, anim, 1.0)
+        StopAnimTask(s.ped, wakeDict, wakeAnim, 1.0)
+        if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped)
+            and tostring(CurrentProperty or '') == s.property then
+            SetEntityCoordsNoOffset(s.ped, s.origin.x, s.origin.y, s.origin.z, false, false, false)
+            SetEntityHeading(s.ped, s.heading)
+        end
         if s.collisionChanged then SetEntityCollision(s.ped, true, true) end
         if s.frozen then FreezeEntityPosition(s.ped, false) end
-        if s.origin and PlayerPedId() == s.ped and not IsEntityDead(s.ped) and tostring(CurrentProperty or '') == s.property then
-            library.PlayAnimation(s.ped, 'switch@franklin@bed', 'sleep_getup_rubeyes', 3.0, 3.0, 2500, 0)
-        end
     end
+end
+local function finish(notifyServer, immediate)
+    local s = active
+    if not s then
+        if immediate and waking then cleanup(waking) end
+        return
+    end
+    active = nil
+    if notifyServer and s.token then TriggerServerEvent('vms_housing:rest:cancel', s.token) end
+    if immediate or not validWake(s) then return cleanup(s) end
+    waking = s
+    CreateThread(function()
+        library.LoadDict(wakeDict)
+        if waking ~= s then return end
+        if not validWake(s) or not HasAnimDictLoaded(wakeDict) then return cleanup(s) end
+        -- Remain aligned with the bed while getting up; return to the safe
+        -- pre-sleep position only after the transition has played.
+        StopAnimTask(s.ped, dict, anim, 1.0)
+        TaskPlayAnim(s.ped, wakeDict, wakeAnim, 3.0, 3.0, 2500, 0, 0, false, false, false)
+        if s.faded then DoScreenFadeIn(500); s.faded = false end
+        local untilTime = GetGameTimer() + 2500
+        while waking == s and validWake(s) and GetGameTimer() < untilTime do Wait(50) end
+        if waking == s then cleanup(s) end
+    end)
 end
 
 local function begin(propertyId, entity, model, token)
@@ -82,7 +107,7 @@ local function begin(propertyId, entity, model, token)
 end
 
 function HousingRest.Start(propertyId, furnitureId, entity, model)
-    if active or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not propertyId or tostring(CurrentProperty or '') ~= tostring(propertyId) then return end
+    if active or waking or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not propertyId or tostring(CurrentProperty or '') ~= tostring(propertyId) then return end
     starting = true
     library.Callback('vms_housing:rest:start', function(result)
         starting = false
@@ -100,7 +125,7 @@ CreateThread(function()
     for model, enabled in pairs(cfg.Models or {}) do if enabled then models[#models+1] = model end end
     if #models == 0 then return end
     local function fixed(entity)
-        if not CurrentProperty or active or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not DoesEntityExist(entity) then return false end
+        if not CurrentProperty or active or waking or starting or (HousingBathroom and HousingBathroom.IsBusy()) or not DoesEntityExist(entity) then return false end
         if Property and (Property.EditingFurniture or Property.EditingTheme) then return false end
         for _, item in ipairs((Property and Property.LoadedFurnitures) or {}) do
             if item.entity == entity then return false end
@@ -132,5 +157,5 @@ RegisterNetEvent('vms_housing:rest:finish', function(token)
     if active and active.token == token then finish(false) end
 end)
 AddEventHandler('onResourceStop', function(resource)
-    if resource == GetCurrentResourceName() then finish(true) end
+    if resource == GetCurrentResourceName() then finish(true, true) end
 end)

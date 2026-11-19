@@ -9,7 +9,7 @@ local function stop()
     session = nil
     if DoesEntityExist(s.ped) then
         if s.kind == 'bath' then
-            StopAnimTask(s.ped, 'amb@world_human_sunbathe@male@back@base', 'base', 1.0)
+            if s.dict and s.anim then StopAnimTask(s.ped, s.dict, s.anim, 1.0) end
         elseif s.kind == 'shower' then
             StopAnimTask(s.ped, 'mp_safehouseshower@female@', 'shower_idle_a', 1.0)
         else
@@ -58,8 +58,10 @@ local function use(entity, kind)
         FreezeEntityPosition(ped, true)
         s.frozen = true
         CreateThread(function()
-            local dict = kind == 'bath' and 'amb@world_human_sunbathe@male@back@base' or 'mp_safehouseshower@female@'
-            local anim = kind == 'bath' and 'base' or 'shower_idle_a'
+            local bathAnim = cfg.BathAnimation or {}
+            local dict = kind == 'bath' and (bathAnim.dict or 'switch@trevor@annoys_sunbathers') or 'mp_safehouseshower@female@'
+            local anim = kind == 'bath' and (bathAnim.name or 'trev_annoys_sunbathers_loop_guy') or 'shower_idle_a'
+            s.dict, s.anim = dict, anim
             library.LoadDict(dict)
             if session ~= s then return end
             if not HasAnimDictLoaded(dict) then stop(); return CL.Notification('Animation unavailable.', 4000, 'error') end
