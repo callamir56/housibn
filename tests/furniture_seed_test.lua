@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 local f = assert(io.open('esx_realestate/server/init.lua'))
 local text = f:read('*a'); f:close()
 local block = assert(text:match('(local furnitureListRows%s+= MySQL%.query%.await.-)\n%s*local housesRows'))
@@ -17,9 +17,9 @@ MySQL = {query = {await = function(sql)
   return rows
 end}}
 assert(#fn() == 1 and imports == 1 and loads == 1)
-assert(#fn() == 1 and imports == 1 and loads == 1) -- existing items left unchanged
+assert(#fn() == 1 and imports == 1 and loads == 1)
 rows = {}; Config.AutoSeedFurniture = false
 assert(#fn() == 0 and imports == 1 and loads == 1)
 Config.AutoSeedFurniture = true; fail = true
-assert(#fn() == 0 and imports == 2) -- failure does not pretend to populate catalog
+assert(#fn() == 0 and imports == 2)
 print('furniture seeding tests passed')

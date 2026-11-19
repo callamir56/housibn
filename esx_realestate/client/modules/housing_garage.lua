@@ -30,7 +30,7 @@ AddStateBagChangeHandler('housingGarageGhost', nil, function(bagName, _, value)
         while (not vehicle or vehicle==0 or not DoesEntityExist(vehicle)) and GetGameTimer()<deadline do
             Wait(100); vehicle=GetEntityFromStateBagName(bagName)
         end
-        -- Re-read the state: rapid park/take changes may overtake this thread.
+
         if vehicle and vehicle~=0 and DoesEntityExist(vehicle) then
             setGhostState(vehicle, Entity(vehicle).state.housingGarageGhost ~= nil)
         end
@@ -147,7 +147,7 @@ local function clearGhosts()
     for _,vehicle in pairs(ghosts) do if DoesEntityExist(vehicle) then DeleteEntity(vehicle) end end
     ghosts={}
 end
--- Each player sees a local-only display vehicle at the configured garage point.
+
 renderGhost = function(row)
     if type(row) ~= 'table' or type(row.props) ~= 'table' or type(row.coords) ~= 'table' then return end
     local id = tostring(row.id)
@@ -174,7 +174,7 @@ renderGhost = function(row)
             if Config and Config.Debug then print(('[esx_realestate] Failed to create parked vehicle for garage %s'):format(id)) end
             return
         end
-        -- Display safety must still be applied if a customization fails.
+
         local ok, err = pcall(ESX.Game.SetVehicleProperties, vehicle, row.props)
         if not ok and Config and Config.Debug then print(('[esx_realestate] Parked vehicle properties: %s'):format(tostring(err))) end
         setGhostState(vehicle, true)

@@ -25,7 +25,7 @@ local function finish(notifyServer)
         if s.collisionChanged then SetEntityCollision(s.ped, true, true) end
         if s.frozen then FreezeEntityPosition(s.ped, false) end
     end
-    -- Restore the standing position before revealing the screen. No wake-up animation.
+
     if s.faded then DoScreenFadeIn(500) end
 end
 
@@ -55,7 +55,7 @@ local function begin(propertyId, entity, model, token)
         FreezeEntityPosition(ped, true)
         s.frozen = true
     end
-    -- LoadDict can yield, so cancellation/stop must remain able to clean up.
+
     CreateThread(function()
         library.LoadDict(dict)
         if active ~= s then return end
@@ -90,7 +90,7 @@ function HousingRest.Start(propertyId, furnitureId, entity, model)
     end, tostring(propertyId), furnitureId)
 end
 
--- Fixed map beds are cosmetic: no health reward without server-owned furniture data.
+
 CreateThread(function()
     local cfg = Config.HousingRest
     if not cfg or not cfg.Enabled or not cfg.FixedBeds or Config.TargetResource ~= 'ox_target' then return end
@@ -121,7 +121,7 @@ RegisterNetEvent('vms_housing:rest:tick', function(token, gain)
     if not active or active.token ~= token or tostring(CurrentProperty or '') ~= active.property then return end
     local ped = PlayerPedId()
     if ped ~= active.ped or IsEntityDead(ped) then return finish(true) end
-    -- The animation dictionary may still be loading on the first server tick.
+
     if not IsEntityPlayingAnim(ped, dict, anim, 3) then return end
     local amount = math.max(0, math.min(tonumber(gain) or 0, 25))
     SetEntityHealth(ped, math.min(GetEntityMaxHealth(ped), GetEntityHealth(ped) + amount))

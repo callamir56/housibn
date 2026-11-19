@@ -32,8 +32,8 @@ assert(loadfile('esx_realestate/client/modules/interaction_position.lua'))()
 assert(loadfile('esx_realestate/client/modules/rest.lua'))()
 HousingRest.Start('7',4,99)
 assert(frozen and collision==false)
-table.remove(threads,1)() -- fixed-bed registration
-table.remove(threads,1)() -- sleep and finish
+table.remove(threads,1)()
+table.remove(threads,1)()
 assert(#anims==1 and anims[1][2]=='base' and not frozen and collision==true and not HousingRest.IsBusy())
 assert(steps[4][1]=='out' and steps[5][1]=='pos' and steps[5][2]==0)
 assert(steps[6][1]=='collision' and steps[6][2]==true and steps[7][1]=='freeze' and steps[7][2]==false and steps[8][1]=='in')

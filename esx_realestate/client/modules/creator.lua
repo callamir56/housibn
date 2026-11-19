@@ -1,58 +1,58 @@
---[[-----------------------------------------------------------------------------
-  VMS Housing - Housing Creator (cleaned / deobfuscated)
-  - Renamed obfuscated locals to meaningful names
-  - Removed massive repetition with small helper functions (same behavior)
-  - Added comments and "ASYNC"/"SERVER EVENT" markers
-  - Kept logic intact for all code included in the provided snippet
 
-  NOTE:
-  Your paste ends mid-function at: `function L23_1(A0_2) ...`
-  Everything below is the cleaned equivalent of everything you provided up to that cut.
------------------------------------------------------------------------------]]--
 
--- ============================================================================
--- Creator runtime flags (were L0_1 .. L17_1)
--- ============================================================================
 
-local isDrawingPolyzone = false           -- was L0_1
-local isDrawingInteriorZone = false       -- was L1_1
 
-local isPlacingEnterPoint = false         -- was L2_1
-local isPlacingExitPoint = false          -- was L3_1
-local isPlacingEmergencyInside = false    -- was L4_1
-local isPlacingEmergencyOutside = false   -- was L5_1
-local isPlacingMenuPoint = false          -- was L6_1
 
-local isPlacingDoors = false              -- was L7_1
-local isDoubleDoorMode = false            -- was L8_1 (used by keyControls in the original script)
-local isLongDoorDistanceMode = false      -- was L9_1 (sets doorsDistance to 8.5)
 
-local isPlacingDeliveryPoint = false      -- was L10_1
-local isPlacingGaragePoint = false        -- was L11_1
-local isPlacingEnterGaragePoint = false   -- was L12_1
-local isPlacingParkingSpaces = false      -- was L13_1
 
-local isPlacingWardrobe = false           -- was L14_1
-local isPlacingStorage = false            -- was L15_1
 
-local skipEnterForWardrobe = false        -- was L16_1 (when true: don’t EnterShell/EnterIPL)
-local skipEnterForStorage = false         -- was L17_1 (when true: don’t EnterShell/EnterIPL)
 
--- These existed in the original header but aren’t fully shown/used in the pasted portion
--- NOTE: global on purpose (shared with raycast helpers / door selection)
-lastRaycastHitEntity = nil               -- was L18_1 (best-effort name)
-local currentDoorIndex = nil              -- was L19_1
-local currentParkingIndex = nil           -- was L20_1
 
--- ============================================================================
--- House creation config template (was L21_1 “houseConfiguration” setup)
--- ============================================================================
+
+
+
+
+
+
+local isDrawingPolyzone = false
+local isDrawingInteriorZone = false
+
+local isPlacingEnterPoint = false
+local isPlacingExitPoint = false
+local isPlacingEmergencyInside = false
+local isPlacingEmergencyOutside = false
+local isPlacingMenuPoint = false
+
+local isPlacingDoors = false
+local isDoubleDoorMode = false
+local isLongDoorDistanceMode = false
+
+local isPlacingDeliveryPoint = false
+local isPlacingGaragePoint = false
+local isPlacingEnterGaragePoint = false
+local isPlacingParkingSpaces = false
+
+local isPlacingWardrobe = false
+local isPlacingStorage = false
+
+local skipEnterForWardrobe = false
+local skipEnterForStorage = false
+
+
+
+lastRaycastHitEntity = nil
+local currentDoorIndex = nil
+local currentParkingIndex = nil
+
+
+
+
 
 local function newHouseCreationConfig()
   return {
     previousCoords = nil,
 
-    -- type: "shell" | "ipl" | "mlo" | "building" | "motel"
+
     type = nil,
     shell = nil,
     ipl = nil,
@@ -93,12 +93,12 @@ function resetHouseCreationTable()
   houseConfiguration = newHouseCreationConfig()
 end
 
--- ============================================================================
--- Small helpers (reduce repetition, keep same behavior)
--- ============================================================================
+
+
+
 
 local function showControlsMenu(toggle, label, name)
-  -- NUI Controls overlay
+
   local payload = { action = "ControlsMenu", toggle = toggle }
   if toggle then
     payload.controlsLabel = label
@@ -121,7 +121,7 @@ local function showCreatorMenu()
 end
 
 local function drawZoneWalls(zone)
-  -- Draws the same vertical lines + “walls” as the original repeated loops.
+
   local points = zone.points
   if #points < 1 then return end
 
@@ -148,21 +148,21 @@ local function cleanupShellAndReturnToPreviousCoords()
 end
 
 local function cleanupIPLReturn()
-  -- IPL doesn’t create an object here; we just return to previous coords (same as original)
+
   if houseConfiguration.previousCoords then
     SetEntityCoords(PlayerPedId(), houseConfiguration.previousCoords.xyz)
   end
   CurrentIPL = nil
 end
 
--- ============================================================================
--- Open creator UI
--- ============================================================================
+
+
+
 
 function OpenHousingCreator()
   if openedMenu then return end
 
-  -- The server checks both the configured job and the player's ESX group.
+
   library.Callback("vms_housing:canOpenCreator", function(allowed)
     if not allowed or openedMenu then return end
 
@@ -173,7 +173,7 @@ function OpenHousingCreator()
   end)
 end
 
--- Command / Key mapping
+
 if Config.HousingCreator.Command then
   RegisterCommand(Config.HousingCreator.Command, function()
     OpenHousingCreator()
@@ -189,9 +189,9 @@ if Config.HousingCreator.Command then
   end
 end
 
--- ============================================================================
--- HousingCreator “class” (was L21_1 table)
--- ============================================================================
+
+
+
 
 HousingCreator = { camera = nil }
 
@@ -202,8 +202,8 @@ function HousingCreator:CreateCamera(raiseCamera, onCreated)
 
   self.camera = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
 
-  -- Original behavior:
-  -- If NOT raiseCamera -> add +20.0 to Z, else add -1.0 to Z (kept exactly)
+
+
   local zOffset = (raiseCamera and -1.0) or 20.0
   SetCamCoord(self.camera, camPos.x, camPos.y, camPos.z + zOffset)
   SetCamRot(self.camera, camRot.x, camRot.y, camRot.z, 2)
@@ -228,17 +228,17 @@ function HousingCreator:DeleteCamera()
   self.camera = nil
 end
 
--- ============================================================================
--- Polyzone drawing (outside zone / interior zone)
--- ============================================================================
+
+
+
 
 function HousingCreator:Polyzone(isInteriorZone)
   if isInteriorZone then
     isDrawingInteriorZone = true
-    -- Snapshot for cancel/restore
+
     houseConfiguration.__interiorZoneSnapshot = library.Deepcopy(houseConfiguration.interiorZone)
   else
-    -- Snapshot for cancel/restore
+
     houseConfiguration.__zoneSnapshot = library.Deepcopy(houseConfiguration.zone)
   end
 
@@ -252,7 +252,7 @@ function HousingCreator:Polyzone(isInteriorZone)
     "HousingCreator:polyzone"
   )
 
-  -- [ASYNC] Drawing loop while the user is placing polygon points via raycast + keyControls (elsewhere)
+
   Citizen.CreateThread(function()
     while isDrawingPolyzone do
       startRaycast(self.camera)
@@ -278,16 +278,16 @@ function HousingCreator:Polyzone(isInteriorZone)
   end)
 end
 
--- ============================================================================
--- Point placement helpers (enter/exit/menu/emergency/garage/etc.)
--- ============================================================================
+
+
+
 
 function HousingCreator:CreateEnterPoint()
   isPlacingEnterPoint = true
 
   showControlsMenu(true, "creator:enter", "HousingCreator:default")
 
-  -- [ASYNC] Placement loop (raycast + keyControls handled elsewhere)
+
   Citizen.CreateThread(function()
     while isPlacingEnterPoint do
       startRaycast()
@@ -307,7 +307,7 @@ function HousingCreator:CreateExitPoint()
 
   showControlsMenu(true, "creator:exit", "HousingCreator:default")
 
-  -- [ASYNC] Placement loop: shows a marker at the player and passes coords to keyControls()
+
   Citizen.CreateThread(function()
     while isPlacingExitPoint do
       local ped = PlayerPedId()
@@ -340,7 +340,7 @@ function HousingCreator:CreateEmergencyExitOutsidePoint()
 
   showControlsMenu(true, "creator:emergency_exit", "HousingCreator:default")
 
-  -- [ASYNC] Placement loop (marker + keyControls)
+
   Citizen.CreateThread(function()
     while isPlacingEmergencyOutside do
       local ped = PlayerPedId()
@@ -373,7 +373,7 @@ function HousingCreator:CreateEmergencyExitInsidePoint(_unused, iplTheme)
 
   showControlsMenu(true, "creator:emergency_exit", "HousingCreator:default")
 
-  -- [ASYNC] Enters interior first (shell or IPL), then placement loop, then cleanup/return
+
   Citizen.CreateThread(function()
     if houseConfiguration.shell then
       HousingCreator:EnterShell(houseConfiguration.shell)
@@ -391,7 +391,7 @@ function HousingCreator:CreateEmergencyExitInsidePoint(_unused, iplTheme)
 
     showControlsMenu(false)
 
-    -- Cleanup & return
+
     if CurrentShell then
       DeleteHousingShell(CurrentShell)
       CurrentShell = false
@@ -411,7 +411,7 @@ function HousingCreator:CreateMenuPoint()
 
   showControlsMenu(true, "creator:menu", "HousingCreator:default")
 
-  -- [ASYNC] Placement loop
+
   Citizen.CreateThread(function()
     while isPlacingMenuPoint do
       startRaycast()
@@ -426,9 +426,9 @@ function HousingCreator:CreateMenuPoint()
   end)
 end
 
--- ============================================================================
--- Garage placement (spawns a preview vehicle and moves it via keyControls elsewhere)
--- ============================================================================
+
+
+
 
 local function deletePreviewGarageVehicle()
   if houseConfiguration.__garageVehicleObj ~= nil and DoesEntityExist(houseConfiguration.__garageVehicleObj) then
@@ -456,7 +456,7 @@ function HousingCreator:CreateGaragePoint()
 
   showControlsMenu(true, "creator:garage", "HousingCreator:garage")
 
-  -- [ASYNC] Spawn preview vehicle, then placement loop, then cleanup
+
   Citizen.CreateThread(function()
     spawnPreviewGarageVehicle("baller7")
 
@@ -480,7 +480,7 @@ function HousingCreator:CreateEnterGaragePoint()
 
   showControlsMenu(true, "creator:enter_garage", "HousingCreator:enter_garage")
 
-  -- [ASYNC] Spawn preview vehicle, then placement loop, then cleanup
+
   Citizen.CreateThread(function()
     spawnPreviewGarageVehicle("baller7")
 
@@ -498,9 +498,9 @@ function HousingCreator:CreateEnterGaragePoint()
   end)
 end
 
--- ============================================================================
--- Parking spaces (camera mode + spawns preview cars for existing spaces)
--- ============================================================================
+
+
+
 
 function HousingCreator:CreateParkingSpaces()
   isPlacingParkingSpaces = true
@@ -509,7 +509,7 @@ function HousingCreator:CreateParkingSpaces()
 
   showControlsMenu(true, "creator:parking", "HousingCreator:parking")
 
-  -- Spawn preview vehicles for existing parking entries (same behavior)
+
   if #houseConfiguration.parkingSpaces >= 1 then
     library.RequestEntity("baller3")
 
@@ -543,12 +543,12 @@ function HousingCreator:CreateParkingSpaces()
 
     Citizen.Wait(100)
 
-    -- Add a new parking slot entry
+
     currentParkingIndex = #houseConfiguration.parkingSpaces + 1
     houseConfiguration.parkingSpaces[currentParkingIndex] = { coords = { x = 0.0, y = 0.0, z = 0.0, w = 0.0 } }
     houseConfiguration.parkingSpaces[currentParkingIndex].coords.w = GetEntityHeading(PlayerPedId())
 
-    -- NOTE: original uses global x/y/z variables here (likely set by raycast logic)
+
     houseConfiguration.parkingSpaces[currentParkingIndex].vehicle = CreateVehicle(
       GetHashKey("baller3"),
       x, y, z,
@@ -558,7 +558,7 @@ function HousingCreator:CreateParkingSpaces()
     SetEntityCollision(houseConfiguration.parkingSpaces[currentParkingIndex].vehicle, false, true)
     FreezeEntityPosition(houseConfiguration.parkingSpaces[currentParkingIndex].vehicle, true)
   else
-    -- First parking slot
+
     currentParkingIndex = 1
     houseConfiguration.parkingSpaces[currentParkingIndex] = {}
 
@@ -567,7 +567,7 @@ function HousingCreator:CreateParkingSpaces()
     houseConfiguration.parkingSpaces[currentParkingIndex].coords = { x = 0.0, y = 0.0, z = 0.0, w = 0.0 }
     houseConfiguration.parkingSpaces[currentParkingIndex].coords.w = GetEntityHeading(PlayerPedId())
 
-    -- NOTE: original uses global x/y/z variables here (likely set by raycast logic)
+
     houseConfiguration.parkingSpaces[currentParkingIndex].vehicle = CreateVehicle(
       GetHashKey("baller3"),
       x, y, z,
@@ -578,7 +578,7 @@ function HousingCreator:CreateParkingSpaces()
     FreezeEntityPosition(houseConfiguration.parkingSpaces[currentParkingIndex].vehicle, true)
   end
 
-  -- [ASYNC] Camera-driven placement loop
+
   Citizen.CreateThread(function()
     while isPlacingParkingSpaces do
       startRaycast(self.camera)
@@ -610,9 +610,9 @@ function HousingCreator:CreateParkingSpaces()
   end)
 end
 
--- ============================================================================
--- Wardrobe / Storage (optionally enters interior first)
--- ============================================================================
+
+
+
 
 local function enterInteriorIfNeeded(iplTheme)
   if houseConfiguration.shell then
@@ -631,7 +631,7 @@ function HousingCreator:CreateWardrobePoint(alreadyInside, iplTheme)
 
   showControlsMenu(true, "creator:wardrobe", "HousingCreator:default")
 
-  -- [ASYNC] Optionally enter interior, then placement loop, then cleanup
+
   Citizen.CreateThread(function()
     if not skipEnterForWardrobe then
       enterInteriorIfNeeded(iplTheme)
@@ -642,7 +642,7 @@ function HousingCreator:CreateWardrobePoint(alreadyInside, iplTheme)
       DisabledControls()
       keyControls()
 
-      -- If not in shell/ipl, and not mlo, it draws interiorZone lines (same checks as original)
+
       if not houseConfiguration.shell and not houseConfiguration.ipl then
         drawZoneWalls(houseConfiguration.interiorZone)
       end
@@ -656,7 +656,7 @@ function HousingCreator:CreateWardrobePoint(alreadyInside, iplTheme)
       cleanupShellAndReturnToPreviousCoords()
     end
 
-    -- Reset the “already inside” flag (matches original)
+
     skipEnterForWardrobe = false
     showCreatorMenu()
   end)
@@ -671,7 +671,7 @@ function HousingCreator:CreateStoragePoint(alreadyInside, iplTheme)
 
   showControlsMenu(true, "creator:storage", "HousingCreator:default")
 
-  -- [ASYNC] Optionally enter interior, then placement loop, then cleanup
+
   Citizen.CreateThread(function()
     if not skipEnterForStorage then
       enterInteriorIfNeeded(iplTheme)
@@ -700,14 +700,14 @@ function HousingCreator:CreateStoragePoint(alreadyInside, iplTheme)
   end)
 end
 
--- ============================================================================
--- Delivery point (spawns preview prop; can be inside or outside)
--- ============================================================================
+
+
+
 
 local function deleteDeliveryPreview()
   if houseConfiguration.__deliveryObj ~= nil and DoesEntityExist(houseConfiguration.__deliveryObj) then
     DeleteObject(houseConfiguration.__deliveryObj)
-    -- Original also toggled collision after delete attempt (kept)
+
     SetEntityCollision(houseConfiguration.__deliveryObj, false, true)
   end
   houseConfiguration.__deliveryObj = nil
@@ -719,7 +719,7 @@ function HousingCreator:CreateDeliveryPoint(_unusedA0, shouldEnterInterior, _unu
 
   showControlsMenu(true, "creator:delivery", "HousingCreator:delivery")
 
-  -- [ASYNC] Optionally enter interior, spawn preview prop, then placement loop, then cleanup
+
   Citizen.CreateThread(function()
     if shouldEnterInterior then
       enterInteriorIfNeeded(iplTheme)
@@ -727,7 +727,7 @@ function HousingCreator:CreateDeliveryPoint(_unusedA0, shouldEnterInterior, _unu
 
     deleteDeliveryPreview()
 
-    -- Spawn preview prop at player coords
+
     houseConfiguration.__deliveryObj = library.SpawnProp(
       joaat("prop_boxpile_01a"),
       GetEntityCoords(PlayerPedId()),
@@ -741,15 +741,15 @@ function HousingCreator:CreateDeliveryPoint(_unusedA0, shouldEnterInterior, _unu
       DisabledControls()
       keyControls()
 
-      -- Drawing logic mirrors the original nested branches:
+
       if houseConfiguration.shell or houseConfiguration.ipl then
-        -- When inside shell/ipl, the original draws nothing here
+
       else
         if shouldEnterInterior then
-          -- inside placement for MLO-like interior polygon
+
           drawZoneWalls(houseConfiguration.interiorZone)
         else
-          -- outside placement uses outside zone
+
           drawZoneWalls(houseConfiguration.zone)
         end
       end
@@ -771,12 +771,12 @@ function HousingCreator:CreateDeliveryPoint(_unusedA0, shouldEnterInterior, _unu
   end)
 end
 
--- ============================================================================
--- Doors (distance + mode flags affect how keyControls behaves elsewhere)
--- ============================================================================
+
+
+
 
 function HousingCreator:CreateDoor(doubleDoor, longDistanceMode)
-  -- Snapshot so BACKSPACE can restore previous list without mutating in-place.
+
   houseConfiguration.__doorsSnapshot = library.Deepcopy(houseConfiguration.doors or {})
 
   isPlacingDoors = true
@@ -793,7 +793,7 @@ function HousingCreator:CreateDoor(doubleDoor, longDistanceMode)
 
   showControlsMenu(true, "creator:doors", "HousingCreator:doors")
 
-  -- [ASYNC] Placement loop (raycast + keyControls elsewhere) while drawing outer zone
+
   Citizen.CreateThread(function()
     if not houseConfiguration.doors then
       houseConfiguration.doors = {}
@@ -820,7 +820,7 @@ function HousingCreator:RemoveDoor(index)
     table.remove(houseConfiguration.doors, index)
   end
 
-  -- NUI: update doors list
+
   SendNUIMessage({
     action = "HousingCreator",
     actionName = "Update",
@@ -831,15 +831,15 @@ function HousingCreator:RemoveDoor(index)
   })
 end
 
--- ============================================================================
--- Save house / furniture (SERVER EVENTS)
--- ============================================================================
+
+
+
 
 function HousingCreator:Save(uiData)
   local address = houseConfiguration.address
   local region = houseConfiguration.region
 
-  -- Name depends on type (building/motel/house)
+
   local name
   if houseConfiguration.type == "building" and uiData.buildingName then
     name = uiData.buildingName
@@ -851,51 +851,51 @@ function HousingCreator:Save(uiData)
 
   local description = uiData.houseDescription or ""
 
-  -- Metadata tables built exactly like the original logic
+
   local metadata = {}
   local sale = { defaultActive = false, defaultPrice = 0 }
   local rental = { defaultActive = false, defaultPrice = 0 }
 
-  -- For shell/ipl/mlo, the original initializes these metadata defaults
+
   if houseConfiguration.type == "shell" or houseConfiguration.type == "ipl" or houseConfiguration.type == "mlo" then
     metadata.upgrades = {}
     metadata.lightState = false
     metadata.locked = false
 
     if not uiData.building and not uiData.motel then
-      -- Outside zone only for non-building/motel
+
       metadata.zone = houseConfiguration.zone
       metadata.zone.area = calculatePolygonArea(houseConfiguration.zone.points)
       metadata.allowFurnitureOutside = uiData.allowFurnitureOutside
     end
 
-    -- Enter/exit are only set for shell/ipl in this block (matches original’s checks)
+
     if houseConfiguration.type == "shell" or houseConfiguration.type == "ipl" then
       metadata.enter = houseConfiguration.enterCoords
       metadata.exit = houseConfiguration.exitCoords
     end
   end
 
-  -- Wardrobe
+
   if uiData.isWardrobe then
     metadata.wardrobe = houseConfiguration.wardrobeCoords
   end
 
-  -- Storage
+
   if uiData.isStorage then
     metadata.storage = houseConfiguration.storageCoords
     metadata.storage.slots = tonumber(uiData.storageSlots)
     metadata.storage.weight = tonumber(uiData.storageWeight)
   end
 
-  -- Keys limit (keeps original semantics: store string if numeric >= 0)
+
   if uiData.isKeysLimit and uiData.keysLimit and tonumber(uiData.keysLimit) and tonumber(uiData.keysLimit) >= 0 then
     metadata.keysLimit = uiData.keysLimit
   else
     metadata.keysLimit = nil
   end
 
-  -- Permissions limit (same semantics)
+
   if uiData.isPermissionsLimit and uiData.permissionsLimit and tonumber(uiData.permissionsLimit) and tonumber(uiData.permissionsLimit) >= 0 then
     metadata.permissionsLimit = uiData.permissionsLimit
   else
@@ -904,7 +904,7 @@ function HousingCreator:Save(uiData)
 
   metadata.allowFurnitureInside = uiData.allowFurnitureInside
 
-  -- Type-specific payloads
+
   if houseConfiguration.type == "shell" then
     metadata.shell = houseConfiguration.shell
 
@@ -918,7 +918,7 @@ function HousingCreator:Save(uiData)
   elseif houseConfiguration.type == "ipl" then
     metadata.ipl = houseConfiguration.ipl
 
-    -- Theme validation logic (same behavior)
+
     local iplEntry = AvailableIPLS[houseConfiguration.ipl]
     if iplEntry and iplEntry.settings and iplEntry.settings.Themes then
       if iplEntry.settings.Themes[uiData.houseTheme] then
@@ -949,7 +949,7 @@ function HousingCreator:Save(uiData)
 
     metadata.menu = houseConfiguration.menuCoords
 
-    -- Copy doors and clear entity references (same behavior)
+
     if houseConfiguration.doors and next(houseConfiguration.doors) then
       local sanitizedDoors = {}
       for _, doorData in pairs(houseConfiguration.doors) do
@@ -968,7 +968,7 @@ function HousingCreator:Save(uiData)
     metadata.enter = houseConfiguration.enterCoords
     metadata.exit = houseConfiguration.exitCoords
 
-    -- Apartment parking
+
     local apartmentParking = uiData.apartmentParking
     local parkingFloors = nil
 
@@ -977,20 +977,20 @@ function HousingCreator:Save(uiData)
       parkingFloors = uiData.parkingFloors
     end
 
-    -- Preserve original flow variables in the server payload below:
-    -- (apartmentParking, parkingFloors)
+
+
     uiData.__apartmentParking = apartmentParking
     uiData.__parkingFloors = parkingFloors
   elseif houseConfiguration.type == "motel" then
     metadata.zone = houseConfiguration.zone
   end
 
-  -- Garage
+
   if uiData.isGarage then
     metadata.garage = houseConfiguration.garageCoords
   end
 
-  -- Parking spaces
+
   if uiData.isParking then
     metadata.parking = houseConfiguration.parkingSpaces
     if #metadata.parking >= 1 then
@@ -1000,7 +1000,7 @@ function HousingCreator:Save(uiData)
     end
   end
 
-  -- Delivery
+
   if uiData.isDeliveryInside then
     metadata.deliveryType = "inside"
     metadata.delivery = houseConfiguration.deliveryPoint
@@ -1012,7 +1012,7 @@ function HousingCreator:Save(uiData)
     metadata.delivery = nil
   end
 
-  -- Sale / rental
+
   if uiData.isPurchase then
     sale.defaultActive = true
     sale.defaultPrice = tonumber(uiData.purchasePrice)
@@ -1023,7 +1023,7 @@ function HousingCreator:Save(uiData)
     rental.defaultPrice = tonumber(uiData.rentPrice)
   end
 
-  -- Prepare server payload (same fields / encodings)
+
   local apartmentParking = uiData.__apartmentParking
   local parkingFloors = uiData.__parkingFloors
 
@@ -1044,7 +1044,7 @@ function HousingCreator:Save(uiData)
     rental = json.encode(rental),
   }
 
-  -- [SERVER EVENT] create/modify house
+
   TriggerServerEvent(
     "vms_housing:sv:createNewHouse",
     houseConfiguration.type,
@@ -1056,13 +1056,13 @@ function HousingCreator:Save(uiData)
 end
 
 function HousingCreator:SaveFurniture(uiData)
-  -- [SERVER EVENT] modify furniture
+
   TriggerServerEvent("vms_housing:sv:modifyFurniture", uiData.model, uiData)
 end
 
--- ============================================================================
--- Close creator UI
--- ============================================================================
+
+
+
 
 function HousingCreator:Close()
   SendNUIMessage({ action = "HousingCreator", actionName = "Close" })
@@ -1070,9 +1070,9 @@ function HousingCreator:Close()
   openedMenu = nil
 end
 
--- ============================================================================
--- Enter shell / IPL (teleport preview for placing interior points)
--- ============================================================================
+
+
+
 
 function HousingCreator:EnterShell(shellName, cb)
   if CurrentShell then
@@ -1105,7 +1105,7 @@ function HousingCreator:EnterShell(shellName, cb)
     return CL.Notification(("Failed to load shell \"%s\" - make sure it is running!"):format(shellName), 5000, "error")
   end
 
-  -- Save previous coords
+
   houseConfiguration.previousCoords = GetEntityCoords(PlayerPedId())
 
   FreezeEntityPosition(PlayerPedId(), true)
@@ -1113,10 +1113,10 @@ function HousingCreator:EnterShell(shellName, cb)
   DoScreenFadeOut(1500)
   Wait(1500)
 
-  -- Create shell object far above map
+
   CurrentShell = SpawnHousingShell(shellName)
 
-  -- Teleport player to shell doors coords
+
   local doors = AvailableShells[shellName].doors
   SetEntityCoords(PlayerPedId(), vector3(doors.x, doors.y, doors.z))
   SetEntityHeading(PlayerPedId(), doors.heading)
@@ -1155,7 +1155,7 @@ function HousingCreator:EnterIPL(iplName, cb, theme)
 
   CurrentIPL = iplName
 
-  -- Apply theme settings if valid
+
   if theme then
     local entry = AvailableIPLS[iplName]
     if entry and entry.settings and entry.settings.Themes and entry.settings.Themes[theme] then
@@ -1175,9 +1175,9 @@ function HousingCreator:EnterIPL(iplName, cb, theme)
   if cb then cb() end
 end
 
--- ============================================================================
--- Misc data getters
--- ============================================================================
+
+
+
 
 function HousingCreator:GetObjects(includeBuildings, includeMotels)
   local buildings = {}
@@ -1211,9 +1211,9 @@ function HousingCreator:GetBuildingParkingSpaces(propertyId)
   return nil
 end
 
--- ============================================================================
--- Camera movement / rotation / control disabling
--- ============================================================================
+
+
+
 
 local CAMERA_MAX_DISTANCE = 1580
 local CAMERA_MOVE_STEP = 0.18
@@ -1224,14 +1224,14 @@ function moveCamInputs()
 
   local moveSpeed = CAMERA_MOVE_STEP
 
-  -- Speed modifiers (same controls as original)
+
   if IsControlPressed(0, 60) then
     moveSpeed = CAMERA_MOVE_STEP / 2
   elseif IsControlPressed(0, 21) then
     moveSpeed = CAMERA_MOVE_STEP * 2
   end
 
-  -- Same trig math as original
+
   local forwardX = math.sin((-camRot.z) * math.pi / 180) * moveSpeed
   local forwardY = math.cos((-camRot.z) * math.pi / 180) * moveSpeed
   local forwardZ = math.tan((camRot.x) * math.pi / 180) * moveSpeed
@@ -1241,30 +1241,30 @@ function moveCamInputs()
 
   local x, y, z = camPos.x, camPos.y, camPos.z
 
-  if IsControlPressed(0, 32) then -- W
+  if IsControlPressed(0, 32) then
     x = x + forwardX
     y = y + forwardY
   end
-  if IsControlPressed(0, 33) then -- S
+  if IsControlPressed(0, 33) then
     x = x - forwardX
     y = y - forwardY
   end
-  if IsControlPressed(0, 35) then -- D
+  if IsControlPressed(0, 35) then
     x = x - rightX
     y = y - rightY
   end
-  if IsControlPressed(0, 34) then -- A
+  if IsControlPressed(0, 34) then
     x = x + rightX
     y = y + rightY
   end
-  if IsControlPressed(0, 46) then -- E
+  if IsControlPressed(0, 46) then
     z = z + moveSpeed
   end
-  if IsControlPressed(0, 52) then -- Q
+  if IsControlPressed(0, 52) then
     z = z - moveSpeed
   end
 
-  -- Keep camera within max distance to player (same check)
+
   local ped = PlayerPedId()
   local pedCoords = GetEntityCoords(ped)
   local dist = #(pedCoords - vector3(x, y, z))
@@ -1284,7 +1284,7 @@ function rotateCamInputs()
   local newYaw = rot.z + (mouseX * -10)
   local newPitch = rot.x - deltaPitch
 
-  -- Clamp pitch (same as original)
+
   local clampedPitch = nil
   if newPitch > -85.0 and newPitch < 45.0 then
     clampedPitch = newPitch
@@ -1299,7 +1299,7 @@ function DisabledControls()
   if HousingCreator.camera then
     DisableAllControlActions(0)
 
-    -- Enable camera movement keys (same set)
+
     EnableControlAction(0, 60, true)
     EnableControlAction(0, 21, true)
     EnableControlAction(0, 32, true)
@@ -1311,8 +1311,8 @@ function DisabledControls()
     EnableControlAction(0, 220, true)
     EnableControlAction(0, 221, true)
   else
-    -- Disable combat controls while placing points (same as original)
-    DisableControlAction(0, 322, true) -- prevent pause menu during placement
+
+    DisableControlAction(0, 322, true)
     DisableControlAction(0, 24, true)
     DisableControlAction(0, 25, true)
     DisableControlAction(0, 140, true)
@@ -1320,10 +1320,10 @@ function DisabledControls()
     DisableControlAction(0, 142, true)
   end
 
-  -- Always enabled in both paths (same)
+
   EnableControlAction(0, 55, true)
 
-  -- Creator binds from config (kept)
+
   EnableControlAction(0, Config.HousingCreatorControls.LEFT_CTRL.controlIndex, true)
   EnableControlAction(0, Config.HousingCreatorControls.SELECT.controlIndex, true)
   EnableControlAction(0, Config.HousingCreatorControls.BACK.controlIndex, true)
@@ -1333,21 +1333,21 @@ function DisabledControls()
   EnableControlAction(0, Config.HousingCreatorControls.CANCEL.controlIndex, true)
 end
 
--- ============================================================================
--- The pasted snippet ends here mid-function:
--- `function L23_1(A0_2) ...`
 
--- ============================================================================
--- Creator input handler (restored)
--- ============================================================================
--- The original script handled creator controls (LMB/RMB/SCROLL/ENTER/BACKSPACE)
--- in a shared helper. The deobfuscated snippet you have ends before that logic,
--- which caused "can't add points" and "backspace doesn't work" issues.
---
--- This function is intentionally global because some loops already call it as a
--- global (keyControls(coords)). It closes over the locals above.
 
--- Pending state for "double door" selection flow
+
+
+
+
+
+
+
+
+
+
+
+
+
 local pendingDoubleDoor = nil
 
 local function nuiUpdateCreatorInput(inputName, value)
@@ -1392,7 +1392,7 @@ local function clampHeading(heading)
 end
 
 local function getScrollStepDegrees()
-  -- LEFT CTRL = slow mode for rotations (matches UI label)
+
   local ctrl = Config.HousingCreatorControls.LEFT_CTRL.controlIndex
   if IsControlPressed(0, ctrl) or IsDisabledControlPressed(0, ctrl) then
     return 0.5
@@ -1401,7 +1401,7 @@ local function getScrollStepDegrees()
 end
 
 local function getPolyzoneStepZ()
-  -- Small step for minZ/maxZ editing
+
   return 0.25
 end
 
@@ -1475,7 +1475,7 @@ local function stopAllCreatorPlacements()
 end
 
 function keyControls(coordsOverride)
-  -- Defensive: if creator is not open, ignore inputs
+
   if openedMenu ~= "HousingCreator" then
     return
   end
@@ -1495,7 +1495,7 @@ function keyControls(coordsOverride)
     return IsControlPressed(0, control) or IsDisabledControlPressed(0, control)
   end
 
-  -- Helper: choose coords (override or raycast globals)
+
   local function getChosenCoords()
     if coordsOverride and coordsOverride.x and coordsOverride.y and coordsOverride.z then
       return coordsOverride
@@ -1503,11 +1503,11 @@ function keyControls(coordsOverride)
     return vector3(x or 0.0, y or 0.0, z or 0.0)
   end
 
-  -- Always allow cancel to exit the current placement mode
-  -- 202 is common cancel, but some setups map BACKSPACE/ESC differently (177/322).
+
+
   if justPressed(CANCEL) or justPressed(177) or justPressed(322) then
-    -- Parking is multi-point and uses BACKSPACE to finish the session.
-    -- Remove the "next preview" slot so it doesn't get saved.
+
+
     if isPlacingParkingSpaces and currentParkingIndex and houseConfiguration.parkingSpaces[currentParkingIndex] then
       local preview = houseConfiguration.parkingSpaces[currentParkingIndex]
 
@@ -1531,7 +1531,7 @@ function keyControls(coordsOverride)
       restoreZoneSnapshotIfPresent(isDrawingInteriorZone)
     end
 
-    -- Cancel doors: restore snapshot if we captured one
+
     if isPlacingDoors and houseConfiguration.__doorsSnapshot then
       houseConfiguration.doors = houseConfiguration.__doorsSnapshot
       houseConfiguration.__doorsSnapshot = nil
@@ -1544,30 +1544,30 @@ function keyControls(coordsOverride)
     return
   end
 
-  -- =============================================================
-  -- Polyzone editing (yard / interior)
-  -- =============================================================
+
+
+
   if isDrawingPolyzone then
     local zone, inputName = getActiveZone()
     zone.points = zone.points or {}
 
     drawCreatorPlacementMarker(getChosenCoords())
 
-    -- LMB: add point
+
     if justPressed(SELECT) then
       if type(x) == "number" and type(y) == "number" then
         table.insert(zone.points, { x = x, y = y })
       end
     end
 
-    -- RMB: remove last point
+
     if justPressed(BACK) then
       if #zone.points >= 1 then
         table.remove(zone.points, #zone.points)
       end
     end
 
-    -- SCROLL: adjust zone height (maxZ by default; minZ with LEFT CTRL held)
+
     local zStep = getPolyzoneStepZ()
     if justPressed(SCROLL_UP) then
       if isPressed(Config.HousingCreatorControls.LEFT_CTRL.controlIndex) then
@@ -1583,14 +1583,14 @@ function keyControls(coordsOverride)
       end
     end
 
-    -- Keep sane ordering (minZ <= maxZ)
+
     if zone.minZ and zone.maxZ and zone.minZ > zone.maxZ then
       local tmp = zone.minZ
       zone.minZ = zone.maxZ
       zone.maxZ = tmp
     end
 
-    -- ENTER: save and exit
+
     if justPressed(ENTER) then
       if #zone.points < 3 then
         CL.Notification("You need at least 3 points.", 3500, "error")
@@ -1599,7 +1599,7 @@ function keyControls(coordsOverride)
 
       nuiUpdateCreatorInput(inputName, zone)
 
-      -- Clear snapshots on successful save
+
       houseConfiguration.__zoneSnapshot = nil
       houseConfiguration.__interiorZoneSnapshot = nil
 
@@ -1612,7 +1612,7 @@ function keyControls(coordsOverride)
 
   local chosenCoords = getChosenCoords()
 
-  -- Visual feedback while placing raycast-based points
+
   if not coordsOverride and (
     isPlacingEnterPoint
     or isPlacingMenuPoint
@@ -1627,7 +1627,7 @@ function keyControls(coordsOverride)
     drawCreatorPlacementMarker(chosenCoords)
   end
 
-  -- Preview: garage vehicle follows raycast while placing
+
   if (isPlacingGaragePoint or isPlacingEnterGaragePoint)
     and houseConfiguration.__garageVehicleObj
     and DoesEntityExist(houseConfiguration.__garageVehicleObj)
@@ -1641,7 +1641,7 @@ function keyControls(coordsOverride)
     SetEntityHeading(houseConfiguration.__garageVehicleObj, heading)
   end
 
-  -- Preview: delivery prop follows raycast while placing
+
   if isPlacingDeliveryPoint and houseConfiguration.__deliveryObj and DoesEntityExist(houseConfiguration.__deliveryObj) then
     local ok, groundZ = GetGroundZFor_3dCoord(chosenCoords.x, chosenCoords.y, chosenCoords.z, 0)
     local targetZ = ok and groundZ or chosenCoords.z
@@ -1650,9 +1650,9 @@ function keyControls(coordsOverride)
     SetEntityHeading(houseConfiguration.__deliveryObj, houseConfiguration.deliveryPoint.w or 0.0)
   end
 
-  -- =============================================================
-  -- Simple point placement (default)
-  -- =============================================================
+
+
+
   if isPlacingEnterPoint and justPressed(SELECT) then
     local c = chosenCoords
     houseConfiguration.enterCoords = { x = c.x, y = c.y, z = c.z }
@@ -1696,9 +1696,9 @@ function keyControls(coordsOverride)
     return
   end
 
-  -- =============================================================
-  -- Parking spaces (multi-point)
-  -- =============================================================
+
+
+
   if isPlacingParkingSpaces and currentParkingIndex and houseConfiguration.parkingSpaces[currentParkingIndex] then
     local currentSpace = houseConfiguration.parkingSpaces[currentParkingIndex]
     currentSpace.coords = currentSpace.coords or {
@@ -1727,7 +1727,7 @@ function keyControls(coordsOverride)
       currentSpace.coords.z = targetZ
     end
 
-    -- RMB: remove closest confirmed parking space
+
     if justPressed(BACK) then
       local closestIndex = nil
       local closestDistance = nil
@@ -1757,7 +1757,7 @@ function keyControls(coordsOverride)
       return
     end
 
-    -- LMB: confirm current and create next preview slot
+
     if justPressed(SELECT) then
       local coords = currentSpace.coords
 
@@ -1777,9 +1777,9 @@ function keyControls(coordsOverride)
     return
   end
 
-  -- =============================================================
-  -- Garage / delivery points (rotation via scroll)
-  -- =============================================================
+
+
+
   if isPlacingGaragePoint then
     local step = getScrollStepDegrees()
 
@@ -1858,9 +1858,9 @@ function keyControls(coordsOverride)
     return
   end
 
-  -- =============================================================
-  -- Wardrobe / storage points
-  -- =============================================================
+
+
+
   if isPlacingWardrobe and justPressed(SELECT) then
     local c = chosenCoords
     houseConfiguration.wardrobeCoords = { x = c.x, y = c.y, z = c.z }
@@ -1877,11 +1877,11 @@ function keyControls(coordsOverride)
     return
   end
 
-  -- =============================================================
-  -- Doors placement (single/double/slide gate)
-  -- =============================================================
+
+
+
   if isPlacingDoors then
-    -- SCROLL: adjust access distance (updates controls overlay)
+
     if justPressed(SCROLL_UP) then
       houseConfiguration.doorsDistance = (houseConfiguration.doorsDistance or 1.5) + 0.25
       SendNUIMessage({ action = "ControlsMenu", doorsDistance = houseConfiguration.doorsDistance })
@@ -1890,7 +1890,7 @@ function keyControls(coordsOverride)
       SendNUIMessage({ action = "ControlsMenu", doorsDistance = houseConfiguration.doorsDistance })
     end
 
-    -- ENTER: finish placement mode
+
     if justPressed(ENTER) then
       pendingDoubleDoor = nil
       isPlacingDoors = false
@@ -1900,7 +1900,7 @@ function keyControls(coordsOverride)
       return
     end
 
-    -- LMB: select door object
+
     if justPressed(SELECT) then
       local entity = lastRaycastHitEntity
       if not entity or entity == 0 then
@@ -1920,7 +1920,7 @@ function keyControls(coordsOverride)
 
       houseConfiguration.doors = houseConfiguration.doors or {}
 
-      -- Default locked state for new door configs
+
       local lockedDefault = Config.DefaultDoorsLocked
 
       if isDoubleDoorMode then
@@ -1975,5 +1975,3 @@ function keyControls(coordsOverride)
     return
   end
 end
--- Paste the remainder and I’ll continue the same cleanup for the rest.
--- ============================================================================

@@ -1,6 +1,6 @@
--- ox_inventory's server-side usedItem event is emitted only after a genuine use.
--- The item is a pointer, not proof of ownership: ownership and proximity are
--- verified again when the target is selected.
+
+
+
 local pending, sessions, participant, nextSession = {}, {}, {}, 0
 local MAX_DISTANCE = 3.0
 local function notify(src, text) library.Notification(src, text, 5000, 'error') end
@@ -100,7 +100,7 @@ AddEventHandler('onResourceStop',function(resource)
     for owner in pairs(sessions) do finishOwner(owner) end
 end)
 
--- Revoke an open display if the item disappears or the house changes owner.
+
 CreateThread(function()
     while true do
         Wait(3000)

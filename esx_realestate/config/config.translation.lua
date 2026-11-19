@@ -1,8 +1,8 @@
 Config = Config or {}
 
--- ▀█▀ █▀▄ ▄▀▄ █▄ █ ▄▀▀ █   ▄▀▄ ▀█▀ ██▀
---  █  █▀▄ █▀█ █ ▀█ ▄██ █▄▄ █▀█  █  █▄▄
-Config.Language = 'EN' -- 'EN' / 'DE' / 'FR' / 'ES' / 'PT' / 'PL' / 'IT' / 'CZ' / 'SV'
+
+
+Config.Language = 'EN'
 
 Config.Translate = {
     ['EN'] = {
@@ -10,7 +10,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Gizmo Translation",
         ['control.gizmo:rotation'] = "Gizmo Rotation",
         
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Apartment",
         ['blip.house_owner'] = "Owned Property",
@@ -20,7 +20,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Property Marketplace",
         ['blip.alarm'] = "House Alarm",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Marketplace",
         ['target.view_house'] = "View Offer",
         ['target.enter'] = "Enter",
@@ -43,25 +43,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Enter parking (Floor -%s)",
         ['target.emergency_exit'] = "Emergency Exit",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Unpack shipment',
         ['target.interactable:wardrobe'] = 'Wardrobe',
         ['target.interactable:storage'] = 'Storage',
         ['target.interactable:safe'] = 'Safe',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Wash your hands',
         ['target.interactable:sink_drink'] = 'Drink',
         ['target.interactable:shower'] = 'Take a shower',
 
-        -- General:
+
         ['notify.wait'] = "Try again in a while...",
         ['notify.not_allowed'] = "You are not allowed to do that!",
         ['notify.not_enough_money'] = "You don't have enough money!",
         ['notify.reached_properties_limit'] = "You have reached properties limit!",
         
-        -- Property:
+
         ['notify.property:purchased'] = "You've bought this property for $%s.",
         ['notify.property:rented_monthly'] = "You're now renting this property for $%s per month.",
         ['notify.property:rented_weekly'] = "You're now renting this property for $%s per week.",
@@ -96,10 +96,10 @@ Config.Translate = {
         ['notify.property:reached_permissions_limit'] = "You have reached players with permissions limit!",
         ['notify.property:moved_out'] = "You have successfully moved out. The rental has been terminated.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "You don't have any cameras installed.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Furniture #%s removed.",
         ['notify.furniture:sold'] = "Furniture #%s sold for $%s",
         ['notify.furniture:cannot_sold'] = "This furniture cannot be sold.",
@@ -112,10 +112,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "You cannot place furniture outside of the property zone.",
         ['notify.furniture:mode_cooldown'] = "You need to wait before changing mode again.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "You can't open and close the door so often.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "The target player is too far away to sign the contract.",
         ['notify.contract:sent'] = "You have sent a property contract to %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -126,39 +126,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "You have rented the property from %s.",
         ['notify.contract:already_rented'] = "This property is already rented by another player.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "You have started renting the property from the marketplace.",
         ['notify.marketplace:purchased'] = "You have purchased the property from the marketplace.",
         ['notify.marketplace:rented'] = "Your property has been rented through the marketplace. It was rented by %s.",
         ['notify.marketplace:sold'] = "Your property has been sold through the marketplace. It was purchased by %s.",
         ['notify.marketplace:marked_on_gps'] = "Marked property on GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "You can't raid this property. It is protected by anti-burglary doors.",
         ['notify.raid:missing_job'] = "You don't have the required job to raid this property.",
         ['notify.raid:missing_item'] = "You are missing a required item to perform the raid.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Your attempt to break in has failed. The anti-burglary doors resisted the intrusion.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "You cannot set the same PIN as the current one.",
         ['notify.safe:wrong_old_pin_was_entered'] = "The old PIN you entered is incorrect.",
         ['notify.safe:changed_pin'] = "PIN changed from %s to %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Alarm triggered! Lockpicking attempt detected.",
         ['notify.lockpick:alarm_success'] = "Alarm triggered! The lock has been picked.",
         ['notify.lockpick:alarm_failed'] = "Alarm triggered! Lockpicking attempt failed.",
         ['notify.lockpick:missing_item'] = "You don't have a lockpick in your inventory!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "You don't have the required item in your inventory!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "You cannot remove the owner's permissions.",
         ['notify.permissions:cannot_remove_self'] = "You cannot remove your own permissions.",
         ['notify.permissions:error'] = "An error has occurred.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "You can't set it outside the yard zone!",
     },
     ['DE'] = {
@@ -166,7 +166,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Gizmo Übersetzung",
         ['control.gizmo:rotation'] = "Gizmo Drehung",
 
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Wohnung",
         ['blip.house_owner'] = "Eigentum",
@@ -176,7 +176,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Immobilienmarkt",
         ['blip.alarm'] = "Hausalarm",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Marktplatz",
         ['target.view_house'] = "Angebot ansehen",
         ['target.enter'] = "Eintreten",
@@ -199,25 +199,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Parken betreten (Etage -%s)",
         ['target.emergency_exit'] = "Notausgang",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Lieferung auspacken',
         ['target.interactable:wardrobe'] = 'Kleiderschrank',
         ['target.interactable:storage'] = 'Lager',
         ['target.interactable:safe'] = 'Safe',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Hände waschen',
         ['target.interactable:sink_drink'] = 'Trinken',
         ['target.interactable:shower'] = 'Duschen',
 
-        -- General:
+
         ['notify.wait'] = "Versuche es später noch einmal...",
         ['notify.not_allowed'] = "Du darfst das nicht tun!",
         ['notify.not_enough_money'] = "Du hast nicht genug Geld!",
         ['notify.reached_properties_limit'] = "Du hast das Limit für Immobilien erreicht!",
 
-        -- Property:
+
         ['notify.property:purchased'] = "Du hast dieses Eigentum für $%s gekauft.",
         ['notify.property:rented_monthly'] = "Du mietest diese Immobilie jetzt für $%s pro Monat.",
         ['notify.property:rented_weekly'] = "Du mietest diese Immobilie jetzt für $%s pro Woche.",
@@ -251,10 +251,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Du hast das Schlüssellimit erreicht!",
         ['notify.property:moved_out'] = "Du bist erfolgreich ausgezogen. Die Miete wurde beendet.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Du hast keine Kameras installiert.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Möbel #%s entfernt.",
         ['notify.furniture:sold'] = "Möbel #%s für $%s verkauft",
         ['notify.furniture:cannot_sold'] = "Dieses Möbel kann nicht verkauft werden.",
@@ -267,10 +267,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Du kannst Möbel nicht außerhalb der Eigentumszone platzieren.",
         ['notify.furniture:mode_cooldown'] = "Du musst warten, bevor du den Modus erneut ändern kannst.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Du kannst die Tür nicht so oft öffnen und schließen.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "Der Zielspieler ist zu weit entfernt, um den Vertrag zu unterschreiben.",
         ['notify.contract:sent'] = "Du hast einen Eigentumsvertrag an %s gesendet.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -281,39 +281,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Du hast das Eigentum von %s vermietet.",
         ['notify.contract:already_rented'] = "Dieses Eigentum wird bereits von einem anderen Spieler vermietet.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Du hast begonnen, das Eigentum vom Markt zu mieten.",
         ['notify.marketplace:purchased'] = "Du hast das Eigentum vom Markt gekauft.",
         ['notify.marketplace:rented'] = "Dein Eigentum wurde über den Markt vermietet. Es wurde von %s gemietet.",
         ['notify.marketplace:sold'] = "Dein Eigentum wurde über den Markt verkauft. Es wurde von %s gekauft.",
         ['notify.marketplace:marked_on_gps'] = "Eigentum auf GPS markiert.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Du kannst dieses Eigentum nicht überfallen. Es wird durch Anti-Einbruchstüren geschützt.",
         ['notify.raid:missing_job'] = "Du hast nicht den erforderlichen Job, um dieses Eigentum zu überfallen.",
         ['notify.raid:missing_item'] = "Dir fehlt ein erforderlicher Gegenstand, um den Überfall durchzuführen.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Dein Versuch einzubrechen ist fehlgeschlagen. Die Anti-Einbruchstüren haben die Eindringung widerstanden.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Du kannst nicht die gleiche PIN wie die aktuelle setzten.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Die alte eingegebene PIN ist falsch.",
         ['notify.safe:changed_pin'] = "PIN von %s auf %s geändert.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Alarm ausgelöst! Lockpicking-Versuch erkannt.",
         ['notify.lockpick:alarm_success'] = "Alarm ausgelöst! Das Schloss wurde geknackt.",
         ['notify.lockpick:alarm_failed'] = "Alarm ausgelöst! Lockpicking-Versuch fehlgeschlagen.",
         ['notify.lockpick:missing_item'] = "Du hast kein Dietrich in deinem Inventar!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Du hast den erforderlichen Gegenstand nicht in deinem Inventar!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Du kannst die Berechtigungen des Eigentümers nicht entfernen.",
         ['notify.permissions:cannot_remove_self'] = "Du kannst deine eigenen Berechtigungen nicht entfernen.",
         ['notify.permissions:error'] = "Ein Fehler ist aufgetreten.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Du kannst es nicht außerhalb der Hofzone platzieren!",
     },
     ['FR'] = {
@@ -321,7 +321,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Translation du Gizmo",
         ['control.gizmo:rotation'] = "Rotation du Gizmo",
         
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Appartement",
         ['blip.house_owner'] = "Propriété Possédée",
@@ -331,7 +331,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Place du Marché Immobilier",
         ['blip.alarm'] = "Alarme Maison",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Place du Marché",
         ['target.view_house'] = "Voir l'offre",
         ['target.enter'] = "Entrer",
@@ -354,25 +354,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Entrer au parking (Étage -%s)",
         ['target.emergency_exit'] = "Sortie de secours",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Déballer la livraison',
         ['target.interactable:wardrobe'] = 'Garde-robe',
         ['target.interactable:storage'] = 'Stockage',
         ['target.interactable:safe'] = 'Coffre-fort',
         ['target.interactable:device'] = 'Ordinateur portable',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Lavez-vous les mains',
         ['target.interactable:sink_drink'] = 'Boire',
         ['target.interactable:shower'] = 'Prendre une douche',
 
-        -- General:
+
         ['notify.wait'] = "Réessayez plus tard...",
         ['notify.not_allowed'] = "Vous n'êtes pas autorisé à faire cela!",
         ['notify.not_enough_money'] = "Vous n'avez pas assez d'argent!",
         ['notify.reached_properties_limit'] = "Vous avez atteint la limite de propriétés !",
         
-        -- Property:
+
         ['notify.property:purchased'] = "Vous avez acheté cette propriété pour $%s.",
         ['notify.property:rented_monthly'] = "Vous louez maintenant cette propriété pour $%s par mois.",
         ['notify.property:rented_weekly'] = "Vous louez maintenant cette propriété pour $%s par semaine.",
@@ -406,10 +406,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Vous avez atteint la limite de clés!",
         ['notify.property:moved_out'] = "Vous avez déménagé avec succès. La location a été résiliée.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Vous n'avez installé aucune caméra.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Meuble #%s retiré.",
         ['notify.furniture:sold'] = "Meuble #%s vendu pour $%s",
         ['notify.furniture:cannot_sold'] = "Ce meuble ne peut pas être vendu.",
@@ -422,10 +422,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Vous ne pouvez pas placer de meubles en dehors de la zone de la propriété.",
         ['notify.furniture:mode_cooldown'] = "Vous devez attendre avant de changer de mode à nouveau.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Vous ne pouvez pas ouvrir et fermer la porte si souvent.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "Le joueur ciblé est trop loin pour signer le contrat.",
         ['notify.contract:sent'] = "Vous avez envoyé un contrat de propriété à %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -436,39 +436,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Vous avez loué la propriété de %s.",
         ['notify.contract:already_rented'] = "Cette propriété est déjà louée par un autre joueur.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Vous avez commencé à louer la propriété depuis la place du marché.",
         ['notify.marketplace:purchased'] = "Vous avez acheté la propriété depuis la place du marché.",
         ['notify.marketplace:rented'] = "Votre propriété a été louée via la place du marché. Elle a été louée par %s.",
         ['notify.marketplace:sold'] = "Votre propriété a été vendue via la place du marché. Elle a été achetée par %s.",
         ['notify.marketplace:marked_on_gps'] = "Propriété marquée sur le GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Vous ne pouvez pas raid cette propriété. Elle est protégée par des portes anti-effraction.",
         ['notify.raid:missing_job'] = "Vous n'avez pas le travail requis pour raid cette propriété.",
         ['notify.raid:missing_item'] = "Vous manquez d'un objet requis pour effectuer le raid.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Votre tentative d'effraction a échoué. Les portes anti-effraction ont résisté à l'intrusion.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Vous ne pouvez pas définir le même code PIN que celui actuel.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Le vieux code PIN que vous avez saisi est incorrect.",
         ['notify.safe:changed_pin'] = "Code PIN changé de %s à %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Alarme déclenchée! Tentative de crochetage détectée.",
         ['notify.lockpick:alarm_success'] = "Alarme déclenchée! La serrure a été crochetée avec succès.",
         ['notify.lockpick:alarm_failed'] = "Alarme déclenchée! La tentative de crochetage a échoué.",
         ['notify.lockpick:missing_item'] = "Vous n'avez pas de crochet de serrure dans votre inventaire!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Vous n'avez pas l'objet requis dans votre inventaire!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Vous ne pouvez pas supprimer les permissions du propriétaire.",
         ['notify.permissions:cannot_remove_self'] = "Vous ne pouvez pas supprimer vos propres permissions.",
         ['notify.permissions:error'] = "Une erreur s'est produite.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Vous ne pouvez pas le placer en dehors de la zone de la cour!",
     },
     ['ES'] = {
@@ -476,7 +476,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Traducción Gizmo",
         ['control.gizmo:rotation'] = "Rotación Gizmo",
         
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Apartamento",
         ['blip.house_owner'] = "Propiedad Propia",
@@ -486,7 +486,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Mercado de Propiedades",
         ['blip.alarm'] = "Alarma de Casa",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Mercado",
         ['target.view_house'] = "Ver Oferta",
         ['target.enter'] = "Entrar",
@@ -509,25 +509,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Entrar al estacionamiento (Piso -%s)",
         ['target.emergency_exit'] = "Salida de emergencia",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Desempacar envío',
         ['target.interactable:wardrobe'] = 'Armario',
         ['target.interactable:storage'] = 'Almacén',
         ['target.interactable:safe'] = 'Caja Fuerte',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Lavarse las manos',
         ['target.interactable:sink_drink'] = 'Beber',
         ['target.interactable:shower'] = 'Tomar una ducha',
 
-        -- General:
+
         ['notify.wait'] = "Intenta de nuevo más tarde...",
         ['notify.not_allowed'] = "¡No tienes permitido hacer eso!",
         ['notify.not_enough_money'] = "¡No tienes suficiente dinero!",
         ['notify.reached_properties_limit'] = "¡Has alcanzado el límite de propiedades!",
         
-        -- Property:
+
         ['notify.property:purchased'] = "Has comprado esta propiedad por $%s.",
         ['notify.property:rented_monthly'] = "Ahora estás alquilando esta propiedad por $%s al mes.",
         ['notify.property:rented_weekly'] = "Ahora estás alquilando esta propiedad por $%s a la semana.",
@@ -561,10 +561,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "¡Has alcanzado el límite de llaves!",
         ['notify.property:moved_out'] = "Has salido con éxito. El alquiler ha sido terminado.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "No tienes cámaras instaladas.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Mueble #%s eliminado.",
         ['notify.furniture:sold'] = "Mueble #%s vendido por $%s",
         ['notify.furniture:cannot_sold'] = "Este mueble no se puede vender.",
@@ -577,10 +577,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "No puedes colocar muebles fuera de la zona de la propiedad.",
         ['notify.furniture:mode_cooldown'] = "Debes esperar antes de cambiar de modo nuevamente.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "No puedes abrir y cerrar la puerta tan seguido.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "El jugador objetivo está demasiado lejos para firmar el contrato.",
         ['notify.contract:sent'] = "Has enviado un contrato de propiedad a %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -591,39 +591,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Has alquilado la propiedad de %s.",
         ['notify.contract:already_rented'] = "Esta propiedad ya está alquilada por otro jugador.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Has comenzado a alquilar la propiedad desde el mercado.",
         ['notify.marketplace:purchased'] = "Has comprado la propiedad del mercado.",
         ['notify.marketplace:rented'] = "Tu propiedad ha sido alquilada a través del mercado. Fue alquilada por %s.",
         ['notify.marketplace:sold'] = "Tu propiedad ha sido vendida a través del mercado. Fue comprada por %s.",
         ['notify.marketplace:marked_on_gps'] = "Propiedad marcada en GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "No puedes saquear esta propiedad. Está protegida por puertas anti-robo.",
         ['notify.raid:missing_job'] = "No tienes el trabajo necesario para saquear esta propiedad.",
         ['notify.raid:missing_item'] = "Te falta un objeto requerido para realizar el asalto.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Tu intento de ingresar ha fallado. Las puertas anti-robo resistieron la intrusión.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "No puedes establecer el mismo PIN que el actual.",
         ['notify.safe:wrong_old_pin_was_entered'] = "El antiguo PIN que ingresaste es incorrecto.",
         ['notify.safe:changed_pin'] = "PIN cambiado de %s a %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "¡Alarma activada! Se detectó un intento de forzar la cerradura.",
         ['notify.lockpick:alarm_success'] = "¡Alarma activada! La cerradura ha sido forzada.",
         ['notify.lockpick:alarm_failed'] = "¡Alarma activada! El intento de forzar la cerradura falló.",
         ['notify.lockpick:missing_item'] = "¡No tienes un ganzúa en tu inventario!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "¡No tienes el objeto requerido en tu inventario!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "No puedes quitar los permisos del propietario.",
         ['notify.permissions:cannot_remove_self'] = "No puedes quitarte tus propios permisos.",
         ['notify.permissions:error'] = "Ha ocurrido un error.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "¡No puedes colocarlo fuera de la zona del patio!",
     },
     ['PT'] = {
@@ -631,7 +631,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Tradução de Gizmo",
         ['control.gizmo:rotation'] = "Rotação de Gizmo",
         
-        -- Blips:
+
         ['blip.motel'] = "Motél",
         ['blip.building'] = "Apartamento",
         ['blip.house_owner'] = "Propriedade Própria",
@@ -641,7 +641,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Mercado de Propriedades",
         ['blip.alarm'] = "Alarme de Casa",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Mercado",
         ['target.view_house'] = "Ver Oferta",
         ['target.enter'] = "Entrar",
@@ -664,25 +664,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Entrar no estacionamento (Andar -%s)",
         ['target.emergency_exit'] = "Saída de Emergência",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Desembalar remessa',
         ['target.interactable:wardrobe'] = 'Guarda-roupa',
         ['target.interactable:storage'] = 'Armazenamento',
         ['target.interactable:safe'] = 'Cofre',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Lavar as mãos',
         ['target.interactable:sink_drink'] = 'Beber',
         ['target.interactable:shower'] = 'Tomar um banho',
 
-        -- General:
+
         ['notify.wait'] = "Tente novamente mais tarde...",
         ['notify.not_allowed'] = "Você não tem permissão para fazer isso!",
         ['notify.not_enough_money'] = "Você não tem dinheiro suficiente!",
         ['notify.reached_properties_limit'] = "Você atingiu o limite de propriedades!",
 
-        -- Property:
+
         ['notify.property:purchased'] = "Você comprou esta propriedade por $%s.",
         ['notify.property:rented_monthly'] = "Agora você está alugando esta propriedade por $%s por mês.",
         ['notify.property:rented_weekly'] = "Agora você está alugando esta propriedade por $%s por semana.",
@@ -716,10 +716,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Você atingiu o limite de chaves!",
         ['notify.property:moved_out'] = "Você se mudou com sucesso. O aluguel foi encerrado.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Você não possui câmeras instaladas.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Móvel #%s removido.",
         ['notify.furniture:sold'] = "Móvel #%s vendido por $%s",
         ['notify.furniture:cannot_sold'] = "Este móvel não pode ser vendido.",
@@ -732,10 +732,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Você não pode colocar móveis fora da zona da propriedade.",
         ['notify.furniture:mode_cooldown'] = "Você precisa esperar antes de mudar de modo novamente.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Você não pode abrir e fechar a porta tão rapidamente.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "O jogador-alvo está muito longe para assinar o contrato.",
         ['notify.contract:sent'] = "Você enviou um contrato de propriedade para %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -746,39 +746,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Você alugou a propriedade de %s.",
         ['notify.contract:already_rented'] = "Esta propriedade já está alugada por outro jogador.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Você começou a alugar a propriedade no mercado.",
         ['notify.marketplace:purchased'] = "Você comprou a propriedade no mercado.",
         ['notify.marketplace:rented'] = "Sua propriedade foi alugada através do mercado. Foi alugada por %s.",
         ['notify.marketplace:sold'] = "Sua propriedade foi vendida através do mercado. Foi comprada por %s.",
         ['notify.marketplace:marked_on_gps'] = "Propriedade marcada no GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Você não pode invadir esta propriedade. Ela é protegida por portas anti-intrusão.",
         ['notify.raid:missing_job'] = "Você não tem o trabalho necessário para invadir esta propriedade.",
         ['notify.raid:missing_item'] = "Você está sem um item necessário para realizar a invasão.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Sua tentativa de invasão falhou. As portas anti-intrusão resistiram à intrusão.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Você não pode definir o mesmo PIN que o atual.",
         ['notify.safe:wrong_old_pin_was_entered'] = "O PIN antigo que você digitou está incorreto.",
         ['notify.safe:changed_pin'] = "PIN alterado de %s para %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Alarme disparado! Tentativa de lockpicking detectada.",
         ['notify.lockpick:alarm_success'] = "Alarme disparado! A fechadura foi aberta.",
         ['notify.lockpick:alarm_failed'] = "Alarme disparado! A tentativa de lockpicking falhou.",
         ['notify.lockpick:missing_item'] = "Você não tem uma chave de gancho em seu inventário!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Você não tem o item necessário em seu inventário!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Você não pode remover as permissões do proprietário.",
         ['notify.permissions:cannot_remove_self'] = "Você não pode remover suas próprias permissões.",
         ['notify.permissions:error'] = "Ocorreu um erro.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Você não pode colocá-lo fora da zona do quintal!",
     },
     ['PL'] = {
@@ -786,7 +786,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Przesuń Gizmo",
         ['control.gizmo:rotation'] = "Obróć Gizmo",
         
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Apartament",
         ['blip.house_owner'] = "Własny Dom",
@@ -796,7 +796,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Rynek Nieruchomości",
         ['blip.alarm'] = "Alarm Domu",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Rynek",
         ['target.view_house'] = "Zobacz Ofertę",
         ['target.enter'] = "Wejdź",
@@ -819,25 +819,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Wejdź do parkingu (Piętro -%s)",
         ['target.emergency_exit'] = "Wyjście awaryjne",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Rozpakuj przesyłkę',
         ['target.interactable:wardrobe'] = 'Szafa',
         ['target.interactable:storage'] = 'Magazyn',
         ['target.interactable:safe'] = 'Sejf',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Umyj Ręce',
         ['target.interactable:sink_drink'] = 'Wypij',
         ['target.interactable:shower'] = 'Weź Prysznic',
 
-        -- General:
+
         ['notify.wait'] = "Spróbuj ponownie za chwilę...",
         ['notify.not_allowed'] = "Nie masz do tego uprawnień!",
         ['notify.not_enough_money'] = "Nie masz wystarczająco pieniędzy!",
         ['notify.reached_properties_limit'] = "Osiągnąłeś limit nieruchomości!",
 
-        -- Property:
+
         ['notify.property:purchased'] = "Kupiłeś tę nieruchomość za $%s.",
         ['notify.property:rented_monthly'] = "Od teraz wynajmujesz tę nieruchomość za $%s miesięcznie.",
         ['notify.property:rented_weekly'] = "Od teraz wynajmujesz tę nieruchomość za $%s tygodniowo.",
@@ -871,10 +871,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Osiągnąłeś limit kluczy!",
         ['notify.property:moved_out'] = "Wyprowadziłeś się - wynajem został zakończony.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Nie masz zainstalowanych żadnych kamer.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Usunięto mebel #%s.",
         ['notify.furniture:sold'] = "Sprzedano mebel #%s za $%s",
         ['notify.furniture:cannot_sold'] = "Tego mebla nie można sprzedać.",
@@ -887,10 +887,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Nie możesz umieszczać mebli poza strefą nieruchomości.",
         ['notify.furniture:mode_cooldown'] = "Musisz poczekać przed ponownym zmienieniem trybu.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Nie możesz otwierać i zamykać drzwi tak często.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "Docelowy gracz jest zbyt daleko, aby podpisać kontrakt.",
         ['notify.contract:sent'] = "Wysłałeś kontrakt nieruchomości do %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -901,39 +901,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Wynająłeś nieruchomość od %s.",
         ['notify.contract:already_rented'] = "Ta nieruchomość jest już wynajęta przez innego gracza.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Rozpocząłeś wynajem nieruchomości z rynku.",
         ['notify.marketplace:purchased'] = "Zakupiłeś nieruchomość z rynku.",
         ['notify.marketplace:rented'] = "Twoja nieruchomość została wynajęta za pośrednictwem rynku. wynajął ją %s.",
         ['notify.marketplace:sold'] = "Twoja nieruchomość została sprzedana za pośrednictwem rynku. Zakupił ją %s.",
         ['notify.marketplace:marked_on_gps'] = "Nieruchomość zaznaczona na GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Nie możesz napadać na tę nieruchomość. Jest chroniona przez drzwi antywłamaniowe.",
         ['notify.raid:missing_job'] = "Nie masz wymaganego stanowiska, aby zaatakować tę nieruchomość.",
         ['notify.raid:missing_item'] = "Brakuje Ci wymaganego przedmiotu do przeprowadzenia napadu.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Twoja próba włamania zakończyła się niepowodzeniem. Drzwi antywłamaniowe zapobiegły wtargnięciu.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Nie możesz ustawić tego samego PINu co obecny.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Wprowadzony stary PIN jest niepoprawny.",
         ['notify.safe:changed_pin'] = "PIN zmieniony z %s na %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Włączył się alarm! Wykryto próbę otwarcia zamka.",
         ['notify.lockpick:alarm_success'] = "Włączył się alarm! Zamek został otwarty.",
         ['notify.lockpick:alarm_failed'] = "Włączył się alarm! Próba otwarcia zamka nie powiodła się.",
         ['notify.lockpick:missing_item'] = "Nie masz wytrytu w swoim inwentarzu!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Nie masz wymaganego przedmiotu w swoim inwentarzu!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Nie możesz usunąć uprawnień właściciela.",
         ['notify.permissions:cannot_remove_self'] = "Nie możesz usunąć własnych uprawnień.",
         ['notify.permissions:error'] = "Wystąpił błąd.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Nie możesz ustawić tego poza strefą ogrodu!",
     },
     ['IT'] = {
@@ -941,7 +941,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Traslazione Gizmo",
         ['control.gizmo:rotation'] = "Rotazione Gizmo",
         
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Appartamento",
         ['blip.house_owner'] = "Proprietà Posseduta",
@@ -951,7 +951,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Mercato Immobiliare",
         ['blip.alarm'] = "Allarme Casa",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Mercato Immobiliare",
         ['target.view_house'] = "Visualizza Offerta",
         ['target.enter'] = "Entra",
@@ -974,25 +974,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Entra nel Parcheggio (Piano -%s)",
         ['target.emergency_exit'] = "Uscita di emergenza",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Spacchetta Spedizione',
         ['target.interactable:wardrobe'] = 'Guardaroba',
         ['target.interactable:storage'] = 'Magazzino',
         ['target.interactable:safe'] = 'Cassaforte',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Lavati le Mani',
         ['target.interactable:sink_drink'] = 'Bevi',
         ['target.interactable:shower'] = 'Fatti una Doccia',
 
-        -- General:
+
         ['notify.wait'] = "Riprova tra un po'...",
         ['notify.not_allowed'] = "Non hai il permesso per fare ciò!",
         ['notify.not_enough_money'] = "Non hai abbastanza soldi!",
         ['notify.reached_properties_limit'] = "Hai raggiunto il limite delle proprietà!",
 
-        -- Property:
+
         ['notify.property:purchased'] = "Hai comprato questa proprietà per $%s.",
         ['notify.property:rented_monthly'] = "Ora stai affittando questa proprietà per $%s al mese.",
         ['notify.property:rented_weekly'] = "Ora stai affittando questa proprietà per $%s a settimana.",
@@ -1026,10 +1026,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Hai raggiunto il limite di chiavi!",
         ['notify.property:moved_out'] = "Hai effettuato il trasloco con successo. Il contratto di locazione è stato terminato.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Non hai installato alcuna telecamera.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Mobile #%s rimosso.",
         ['notify.furniture:sold'] = "Mobile #%s venduto per $%s",
         ['notify.furniture:cannot_sold'] = "Questo mobile non può essere venduto.",
@@ -1042,10 +1042,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Non puoi mettere mobili al di fuori della zona di proprietà.",
         ['notify.furniture:mode_cooldown'] = "Devi aspettare prima di cambiare nuovamente modalità.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Non puoi aprire e chiudere la porta così spesso.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "Il giocatore target è troppo lontano per firmare il contratto.",
         ['notify.contract:sent'] = "Hai inviato un contratto di proprietà a %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -1056,39 +1056,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Hai affittato la proprietà da %s.",
         ['notify.contract:already_rented'] = "Questa proprietà è già affittata da un altro giocatore.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Hai iniziato a affittare la proprietà dal mercato.",
         ['notify.marketplace:purchased'] = "Hai acquistato la proprietà dal mercato.",
         ['notify.marketplace:rented'] = "La tua proprietà è stata affittata attraverso il mercato. È stata affittata da %s.",
         ['notify.marketplace:sold'] = "La tua proprietà è stata venduta attraverso il mercato. È stata acquistata da %s.",
         ['notify.marketplace:marked_on_gps'] = "Proprietà contrassegnata sul GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Non puoi fare raids su questa proprietà. È protetta da porte anti-scasso.",
         ['notify.raid:missing_job'] = "Non hai il lavoro richiesto per raidare questa proprietà.",
         ['notify.raid:missing_item'] = "Ti manca un oggetto richiesto per eseguire il raid.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Il tuo tentativo di intrusione è fallito. Le porte anti-scasso hanno resistito all'intrusione.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Non puoi impostare lo stesso PIN di quello attuale.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Il vecchio PIN che hai inserito è sbagliato.",
         ['notify.safe:changed_pin'] = "PIN cambiato da %s a %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Allarme attivato! Tentativo di scasso rilevato.",
         ['notify.lockpick:alarm_success'] = "Allarme attivato! La serratura è stata scassinata.",
         ['notify.lockpick:alarm_failed'] = "Allarme attivato! Tentativo di scasso fallito.",
         ['notify.lockpick:missing_item'] = "Non hai uno scassino nella tua inventario!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Non hai l'oggetto richiesto nel tuo inventario!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Non puoi rimuovere i permessi del proprietario.",
         ['notify.permissions:cannot_remove_self'] = "Non puoi rimuovere i tuoi stessi permessi.",
         ['notify.permissions:error'] = "Si è verificato un errore.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Non puoi metterlo fuori dalla zona recintata!",
     },
     ['CZ'] = {
@@ -1096,7 +1096,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Gizmo Překlad",
         ['control.gizmo:rotation'] = "Gizmo Rotace",
 
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Apartmán",
         ['blip.house_owner'] = "Vlastněná Nemovitost",
@@ -1106,7 +1106,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Tržiště Nemovitostí",
         ['blip.alarm'] = "Poplach v Domě",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Tržiště",
         ['target.view_house'] = "Zobrazit Nabídku",
         ['target.enter'] = "Vstoupit",
@@ -1129,25 +1129,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Vstoupit do parkoviště (Patro -%s)",
         ['target.emergency_exit'] = "Nouzový východ",
 
-        -- Furniture Interactable:
+
         ['target.interactable:delivery'] = 'Rozbalit zásilku',
         ['target.interactable:wardrobe'] = 'Šatník',
         ['target.interactable:storage'] = 'Skladování',
         ['target.interactable:safe'] = 'Treasure',
         ['target.interactable:device'] = 'Notebook',
 
-        -- Static Interactable:
+
         ['target.interactable:sink'] = 'Umyjte si ruce',
         ['target.interactable:sink_drink'] = 'Nápoj',
         ['target.interactable:shower'] = 'Vezmi si sprchu',
 
-        -- General:
+
         ['notify.wait'] = "Zkuste to znovu později...",
         ['notify.not_allowed'] = "Nemáte povolení k provedení této akce!",
         ['notify.not_enough_money'] = "Nemáte dost peněz!",
         ['notify.reached_properties_limit'] = "Dosáhli jste limitu nemovitostí!",
 
-        -- Property:
+
         ['notify.property:purchased'] = "Tuto nemovitost jste zakoupili za $%s.",
         ['notify.property:rented_monthly'] = "Nyní máte pronajatou tuto nemovitost za $%s měsíčně.",
         ['notify.property:rented_weekly'] = "Nyní máte pronajatou tuto nemovitost za $%s týdně.",
@@ -1181,10 +1181,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Dosáhli jste limitu klíčů!",
         ['notify.property:moved_out'] = "Úspěšně jste se vystěhovali. Pronájem byl ukončen.",
 
-        -- Cameras:
+
         ['notify.cameras:no_cameras_installed'] = "Nemáte nainstalovány žádné kamery.",
 
-        -- Furniture:
+
         ['notify.furniture:removed'] = "Nábytek #%s odstraněn.",
         ['notify.furniture:sold'] = "Nábytek #%s prodáno za $%s",
         ['notify.furniture:cannot_sold'] = "Tento nábytek nelze prodat.",
@@ -1197,10 +1197,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Nemůžete umístit nábytek mimo zónu nemovitosti.",
         ['notify.furniture:mode_cooldown'] = "Musíte počkat před dalším změnou režimu.",
 
-        -- Doors:
+
         ['notify.doors:wait'] = "Nemůžete tak často otevírat a zavírat dveře.",
 
-        -- Contract:
+
         ['notify.contract:player_too_far'] = "Cílový hráč je příliš daleko na podepsání smlouvy.",
         ['notify.contract:sent'] = "Odeslali jste smlouvu o nemovitosti %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -1211,39 +1211,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Pronajali jste nemovitost od hráče %s.",
         ['notify.contract:already_rented'] = "Tato nemovitost je již pronajata jiným hráčem.",
 
-        -- Marketplace:
+
         ['notify.marketplace:started_rent'] = "Začali jste pronajímat nemovitost z tržiště.",
         ['notify.marketplace:purchased'] = "Zakoupili jste nemovitost z tržiště.",
         ['notify.marketplace:rented'] = "Vaše nemovitost byla pronajata prostřednictvím tržiště. Pronajal ji %s.",
         ['notify.marketplace:sold'] = "Vaše nemovitost byla prodána prostřednictvím tržiště. Zakoupil ji %s.",
         ['notify.marketplace:marked_on_gps'] = "Označená nemovitost na GPS.",
 
-        -- Raid:
+
         ['notify.raid:anti_burglary_doors'] = "Nemůžete provést razzii na tuto nemovitost. Je chráněna proti vniknutí proti loupežné dveře.",
         ['notify.raid:missing_job'] = "Nemáte potřebné zaměstnání k provedení razzie na tuto nemovitost.",
         ['notify.raid:missing_item'] = "Chybí vám potřebný předmět k provedení razzie.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Vaše pokus o vniknutí selhal. Protizlodějské dveře odolaly invazi.",
 
-        -- Safe:
+
         ['notify.safe:cannot_set_same_pin'] = "Nemůžete nastavit stejný PIN jako aktuální.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Zadali jste nesprávný starý PIN.",
         ['notify.safe:changed_pin'] = "PIN změněn z %s na %s.",
 
-        -- Lockpick:
+
         ['notify.lockpick:alarm_start'] = "Poplach spuštěn! Detekován pokus o vloupání.",
         ['notify.lockpick:alarm_success'] = "Poplach spuštěn! Zámek byl otevřen lomítkem.",
         ['notify.lockpick:alarm_failed'] = "Poplach spuštěn! Pokus o lámání zámku selhal.",
         ['notify.lockpick:missing_item'] = "Nemáte lomítko ve svém inventáři!",
 
-        -- Lockdown:
+
         ['notify.lockdown:missing_item'] = "Nemáte požadovaný předmět ve svém inventáři!",
 
-        -- Permissions:
+
         ['notify.permissions:cannot_remove_owner'] = "Nemůžete odebrat oprávnění vlastníka.",
         ['notify.permissions:cannot_remove_self'] = "Nemůžete odebrat vlastní oprávnění.",
         ['notify.permissions:error'] = "Došlo k chybě.",
 
-        -- Creator:
+
         ['notify.creator:out_of_zone'] = "Nemůžete nastavit to mimo zónu zahrady!",
     },
     ['SV'] = {
@@ -1251,7 +1251,7 @@ Config.Translate = {
         ['control.gizmo:translation'] = "Gizmo Översättning",
         ['control.gizmo:rotation'] = "Gizmo Rotation",
 
-        -- Blips:
+
         ['blip.motel'] = "Motel",
         ['blip.building'] = "Lägenhet",
         ['blip.house_owner'] = "Ägd Egendom",
@@ -1261,7 +1261,7 @@ Config.Translate = {
         ['blip.marketplace'] = "Fastighetsmarknaden",
         ['blip.alarm'] = "Hus Larm",
 
-        -- Target Main:
+
         ['target.marketplace'] = "Marknadsplats",
         ['target.view_house'] = "Visa Erbjudande",
         ['target.enter'] = "Gå in",
@@ -1284,25 +1284,25 @@ Config.Translate = {
         ['target.enter_underground_parking'] = "Gå in i parkering (Våning -%s)",
         ['target.emergency_exit'] = "Nödutgång",
 
-        -- Möbler Interagerbar:
+
         ['target.interactable:delivery'] = 'Packa upp leveransen',
         ['target.interactable:wardrobe'] = 'Garderob',
         ['target.interactable:storage'] = 'Förvaring',
         ['target.interactable:safe'] = 'Kassaskåp',
         ['target.interactable:device'] = 'Laptop',
 
-        -- Statisk Interagerbar:
+
         ['target.interactable:sink'] = 'Tvätta händerna',
         ['target.interactable:sink_drink'] = 'Drick',
         ['target.interactable:shower'] = 'Ta en dusch',
 
-        -- Allmänt:
+
         ['notify.wait'] = "Försök igen om en stund...",
         ['notify.not_allowed'] = "Du har inte tillstånd att göra det!",
         ['notify.not_enough_money'] = "Du har inte tillräckligt med pengar!",
         ['notify.reached_properties_limit'] = "Du har nått fastighetsgränsen!",
 
-        -- Egendom:
+
         ['notify.property:purchased'] = "Du har köpt denna egendom för $%s.",
         ['notify.property:rented_monthly'] = "Du hyr nu denna egenskap för $%s per månad.",
         ['notify.property:rented_weekly'] = "Du hyr nu denna egenskap för $%s per vecka.",
@@ -1336,10 +1336,10 @@ Config.Translate = {
         ['notify.property:reached_keys_limit'] = "Du har nått nyckelgränsen!",
         ['notify.property:moved_out'] = "Du har flyttat ut framgångsrikt. Uthyrningen har avslutats.",
 
-        -- Kameror:
+
         ['notify.cameras:no_cameras_installed'] = "Du har inga kameror installerade.",
 
-        -- Möbler:
+
         ['notify.furniture:removed'] = "Möbel #%s borttagen.",
         ['notify.furniture:sold'] = "Möbel #%s såld för $%s",
         ['notify.furniture:cannot_sold'] = "Denna möbel kan inte säljas.",
@@ -1352,10 +1352,10 @@ Config.Translate = {
         ['notify.furniture:outside_zone'] = "Du kan inte placera möbler utanför egendomens zon.",
         ['notify.furniture:mode_cooldown'] = "Du måste vänta innan du ändrar läge igen.",
 
-        -- Dörrar:
+
         ['notify.doors:wait'] = "Du kan inte öppna och stänga dörren så ofta.",
 
-        -- Kontrakt:
+
         ['notify.contract:player_too_far'] = "Målet spelare är för långt borta för att skriva under kontraktet.",
         ['notify.contract:sent'] = "Du har skickat ett egendomskontrakt till %s.",
         ['notify.contract:canceled'] = "The player has not signed a contract.",
@@ -1366,39 +1366,39 @@ Config.Translate = {
         ['notify.contract:started_rent_from_player'] = "Du har hyrt egendomen från %s.",
         ['notify.contract:already_rented'] = "Denna egendom är redan uthyrd av en annan spelare.",
 
-        -- Marknadsplats:
+
         ['notify.marketplace:started_rent'] = "Du har börjat hyra egendomen från marknadsplatsen.",
         ['notify.marketplace:purchased'] = "Du har köpt egendomen från marknadsplatsen.",
         ['notify.marketplace:rented'] = "Din egendom har hyrts ut via marknadsplatsen. Den hyrdes av %s.",
         ['notify.marketplace:sold'] = "Din egendom har sålts via marknadsplatsen. Den köptes av %s.",
         ['notify.marketplace:marked_on_gps'] = "Markerad egendom på GPS.",
 
-        -- Räd:
+
         ['notify.raid:anti_burglary_doors'] = "Du kan inte råna denna egendom. Den skyddas av anti-inbrottsdörrar.",
         ['notify.raid:missing_job'] = "Du har inte det nödvändiga jobbet för att råna denna egendom.",
         ['notify.raid:missing_item'] = "Du saknar en nödvändig artikel för att utföra rånet.",
         ['notify.raid:failed_due_to_anti_burglary'] = "Ditt försök att bryta dig in har misslyckats. Anti-inbrottsdörrarna motstod intrånget.",
 
-        -- Kassaskåp:
+
         ['notify.safe:cannot_set_same_pin'] = "Du kan inte ställa in samma PIN som den nuvarande.",
         ['notify.safe:wrong_old_pin_was_entered'] = "Den gamla PIN-koden du angav är felaktig.",
         ['notify.safe:changed_pin'] = "PIN-koden ändrades från %s till %s.",
 
-        -- Låsknackning:
+
         ['notify.lockpick:alarm_start'] = "Larm utlöst! Låsknackeriförsök upptäckt.",
         ['notify.lockpick:alarm_success'] = "Larm utlöst! Låset har knäckts.",
         ['notify.lockpick:alarm_failed'] = "Larm utlöst! Låsknackeriförsöket misslyckades.",
         ['notify.lockpick:missing_item'] = "Du har inte en låsknack i din inventory!",
 
-        -- Låsning:
+
         ['notify.lockdown:missing_item'] = "Du har inte den nödvändiga artikeln i din inventory!",
 
-        -- Behörigheter:
+
         ['notify.permissions:cannot_remove_owner'] = "Du kan inte ta bort ägarens behörigheter.",
         ['notify.permissions:cannot_remove_self'] = "Du kan inte ta bort dina egna behörigheter.",
         ['notify.permissions:error'] = "Ett fel har inträffat.",
 
-        -- Skapare:
+
         ['notify.creator:out_of_zone'] = "Du kan inte ställa det utanför gårdszonen!",
     },
 }

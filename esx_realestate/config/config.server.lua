@@ -1,11 +1,11 @@
 SV = {}
 
--- ██╗    ██╗███████╗██████╗ ██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗███████╗
--- ██║    ██║██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔═══██╗██║ ██╔╝██╔════╝
--- ██║ █╗ ██║█████╗  ██████╔╝███████║██║   ██║██║   ██║█████╔╝ ███████╗
--- ██║███╗██║██╔══╝  ██╔══██╗██╔══██║██║   ██║██║   ██║██╔═██╗ ╚════██║
--- ╚███╔███╔╝███████╗██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║  ██╗███████║
---  ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝
+
+
+
+
+
+
 SV.Webhook = function(webhook_id, title, description, color, footer)
     local DiscordWebHook = Webhooks[webhook_id]
     if not DiscordWebHook or DiscordWebHook == "" then
@@ -25,12 +25,12 @@ end
 
 
 
--- ███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
--- ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
--- █████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝ 
--- ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗ 
--- ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
--- ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+
+
+
+
+
+
 SV.GetPlayer = function(src)
     if Config.Core == "ESX" then
         return Core.GetPlayerFromId(src)
@@ -110,12 +110,12 @@ end
 
 
 
--- ███╗   ███╗ ██████╗ ███╗   ██╗███████╗██╗   ██╗
--- ████╗ ████║██╔═══██╗████╗  ██║██╔════╝╚██╗ ██╔╝
--- ██╔████╔██║██║   ██║██╔██╗ ██║█████╗   ╚████╔╝ 
--- ██║╚██╔╝██║██║   ██║██║╚██╗██║██╔══╝    ╚██╔╝  
--- ██║ ╚═╝ ██║╚██████╔╝██║ ╚████║███████╗   ██║   
--- ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝   ╚═╝   
+
+
+
+
+
+
 SV.GetMoney = function(xPlayer, moneyType)
     if Config.Core == "ESX" then
         local moneyType = moneyType == 'cash' and 'money' or moneyType
@@ -182,14 +182,14 @@ end
 
 
 
--- ██╗████████╗███████╗███╗   ███╗███████╗
--- ██║╚══██╔══╝██╔════╝████╗ ████║██╔════╝
--- ██║   ██║   █████╗  ██╔████╔██║███████╗
--- ██║   ██║   ██╔══╝  ██║╚██╔╝██║╚════██║
--- ██║   ██║   ███████╗██║ ╚═╝ ██║███████║
--- ╚═╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝
+
+
+
+
+
+
 SV.RegisterUsableItem = function(name, cb)
-    if RegisterUsableItem then -- The script looks for functions in ./integration/[inventory]/*
+    if RegisterUsableItem then
         RegisterUsableItem(name, cb)
     else
         if Config.Core == "ESX" then
@@ -206,7 +206,7 @@ end
 
 SV.GetItem = function(src, xPlayer, name, data, search)
     if search == 'key' then
-        if GetItem then -- The script looks for functions in ./integration/[inventory]/*
+        if GetItem then
             return GetItem(src, xPlayer, 'house_key', data, search)
         end
     end
@@ -221,7 +221,7 @@ SV.GetItemCount = function(xPlayer, name)
 end
 
 SV.AddItem = function(src, xPlayer, name, count, metadata)
-    if AddItem then -- The script looks for functions in ./integration/[inventory]/*
+    if AddItem then
         AddItem(src, xPlayer, name, count, metadata)
     else
         if Config.Core == "ESX" then
@@ -233,7 +233,7 @@ SV.AddItem = function(src, xPlayer, name, count, metadata)
 end
 
 SV.RemoveItem = function(src, xPlayer, name, count)
-    if RemoveItem then -- The script looks for functions in ./integration/[inventory]/*
+    if RemoveItem then
         RemoveItem(src, xPlayer, name, count)
     else
         if Config.Core == "ESX" then
@@ -246,12 +246,12 @@ end
 
 
 
---  ██████╗██╗████████╗██╗   ██╗██╗  ██╗ █████╗ ██╗     ██╗     
--- ██╔════╝██║╚══██╔══╝╚██╗ ██╔╝██║  ██║██╔══██╗██║     ██║     
--- ██║     ██║   ██║    ╚████╔╝ ███████║███████║██║     ██║     
--- ██║     ██║   ██║     ╚██╔╝  ██╔══██║██╔══██║██║     ██║     
--- ╚██████╗██║   ██║      ██║   ██║  ██║██║  ██║███████╗███████╗
---  ╚═════╝╚═╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
+
+
+
+
+
+
 SV.AddTax = function(identifier, characterName, propertyName, propertyAddress, type, fromAmount)
     local isCityHall = GetResourceState('vms_cityhall') == 'started'
     if not isCityHall then return false end
@@ -326,25 +326,25 @@ SV.AddTax = function(identifier, characterName, propertyName, propertyAddress, t
 
     end
 
-    return true -- DO NOT REMOVE!
+    return true
 end
 
 
 
--- ██╗   ██╗ █████╗ ██████╗ ██╗ █████╗ ██████╗ ██╗     ███████╗███████╗
--- ██║   ██║██╔══██╗██╔══██╗██║██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝
--- ██║   ██║███████║██████╔╝██║███████║██████╔╝██║     █████╗  ███████╗
--- ╚██╗ ██╔╝██╔══██║██╔══██╗██║██╔══██║██╔══██╗██║     ██╔══╝  ╚════██║
---  ╚████╔╝ ██║  ██║██║  ██║██║██║  ██║██████╔╝███████╗███████╗███████║
---   ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝╚══════╝
+
+
+
+
+
+
 SV.CanEnterHouse = function(src, xPlayer)
-    -- This function is triggered when a player tries to enter the property.
-    -- You can return false to block access, for example if they are handcuffed or anything else
+
+
     return true
 end
 
 SV.CanExitHouse = function(src, xPlayer)
-    -- This function is triggered when a player tries to exit the property.
-    -- You can return false to block access, for example if they are handcuffed or anything else
+
+
     return true
 end

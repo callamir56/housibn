@@ -1,5 +1,5 @@
--- A session grants small recovery ticks only while the player remains close to
--- an actual placed indoor bed. The cooldown is keyed by character, not source.
+
+
 local sessions, cooldowns, sequence = {}, {}, 0
 
 local function context(src, propertyId, furnitureId)

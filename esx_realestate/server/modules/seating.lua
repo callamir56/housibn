@@ -1,5 +1,5 @@
--- Leases prevent two players choosing the same seat. No entity IDs or
--- coordinates from the client are trusted: the placed furniture is server data.
+
+
 local occupants, sessions, nextToken = {}, {}, 0
 local function layout(item)
     local cfg = Config.HousingSeats

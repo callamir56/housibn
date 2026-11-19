@@ -1,25 +1,25 @@
--- Exercise the actual broadcast reload block with two properties and a stale callback.
+
 local f=assert(io.open('esx_realestate/client/main.lua')); local text=f:read('*a'); f:close()
-local block=assert(text:match('(%-%- Ignore broadcasts for other homes:.-)\n%s*%-%- Apply IPL theme reload'))
+local block=assert(text:match('(local furnitureContext = CurrentProperty or GetCurrentPropertyId%(%).-)\n%s*if reloadIplTheme then'))
 local refresh=assert(load('return function(propertyId, reloadWorldFurniture)\n'..block..'\nend'))()
 local removed,loaded,delayed=0,{},nil
 Properties={['1']={furniture={'one'},type='shell'},['2']={furniture={'two'},type='shell'}}
 CurrentProperty='1'; local zone='2'
 function GetCurrentPropertyId() return zone end
 Property={RemoveFurniture=function(_,_,cb) removed=removed+1; delayed=cb end,LoadFurniture=function(_,env,data,id) loaded[#loaded+1]={env,data,id} end}
-refresh('2',true); assert(removed==0 and #loaded==0) -- other home broadcasts do nothing
+refresh('2',true); assert(removed==0 and #loaded==0)
 refresh('1',true); assert(removed==1); delayed(); assert(#loaded==1 and loaded[1][2][1]=='one' and loaded[1][3]=='1')
-refresh('1',true); CurrentProperty='2'; delayed(); assert(#loaded==1) -- callback after a move cannot load stale furniture
+refresh('1',true); CurrentProperty='2'; delayed(); assert(#loaded==1)
 CurrentProperty=nil; zone='2'; refresh('1',true); assert(removed==2)
 refresh('2',true); delayed(); assert(#loaded==2 and loaded[2][1]=='outside' and loaded[2][2][1]=='two')
 
 local sf=assert(io.open('esx_realestate/server/main.lua')); local server=sf:read('*a'); sf:close()
-local sale=assert(server:match('(RegisterNetEvent%("vms_housing:sv:automaticSale".-)\n%-%- =+'))
+local sale=assert(server:match('(RegisterNetEvent%("vms_housing:sv:automaticSale".-)RegisterNetEvent%("vms_housing:sv:purchaseProperty"'))
 assert(sale:find('DELETE FROM houses_furniture WHERE `house_id` = ?',1,true))
 assert(not sale:find('DELETE FROM houses_furniture WHERE `id` = ?',1,true))
 print('property furniture broadcasts, stale reload and sale isolation passed')
--- Execute sale handler with crossed furniture/house IDs (old query deleted
--- house 2's row id 1 when house 1 was sold).
+
+
 local handler
 function RegisterNetEvent() end
 function AddEventHandler(_,fn) handler=fn end

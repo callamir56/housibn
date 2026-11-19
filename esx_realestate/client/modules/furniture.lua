@@ -1,17 +1,17 @@
---[[-------------------------------------------------------------------------
-  Furniture / Theme editor (deobfuscated)
-  - Keeps original behavior intact
-  - Renamed obfuscated locals to meaningful names
-  - Added comments for NUI, server calls, async waits, and callbacks
----------------------------------------------------------------------------]]
+
+
+
+
+
+
 
 local isCursorModeEnabled = false
 
--- NOTE: The original code sets this to false initially and later uses strings:
---       furnitureMode = "gizmo" or "normal"
+
+
 furnitureMode = false
 
--- Toggle/force cursor mode (center cursor + enter/leave cursor mode)
+
 local function toggleCursorMode(forceState)
   if forceState ~= nil then
     isCursorModeEnabled = forceState
@@ -27,19 +27,19 @@ local function toggleCursorMode(forceState)
   end
 end
 
---[[-------------------------------------------------------------------------
-  manageFurniture(isEditingExisting, model, furnitureId)
 
-  isEditingExisting:
-    - true  => find existing furniture entity by furnitureId and edit it
-    - false => spawn the model and place it
 
-  model:
-    - furniture model string/key used by library.SpawnProp
 
-  furnitureId:
-    - id for the existing furniture piece (when editing)
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
 local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, directPurchase)
   local propertyId = CurrentProperty
   if not propertyId then
@@ -56,7 +56,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
   local zRotation = 0.0
   local isInside = false
 
-  -- Determine if player is inside (special handling for MLO)
+
   if propertyData.type == "mlo" then
     isInside = IsInsideMLO()
   else
@@ -65,23 +65,23 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     end
   end
 
-  -- [NUI] Enter furniture placement UI state
+
   SendNUIMessage({
     action = "Property",
     actionName = "FurniturePlace",
   })
 
-  -- Ensure gameplay focus while placing
+
   SetNuiFocus(false, false)
 
-  -- Clean up any previous edit object
+
   if Property.EditingFurnitureObj then
     DeleteEntity(Property.EditingFurnitureObj)
     Property.EditingFurnitureObj = nil
     Property.EditingFurnitureData = {}
   end
 
-  -- Kept from original (unused in this snippet, but preserved for parity)
+
   local function getGameplayCameraDirection()
     local camRot = GetGameplayCamRot() * (math.pi / 180)
     return vector3(
@@ -91,7 +91,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     )
   end
 
-  -- Load existing furniture entity to edit
+
   if isEditingExisting then
     for _, furniture in pairs(Property.LoadedFurnitures) do
       if furniture.furnitureId == furnitureId then
@@ -99,7 +99,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       end
     end
 
-  -- Spawn a new prop to place
+
   elseif furnitureModel then
     Property.EditingFurnitureObj = library.SpawnProp(
       furnitureModel,
@@ -109,7 +109,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       true
     )
 
-    -- [ASYNC WAIT] Wait up to 5s for entity to exist
+
     local timeoutAt = GetGameTimer() + 5000
     local timedOut = false
 
@@ -140,7 +140,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     return
   end
 
-  -- Prepare entity for editing/placement (no collision, frozen, invulnerable)
+
   PlaceObjectOnGroundProperly(Property.EditingFurnitureObj)
 
   SetEntityAsMissionEntity(Property.EditingFurnitureObj, true, true)
@@ -158,15 +158,15 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
   )
   SetEntityCanBeDamaged(Property.EditingFurnitureObj, false)
 
-  -- Placement mode starts in gizmo mode
+
   local lastModeSwitchAt = 0
   furnitureMode = "gizmo"
 
-  -- Create placement camera and enable cursor mode
+
   HousingCreator:CreateCamera(true)
   toggleCursorMode()
 
-  -- [NUI] Show controls overlay for current mode
+
   SendNUIMessage({
     action = "ControlsMenu",
     toggle = true,
@@ -174,7 +174,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     controlsName  = (furnitureMode == "gizmo") and "Furniture:gizmo"  or "Furniture:walkmode",
   })
 
-  -- Main placement loop
+
   while true do
     if not Property.EditingFurnitureObj then
       break
@@ -188,10 +188,10 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     HideHudComponentThisFrame(20)
 
     local objCoords = GetEntityCoords(Property.EditingFurnitureObj)
-    local objHeading = GetEntityHeading(Property.EditingFurnitureObj) -- kept for parity
-    local objRotation = GetEntityRotation(Property.EditingFurnitureObj, 2) -- kept for parity
+    local objHeading = GetEntityHeading(Property.EditingFurnitureObj)
+    local objRotation = GetEntityRotation(Property.EditingFurnitureObj, 2)
 
-    -- Outline the currently edited object
+
     SetEntityDrawOutline(Property.EditingFurnitureObj, true)
     SetEntityDrawOutlineColor(159, 15, 255, 200)
     SetEntityDrawOutlineShader(1)
@@ -200,10 +200,10 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     Wait(0)
 
     if furnitureMode == "gizmo" then
-      -- Gizmo uses an entity matrix editor native
+
       local entityMatrix = makeEntityMatrix(Property.EditingFurnitureObj)
 
-      -- Original pattern preserved: pass ReturnResultAnyway() varargs into InvokeNative
+
       local rr1, rr2, rr3, rr4, rr5, rr6, rr7, rr8 = Citizen.ReturnResultAnyway()
       local didMove = Citizen.InvokeNative(
         3945716898,
@@ -216,7 +216,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
         applyEntityMatrix(Property.EditingFurnitureObj, entityMatrix)
       end
 
-      -- Allow enabling/disabling cursor while in gizmo
+
       EnableControlAction(0, Config.FurnitureControls.ENABLE_CURSOR.controlIndex, true)
       if IsControlJustPressed(0, Config.FurnitureControls.ENABLE_CURSOR.controlIndex) then
         toggleCursorMode()
@@ -226,7 +226,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       moveCamInputs(true)
 
     else
-      -- Normal mode: raycast to move object + manual height/rotation controls
+
       local hit, hitCoords = RayCastGamePlayCamera(nil, 150.0)
       if hit then
         DrawLine(
@@ -243,7 +243,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
         end
       end
 
-      -- Height UP
+
       if IsControlPressed(0, Config.FurnitureControls.UP.controlIndex) then
         if IsControlReleased(0, Config.FurnitureControls.SPEED_DOWN.controlIndex) then
           heightOffset = heightOffset + Config.FurnitureSettings.HeightSpeed
@@ -252,7 +252,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
         end
       end
 
-      -- Height DOWN
+
       if IsControlPressed(0, Config.FurnitureControls.DOWN.controlIndex) then
         if IsControlReleased(0, Config.FurnitureControls.SPEED_DOWN.controlIndex) then
           heightOffset = heightOffset - Config.FurnitureSettings.HeightSpeed
@@ -261,7 +261,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
         end
       end
 
-      -- Manual rotation around Z
+
       if IsControlPressed(0, Config.FurnitureControls.ROTATE_LEFT.controlIndex) then
         if IsControlReleased(0, Config.FurnitureControls.SPEED_DOWN.controlIndex) then
           zRotation = zRotation + Config.FurnitureSettings.RotateSpeed
@@ -283,7 +283,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       end
     end
 
-    -- Change placement mode (cooldown 3 seconds)
+
     EnableControlAction(0, Config.FurnitureControls.CHANGE_MODE.controlIndex, true)
     if IsControlJustPressed(0, Config.FurnitureControls.CHANGE_MODE.controlIndex) then
       local now = GetGameTimer()
@@ -305,7 +305,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
           HousingCreator:CreateCamera(true)
         end
 
-        -- [NUI] Update controls overlay when switching mode
+
         SendNUIMessage({
           action = "ControlsMenu",
           toggle = true,
@@ -321,35 +321,35 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       end
     end
 
-    -- Snap to ground
+
     EnableControlAction(0, Config.FurnitureControls.SNAP_TO_GROUND.controlIndex, true)
     if IsControlJustPressed(0, Config.FurnitureControls.SNAP_TO_GROUND.controlIndex) then
       PlaceObjectOnGroundProperly_2(Property.EditingFurnitureObj)
     end
 
-    -- If entity disappeared, stop editing
+
     if not DoesEntityExist(Property.EditingFurnitureObj) then
       Property.EditingFurniture = false
       DeleteObject(Property.EditingFurnitureObj)
       Property.EditingFurnitureObj = nil
     end
 
-    -- CLOSE key: delete/remove furniture
+
     if not purchasePending and IsControlJustPressed(0, Config.FurnitureControls.CLOSE.controlIndex) then
       Property.EditingFurniture = false
       DeleteObject(Property.EditingFurnitureObj)
       Property.EditingFurnitureObj = nil
 
-      -- [ASYNC CALLBACK] Remove furniture then reload list
+
       Property:RemoveFurniture(nil, function()
-        -- Reload furniture for inside/outside based on current state
+
         Property:LoadFurniture(
           (CurrentProperty and "inside" or "outside"),
           propertyData.furniture,
           CurrentProperty
         )
 
-        -- For MLO, also load the opposite side list
+
         if propertyData.type == "mlo" then
           Property:LoadFurniture(
             (CurrentProperty and "outside" or "inside"),
@@ -360,12 +360,12 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       end)
     end
 
-    -- ACCEPT key: validate placement + save (or open purchase UI)
+
     EnableControlAction(0, Config.FurnitureControls.ACCEPT.controlIndex, true)
     if Property.EditingFurnitureObj and not purchasePending and IsControlJustPressed(0, Config.FurnitureControls.ACCEPT.controlIndex) then
       local placedCoords = GetEntityCoords(Property.EditingFurnitureObj)
 
-      -- If outside, ensure within allowed polygon zone (when present)
+
       local isWithinOutsideZone = nil
       if propertyData.metadata.zone then
         isWithinOutsideZone = isPointInPolygon(placedCoords, propertyData.metadata.zone.points)
@@ -374,7 +374,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
       if isInside or (not isInside and isWithinOutsideZone) then
         local isPlacementAllowed = true
 
-        -- MLO placement rules: indoor/outdoor restrictions + metadata flags
+
         if propertyData.type == "mlo" then
           local isInInterior = isPointInPolygon(
             placedCoords,
@@ -404,7 +404,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
               CL.Notification(TRANSLATE("notify.furniture:outside_disabled"), 4000, "error")
             end
 
-            -- Outdoor area requirement (original behavior)
+
             if propertyData.object_id then
               isPlacementAllowed = false
               CL.Notification(TRANSLATE("notify.furniture:no_outdoor_area"), 4000, "error")
@@ -413,7 +413,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
         end
 
         if isPlacementAllowed then
-          -- Build placement payload
+
           Property.EditingFurnitureData = {
             id = furnitureId,
             model = furnitureModel,
@@ -438,7 +438,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
               end, propertyId, Property.EditingFurnitureData)
             end
           elseif Config.RequirePurchaseFurniture or isEditingExisting then
-            -- [SERVER EVENT] Save placement immediately
+
             TriggerServerEvent("vms_housing:sv:placeFurniture", propertyId, Property.EditingFurnitureData)
 
             Property.EditingFurniture = false
@@ -446,7 +446,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
             Property.EditingFurnitureObj = nil
             break
           else
-            -- [NUI] Open purchase UI
+
             SendNUIMessage({
               action = "Property",
               actionName = "OpenFurniturePurchase",
@@ -466,7 +466,7 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
     end
   end
 
-  -- Cleanup after placement session ends
+
   if isCursorModeEnabled then
     toggleCursorMode(false)
   end
@@ -474,32 +474,32 @@ local function manageFurniture(isEditingExisting, furnitureModel, furnitureId, d
   HousingCreator:DeleteCamera()
   FreezeEntityPosition(PlayerPedId(), false)
 
-  -- [NUI] Hide controls overlay
+
   SendNUIMessage({ action = "ControlsMenu", toggle = false })
 
   Property.EditingFurniture = false
   Property.EditingFurnitureData = {}
 
-  -- Return to main furniture menu
+
   openFurnitureMenu()
 end
 
-  -- Preserve original globals
+
   _G.manageFurniture = manageFurniture
   _ENV.manageFurniture = manageFurniture
 
---[[-------------------------------------------------------------------------
-  editFurniture()
 
-  Enters a selection mode:
-  - raycast to highlight an existing furniture entity
-  - ACCEPT => open manageFurniture(true, model, furnitureId) for that entity
-  - CLOSE  => exit selection mode
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
 local function editFurniture()
-  -- [ASYNC THREAD] runs while Property.EditingFurniture is true
+
   Citizen.CreateThread(function()
-    local highlighted = {}        -- [entity] = furnitureData
+    local highlighted = {}
     local lastEntity = nil
 
     while true do
@@ -526,13 +526,13 @@ local function editFurniture()
 
         if hitEntity then
           if lastEntity ~= hitEntity then
-            -- remove outline from previous entity
+
             if lastEntity and highlighted[lastEntity] then
               SetEntityDrawOutline(lastEntity, false)
               highlighted[lastEntity] = nil
             end
 
-            -- apply outline to newly targeted entity if it's one of our furnitures
+
             if not highlighted[hitEntity] then
               for _, furniture in pairs(Property.LoadedFurnitures) do
                 if furniture.entity == hitEntity then
@@ -547,9 +547,9 @@ local function editFurniture()
             end
           end
 
-          -- ACCEPT => edit selected furniture
+
           if IsControlJustPressed(0, Config.FurnitureControls.ACCEPT.controlIndex) then
-            -- clear outlines
+
             for entity in pairs(highlighted) do
               SetEntityDrawOutline(entity, false)
             end
@@ -563,7 +563,7 @@ local function editFurniture()
           end
         end
       else
-        -- No hit: clear any outlines
+
         if next(highlighted) then
           for entity in pairs(highlighted) do
             SetEntityDrawOutline(entity, false)
@@ -572,7 +572,7 @@ local function editFurniture()
         end
       end
 
-      -- CLOSE => exit selection mode
+
       if IsControlJustPressed(0, Config.FurnitureControls.CLOSE.controlIndex) then
         if next(highlighted) then
           for entity in pairs(highlighted) do
@@ -593,13 +593,13 @@ end
 _G.editFurniture = editFurniture
 _ENV.editFurniture = editFurniture
 
---[[-------------------------------------------------------------------------
-  editTheme(themeIndex)
 
-  Previews an IPL theme and then:
-  - CLOSE  => revert to original theme
-  - ACCEPT => open purchase UI
----------------------------------------------------------------------------]]
+
+
+
+
+
+
 local function editTheme(themeIndex)
   Property.EditingTheme = themeIndex
 
@@ -613,19 +613,19 @@ local function editTheme(themeIndex)
     propertyData = GetCurrentPropertyData()
   end
 
-  -- Only relevant if we are in an IPL property
+
   if CurrentIPL then
     local iplConfig = AvailableIPLS[propertyData.metadata.ipl]
     local themeConfig = iplConfig.settings.Themes[Property.EditingTheme]
 
     if themeConfig then
-      -- Small teleport “refresh” callback, preserved (used twice in original)
+
       local function refreshPlayerCoords()
         local coords = GetEntityCoords(PlayerPedId())
         SetEntityCoords(PlayerPedId(), coords.x, coords.y, coords.z)
       end
 
-      -- [ASYNC CALLBACK] Load preview theme
+
       IPL.LoadSettings(CurrentIPL, Property.EditingTheme, propertyData.metadata.iplSettings, refreshPlayerCoords)
 
       while true do
@@ -633,13 +633,13 @@ local function editTheme(themeIndex)
           break
         end
 
-        -- CLOSE => revert to original theme
+
         if IsControlJustPressed(0, Config.FurnitureControls.CLOSE.controlIndex) then
           IPL.LoadSettings(CurrentIPL, propertyData.metadata.iplTheme, propertyData.metadata.iplSettings, refreshPlayerCoords)
           Property.EditingTheme = nil
         end
 
-        -- ACCEPT => open purchase UI
+
         if IsControlJustPressed(0, Config.FurnitureControls.ACCEPT.controlIndex) then
           SendNUIMessage({
             action = "Property",
@@ -664,14 +664,14 @@ end
 _G.editTheme = editTheme
 _ENV.editTheme = editTheme
 
---[[-------------------------------------------------------------------------
-  openFurnitureMenu()
 
-  Opens the furniture UI with context:
-  - inside/outside state
-  - allowed placement flags
-  - current IPL reference (when inside)
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
 local function openFurnitureMenu()
   local propertyId = CurrentProperty
   if not propertyId then
@@ -691,17 +691,17 @@ local function openFurnitureMenu()
     return
   end
 
-  -- Don’t open while editing furniture/theme
+
   if Property.EditingFurniture or Property.EditingTheme then
     return
   end
 
-  -- Permission check
+
   if not library.HasPermissions(propertyId, "furniture") then
     return
   end
 
-  -- Determine inside/outside based on property type + loaded interior
+
   local isInside = false
   if propertyData.type == "shell" then
     if CurrentShell then isInside = true end
@@ -713,15 +713,15 @@ local function openFurnitureMenu()
 
   local isOutside = not isInside
 
-  -- Resync in case the UI loaded after the initial catalog message.
+
   SendNUIMessage({ action = "Property", actionName = "ReloadAvailableFurniture", data = Furniture or {} })
-  -- [NUI] Open furniture menu with placement rules
+
   SendNUIMessage({
     action = "Property",
     actionName = "OpenFurniture",
     data = {
       propertyFurniture = propertyData.furniture,
-      ipl = (isInside and CurrentIPL) or propertyData.furniture, -- preserves original odd fallback behavior
+      ipl = (isInside and CurrentIPL) or propertyData.furniture,
       allowChangeThemePurchased = propertyData.metadata.allowChangeThemePurchased,
       isInside = isInside,
       isOutside = isOutside,
@@ -737,10 +737,10 @@ end
 _G.openFurnitureMenu = openFurnitureMenu
 _ENV.openFurnitureMenu = openFurnitureMenu
 
--- Export stays the same
+
 exports("OpenFurnitureMenu", openFurnitureMenu)
 
--- Close furniture menu
+
 local function closeFurnitureMenu()
   SendNUIMessage({
     action = "Property",
@@ -753,7 +753,7 @@ end
 _G.closeFurnitureMenu = closeFurnitureMenu
 _ENV.closeFurnitureMenu = closeFurnitureMenu
 
--- Optional command + key mapping from config
+
 if Config.HousingFurniture.Command then
   RegisterCommand(Config.HousingFurniture.Command, function()
     openFurnitureMenu()

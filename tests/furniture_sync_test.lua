@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 local file = assert(io.open('esx_realestate/server/main.lua'))
 local text = file:read('*a'); file:close()
 local code = assert(text:match('(AddEventHandler%("vms_housing:sv:fetchData".-\nend%))'))

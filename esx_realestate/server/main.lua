@@ -1,40 +1,40 @@
---[[
-  Deobfuscated / refactored (PART 1)
 
-  Notes:
-  - This is ONLY the portion you pasted (roughly “half the file”).
-  - Logic is kept intact (same events, same queries, same state mutations).
-  - I renamed obfuscated locals (L0_1, L1_1, …) into meaningful names.
-  - I added comments and grouped code into sections.
-  - I highlighted async DB calls / callbacks / client events clearly.
-]]
 
--- ============================================================================
--- Local state / caches
--- ============================================================================
 
--- Used as a “server-side allow list” for admin usage (set in EnterProperty export, read+cleared in callback)
+
+
+
+
+
+
+
+
+
+
+
+
+
 local adminAllowedSources = {}
 
--- Cooldown map for static interactables (per propertyId -> per interactableKey -> nextAllowedGameTimer)
+
 local interactableCooldowns = {}
 
--- Stores player coords when entering camera mode (so we can restore on exit)
+
 local cameraModeReturnCoords = {}
 
--- Unused in this snippet but kept (was L0_1/L1_1 tables)
+
 local tmpTableA = {}
 local tmpTableB = {}
 
--- ============================================================================
--- Network events
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:fetchData")
 AddEventHandler("vms_housing:sv:fetchData", function()
     local src = source
 
-    -- Never send partial caches while the database initialization is running.
+
     local deadline = GetGameTimer() + 30000
     while not HousingDataReady and GetGameTimer() < deadline do
         Citizen.Wait(100)
@@ -44,27 +44,27 @@ AddEventHandler("vms_housing:sv:fetchData", function()
         return
     end
 
-    -- Player resolution (some cores can be late to init right after connect)
+
     local player = SV.GetPlayer(src)
     if not player then
         Citizen.Wait(2500)
         player = SV.GetPlayer(src)
     end
 
-    -- === CLIENT SYNC (properties + furniture definitions) ===================
+
     TriggerClientEvent(
         "vms_housing:cl:loadProperties",
         src,
-        json.encode(Properties) -- [ASYNC-like] big payload; client decodes
+        json.encode(Properties)
     )
 
     TriggerClientEvent(
         "vms_housing:cl:loadFurniture",
         src,
-        json.encode(Furniture) -- [ASYNC-like] big payload; client decodes
+        json.encode(Furniture)
     )
 
-    -- === CLIENT CONFIG / WEBHOOKS ==========================================
+
     TriggerClientEvent(
         "vms_housing:cl:fetchedData",
         src,
@@ -73,25 +73,25 @@ AddEventHandler("vms_housing:sv:fetchData", function()
     )
 end)
 
--- ============================================================================
--- Player logout handling (cleanup state if player was inside a property)
--- ============================================================================
+
+
+
 
 AddEventHandler(Config.PlayerLogoutServer, function(playerSource)
-    -- Determine current property from player state (if available)
+
     local currentPropertyId
     local ply = Player(playerSource)
     if ply then
         currentPropertyId = ply.state.currentProperty
     end
 
-    -- If they were inside, inform client + reset bucket
+
     if currentPropertyId then
         TriggerClientEvent("vms_housing:cl:playerDropped", playerSource)
         SetPlayerRoutingBucket(playerSource, 0)
     end
 
-    -- Remove them from Properties[currentPropertyId].playersInside if present
+
     local prop = Properties[currentPropertyId]
     if prop and prop.playersInside then
         for i = 1, #prop.playersInside do
@@ -103,13 +103,13 @@ AddEventHandler(Config.PlayerLogoutServer, function(playerSource)
     end
 end)
 
--- ============================================================================
--- Console command for Tebex purchases
--- Usage: TebexProperty <playerSource> <propertyId>
--- ============================================================================
+
+
+
+
 
 RegisterCommand("TebexProperty", function(src, args)
-    -- Only allow from server console (src == 0)
+
     if src ~= 0 then return end
 
     local targetSource = args[1]
@@ -141,7 +141,7 @@ RegisterCommand("TebexProperty", function(src, args)
 
     library.Debug(("^2[TEBEX] ^7Successfully added Property %s to Owner %s"):format(propertyId, targetSid))
 
-    -- If cadastral tax is enabled, mark last paid period
+
     local updateMetadata = false
     if Config.CityHallTaxes
         and Config.CityHallTaxes.PropertyCadastralTax
@@ -151,7 +151,7 @@ RegisterCommand("TebexProperty", function(src, args)
         updateMetadata = true
     end
 
-    -- Assign owner + reset sale/rental
+
     prop.metadata.deedSignature = nil
     updateMetadata = true
     prop.owner = targetIdentifier
@@ -159,11 +159,11 @@ RegisterCommand("TebexProperty", function(src, args)
     prop.sale.active = false
     prop.rental.active = false
 
-    -- Ensure bills exist
+
     prop.bills = library.GetOrCreateBills(propertyId)
     prop.unpaidBills = 0
 
-    -- === [ASYNC] DATABASE UPDATE ===========================================
+
     local sql = "UPDATE houses SET owner = @owner, owner_name = @owner_name, sale = @sale, rental = @rental"
     if updateMetadata then
         sql = sql .. ", metadata = @metadata"
@@ -179,7 +179,7 @@ RegisterCommand("TebexProperty", function(src, args)
         ["@id"] = tonumber(propertyId),
     })
 
-    -- Inform all clients about new owner
+
     TriggerClientEvent("vms_housing:cl:updateProperty", -1, "newOwner", propertyId, {
         owner = prop.owner,
         owner_name = prop.owner_name,
@@ -189,12 +189,12 @@ RegisterCommand("TebexProperty", function(src, args)
     })
 end, false)
 
--- ============================================================================
--- Pending deliveries processor (furniture delivery)
--- ============================================================================
+
+
+
 
 ProcessPendingDeliveries = function(maxToProcess)
-    -- Only used when delivery type 2 or 3
+
     if Config.DeliveryType ~= 2 and Config.DeliveryType ~= 3 then
         return
     end
@@ -203,7 +203,7 @@ ProcessPendingDeliveries = function(maxToProcess)
     local deliveredByProperty = {}
     local processed = 0
 
-    -- Iterate backwards so we can remove while iterating
+
     for i = #PendingDeliveries, 1, -1 do
         if processed >= maxToProcess then break end
 
@@ -212,7 +212,7 @@ ProcessPendingDeliveries = function(maxToProcess)
             local propertyId = tostring(entry.propertyId)
             local prop = Properties[propertyId]
             if prop and prop.furniture then
-                -- Find the delivered furniture in property furniture list
+
                 local idxToUpdate = nil
                 for idx, furn in pairs(prop.furniture) do
                     if furn.id == entry.furnitureId then
@@ -224,17 +224,17 @@ ProcessPendingDeliveries = function(maxToProcess)
                 if idxToUpdate then
                     local furnObj = prop.furniture[idxToUpdate]
 
-                    -- Clear deliveryTime
+
                     furnObj.metadata.deliveryTime = nil
 
-                    -- If delivery type 3 and property metadata says delivery enabled, mark delivered=true
+
                     if Config.DeliveryType == 3 then
                         if prop.metadata and prop.metadata.deliveryType and prop.metadata.delivery then
                             furnObj.metadata.delivered = true
                         end
                     end
 
-                    -- === [ASYNC] DATABASE UPDATE ===================================
+
                     MySQL.update(
                         "UPDATE `houses_furniture` SET `metadata` = ? WHERE `id` = ? AND `house_id` = ?",
                         {
@@ -244,11 +244,11 @@ ProcessPendingDeliveries = function(maxToProcess)
                         }
                     )
 
-                    -- Collect ids by property for one broadcast
+
                     deliveredByProperty[propertyId] = deliveredByProperty[propertyId] or {}
                     table.insert(deliveredByProperty[propertyId], entry.furnitureId)
 
-                    -- Remove pending entry
+
                     table.remove(PendingDeliveries, i)
                     processed = processed + 1
                 end
@@ -256,15 +256,15 @@ ProcessPendingDeliveries = function(maxToProcess)
         end
     end
 
-    -- Broadcast delivered furniture changes to all clients if anything changed
+
     if next(deliveredByProperty) then
         TriggerClientEvent("vms_housing:cl:updateProperty", -1, "deliveredFurniture", nil, deliveredByProperty)
     end
 end
 
--- ============================================================================
--- Utility / accessors
--- ============================================================================
+
+
+
 
 GetProperty = function(propertyId)
     if not propertyId then return nil end
@@ -276,7 +276,7 @@ GetPlayerProperties = function(sourceOrIdentifier)
     local results = {}
     local identifier = nil
 
-    -- If numeric, treat as player source and resolve identifier
+
     local asNumber = tonumber(sourceOrIdentifier)
     if asNumber then
         local ply = SV.GetPlayer(sourceOrIdentifier)
@@ -311,7 +311,7 @@ GetPlayerCurrentProperty = function(playerSource)
 end
 
 GetFurnitureLimit = function(upgradesMetadata)
-    -- If upgrade system not configured, fallback to global limit
+
     local upgradeCfg = Config.HousingUpgrades and Config.HousingUpgrades.furniture_limit
     if not upgradeCfg then
         return Config.FurnitureLimit
@@ -327,7 +327,7 @@ GetFurnitureLimit = function(upgradesMetadata)
         return upgradeCfg.levels[level].limit
     end
 
-    -- Fallback
+
     return Config.FurnitureLimit
 end
 
@@ -345,21 +345,21 @@ IsPlayerInProperty = function(playerSource, propertyId)
     return false
 end
 
--- Raid permission gate
+
 IsAllowedToRaid = function(playerSource, playerObj, property)
     local cfg = Config.PropertyRaids
     if not (cfg and cfg.Enable) then
         return false, nil
     end
 
-    -- Anti-burglary doors can block raids
+
     if cfg.AntiBurglaryDoors and not cfg.AntiBurglaryDoors.AllowRaid then
         if property.metadata and property.metadata.upgrades and property.metadata.upgrades.antiBurglaryDoors then
             return false, "anti_burglary_doors"
         end
     end
 
-    -- Job restrictions
+
     if cfg.Jobs then
         local playerJob = SV.GetPlayerJob(playerObj, "name")
 
@@ -380,7 +380,7 @@ IsAllowedToRaid = function(playerSource, playerObj, property)
         end
     end
 
-    -- Item restrictions
+
     if cfg.Item and cfg.Item.Required and cfg.Item.Name then
         local count = SV.GetItemCount(playerObj, cfg.Item.Name)
         local needed = cfg.Item.Count or 1
@@ -392,7 +392,7 @@ IsAllowedToRaid = function(playerSource, playerObj, property)
     return true
 end
 
--- Point-in-polygon helper (used by some region checks elsewhere)
+
 isPointInPolygon = function(point, polygon)
     local crossings = 0
     local n = #polygon
@@ -418,18 +418,18 @@ isPointInPolygon = function(point, polygon)
     return (crossings % 2) == 1
 end
 
--- Adds starter apartment property for identifier
+
 AddStarterApartment = function(identifier)
     local template = GetProperty(Config.StarterApartments.Object)
 
-    -- Resolve character name if online
+
     local playerObj = SV.GetPlayerByIdentifier(identifier)
     local ownerName = "Unknown"
     if playerObj then
         ownerName = SV.GetCharacterName(playerObj)
     end
 
-    -- Build property data record
+
     local houseData = {
         type = Config.StarterApartments.Type,
         object_id = Config.StarterApartments.Object,
@@ -458,7 +458,7 @@ AddStarterApartment = function(identifier)
         creator = "SYSTEM",
     }
 
-    -- Delivery config
+
     if Config.StarterApartments.Delivery and Config.StarterApartments.Delivery.Enabled then
         houseData.metadata.deliveryType = "inside"
         houseData.metadata.delivery = {
@@ -468,7 +468,7 @@ AddStarterApartment = function(identifier)
         }
     end
 
-    -- Storage config
+
     if Config.StarterApartments.Storage and Config.StarterApartments.Storage.Enabled then
         houseData.metadata.storage = {
             x = Config.StarterApartments.Storage.Coords.x,
@@ -479,7 +479,7 @@ AddStarterApartment = function(identifier)
         }
     end
 
-    -- Wardrobe config
+
     if Config.StarterApartments.Wardrobe and Config.StarterApartments.Wardrobe.Enabled then
         houseData.metadata.wardrobe = {
             x = Config.StarterApartments.Wardrobe.Coords.x,
@@ -488,7 +488,7 @@ AddStarterApartment = function(identifier)
         }
     end
 
-    -- Shell / IPL specifics
+
     if Config.StarterApartments.Type == "shell" then
         houseData.metadata.shell = Config.StarterApartments.Shell
     elseif Config.StarterApartments.Type == "ipl" then
@@ -497,7 +497,7 @@ AddStarterApartment = function(identifier)
         houseData.metadata.allowChangeThemePurchased = Config.StarterApartments.AllowChangeTheme
     end
 
-    -- === [ASYNC] INSERT house ==============================================
+
     local insertedId = MySQL.insert.await(
         "INSERT INTO `houses` (`type`, `object_id`, `owner`, `owner_name`, `region`, `address`, `metadata`, `sale`, `rental`, `description`, `creator`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         {
@@ -515,7 +515,7 @@ AddStarterApartment = function(identifier)
         }
     )
 
-    -- Register storage if present
+
     if houseData.metadata and houseData.metadata.storage and houseData.metadata.storage.x then
         library.RegisterStorage({
             id = "house_storage-" .. insertedId,
@@ -524,7 +524,7 @@ AddStarterApartment = function(identifier)
         })
     end
 
-    -- Create runtime property entry
+
     local newProp = {
         id = insertedId,
         object_id = houseData.object_id,
@@ -549,25 +549,25 @@ AddStarterApartment = function(identifier)
 
     Properties[tostring(insertedId)] = newProp
 
-    -- === [ASYNC] Update generated name back into DB =========================
+
     MySQL.query("UPDATE `houses` SET `name` = ? WHERE `id` = ?", {
         Properties[tostring(insertedId)].name,
         tonumber(insertedId),
     })
 
-    -- Broadcast created house
+
     TriggerClientEvent("vms_housing:cl:createdHouse", -1, tostring(insertedId), Properties[tostring(insertedId)])
 end
 
 DeleteProperty = function(propertyId)
-    -- === [ASYNC] DELETE house ==============================================
+
     MySQL.query("DELETE FROM `houses` WHERE id = ?", { propertyId }, function()
         Properties[tostring(propertyId)] = nil
         TriggerClientEvent("vms_housing:cl:removedHouse", -1, tostring(propertyId))
     end)
 end
 
--- Export helper: mark admin and tell client to enter house (used by other resources)
+
 EnterProperty = function(targetSource, propertyId)
     local token = { propertyId = tostring(propertyId) }
     adminAllowedSources[targetSource] = token
@@ -577,7 +577,7 @@ EnterProperty = function(targetSource, propertyId)
     TriggerClientEvent("vms_housing:cl:enterHouse", targetSource, propertyId)
 end
 
--- Weekly period helper (W<week>:<year>)
+
 GetWeekPeriod = function()
     local now = os.time()
 
@@ -604,9 +604,9 @@ GetWeekPeriod = function()
     return string.format("W%d:%d", week, year)
 end
 
--- ============================================================================
--- Exports
--- ============================================================================
+
+
+
 
 exports("GetProperty", GetProperty)
 exports("GetPlayerProperties", GetPlayerProperties)
@@ -616,9 +616,9 @@ exports("AddStarterApartment", AddStarterApartment)
 exports("DeleteProperty", DeleteProperty)
 exports("EnterProperty", EnterProperty)
 
--- ============================================================================
--- Keys on item: register usable key item
--- ============================================================================
+
+
+
 
 Citizen.CreateThread(function()
     if not Config.UseKeysOnItem then return end
@@ -630,7 +630,7 @@ Citizen.CreateThread(function()
         local ply = SV.GetPlayer(sourceId)
         local identifier = SV.GetIdentifier(ply)
 
-        -- Must have keys for that property + serial number
+
         local ok = library.HasKeys(sourceId, identifier, itemData.metadata.propertyId, itemData.metadata.keySerialNumber)
         if ok then
             TriggerClientEvent(
@@ -643,9 +643,9 @@ Citizen.CreateThread(function()
     end)
 end)
 
--- ============================================================================
--- Server callbacks (library.RegisterCallback)
--- ============================================================================
+
+
+
 
 library.RegisterCallback("vms_housing:openManageMenu", function(sourceId, cb, propertyId)
     local prop = GetProperty(propertyId)
@@ -683,7 +683,7 @@ library.RegisterCallback("vms_housing:canExitHouse", function(sourceId, cb)
     cb(canExit)
 end)
 
--- Buy IPL theme
+
 library.RegisterCallback("vms_housing:buyTheme", function(sourceId, cb, propertyId, themeId, account)
     local ply = SV.GetPlayer(sourceId)
     local identifier = SV.GetIdentifier(ply)
@@ -728,7 +728,7 @@ library.RegisterCallback("vms_housing:buyTheme", function(sourceId, cb, property
 
             prop.metadata.iplTheme = themeId
 
-            -- === [ASYNC] DB UPDATE ===========================================
+
             MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
                 json.encode(prop.metadata),
                 tonumber(propertyId),
@@ -750,7 +750,7 @@ library.RegisterCallback("vms_housing:buyTheme", function(sourceId, cb, property
     cb(false)
 end)
 
--- Buy furniture (places into house_furniture, updates runtime cache + broadcasts)
+
 library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, propertyId, payload, account)
     local ply = SV.GetPlayer(sourceId)
     local identifier = SV.GetIdentifier(ply)
@@ -773,14 +773,14 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
 
     local furnDef = Furniture[payload.model]
 
-    -- Indoor/outdoor validation
+
     if payload.isInside then
         if not furnDef.isIndoor then return cb(false) end
     else
         if not furnDef.isOutdoor then return cb(false) end
     end
 
-    -- Furniture limit
+
     if prop.furniture then
         local currentCount = #prop.furniture
         local limit = GetFurnitureLimit(prop.metadata.upgrades)
@@ -790,7 +790,7 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
         end
     end
 
-    -- Charge money if price exists
+
     if furnDef.price then
         local money = SV.GetMoney(ply, account)
         if not tonumber(money) then return cb(false) end
@@ -803,7 +803,7 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
         SV.RemoveMoney(ply, account, tonumber(furnDef.price))
     end
 
-    -- Build furniture row
+
     local furnitureRow = {
         position = {
             environment = payload.isInside and "inside" or "outside",
@@ -815,7 +815,7 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
         metadata = {},
     }
 
-    -- === [ASYNC] INSERT furniture ==========================================
+
     local insertedFurnId = MySQL.insert.await(
         "INSERT INTO `houses_furniture` (`house_id`, `position`, `model`, `stored`, `metadata`) VALUES (?, ?, ?, ?, ?)",
         {
@@ -827,7 +827,7 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
         }
     )
 
-    -- Apply default metadata from furniture definition + create interactable ids if needed
+
     local extraMeta = {}
     if furnDef.metadata then extraMeta = furnDef.metadata end
 
@@ -844,15 +844,15 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
         end
     end
 
-    -- If we added any extra metadata, persist it
+
     if next(extraMeta) then
-        -- === [ASYNC] UPDATE furniture metadata ==============================
+
         MySQL.query(
             "UPDATE `houses_furniture` SET `metadata` = ? WHERE `id` = ? AND `house_id` = ?",
             { json.encode(extraMeta), insertedFurnId, tonumber(propertyId) }
         )
 
-        -- Register storage if storage/safe (same function used in original)
+
         if extraMeta.interactableName == "storage" or extraMeta.interactableName == "safe" then
             library.RegisterStorage(extraMeta)
         end
@@ -861,7 +861,7 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
     furnitureRow.metadata = extraMeta
     furnitureRow.id = insertedFurnId
 
-    -- Ensure furniture list exists
+
     if not Properties[tostring(propertyId)].furniture then
         Properties[tostring(propertyId)].furniture = {}
     end
@@ -886,8 +886,8 @@ library.RegisterCallback("vms_housing:buyFurniture", function(sourceId, cb, prop
     cb(true)
 end)
 
--- Immediate placement purchases: the client only proposes a model and transform.
--- Price, access, player location, payment and persistence are server-controlled.
+
+
 local pendingPlacedFurniturePurchases = {}
 local function finiteFurnitureNumber(value)
     return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
@@ -957,14 +957,14 @@ library.RegisterCallback("vms_housing:purchasePlacedFurniture", function(src, cb
     cb(true)
 end)
 
--- Place furniture (server currently just approves)
+
 library.RegisterCallback("vms_housing:placeFurniture", function(sourceId, cb, propertyId, payload)
     local ply = SV.GetPlayer(sourceId)
     local identifier = SV.GetIdentifier(ply)
     cb(true)
 end)
 
--- IsAllowedToRaid (callback)
+
 library.RegisterCallback("vms_housing:isAllowedToRaid", function(sourceId, cb, propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return cb(false, nil) end
@@ -979,7 +979,7 @@ library.RegisterCallback("vms_housing:isAllowedToRaid", function(sourceId, cb, p
     cb(allowed, reason)
 end)
 
--- Static interactable cooldown + optional water usage
+
 library.RegisterCallback("vms_housing:useStaticInteractable", function(sourceId, cb, propertyId, interactableKey, cooldownMs, waterUsage, usageType)
     local prop = GetProperty(propertyId)
     if not prop then return cb(false) end
@@ -1003,7 +1003,7 @@ library.RegisterCallback("vms_housing:useStaticInteractable", function(sourceId,
     cb(true)
 end)
 
--- Apartment actions gate (lockdown, raid, lockpick capabilities)
+
 library.RegisterCallback("vms_housing:checkApartmentActions", function(sourceId, cb, propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return cb(false) end
@@ -1014,7 +1014,7 @@ library.RegisterCallback("vms_housing:checkApartmentActions", function(sourceId,
     local allowedLockdown = false
     local allowedRemovePoliceSeal = false
 
-    -- Lockdown permissions
+
     if Config.PropertyLockdown and Config.PropertyLockdown.Enable then
         local jobOk = true
 
@@ -1043,7 +1043,7 @@ library.RegisterCallback("vms_housing:checkApartmentActions", function(sourceId,
     local allowedRaid = false
     local allowedLockAfterRaid = false
 
-    -- Raid permissions
+
     if Config.PropertyRaids and Config.PropertyRaids.Enable then
         local jobOk = true
         if Config.PropertyRaids.Jobs then
@@ -1068,7 +1068,7 @@ library.RegisterCallback("vms_housing:checkApartmentActions", function(sourceId,
         allowedLockAfterRaid = jobOk
     end
 
-    -- Lockpick ability
+
     local allowedLockpick = false
     if Config.Lockpick and Config.Lockpick.Enable then
         local itemOk = true
@@ -1089,7 +1089,7 @@ library.RegisterCallback("vms_housing:checkApartmentActions", function(sourceId,
     })
 end)
 
--- Restore last property from DB and put player in correct routing bucket
+
 library.RegisterCallback("vms_housing:checkLastProperty", function(sourceId, cb)
     local ply = SV.GetPlayer(sourceId)
     if not ply then return cb(false) end
@@ -1097,7 +1097,7 @@ library.RegisterCallback("vms_housing:checkLastProperty", function(sourceId, cb)
     local tableName = (Config.Core == "ESX") and "users" or "players"
     local idColumn = (Config.Core == "ESX") and "identifier" or "citizenid"
 
-    -- === [ASYNC] DB read ================================================
+
     local row = MySQL.single.await(
         ("SELECT `last_property` FROM `%s` WHERE `%s` = ?"):format(tableName, idColumn),
         { SV.GetIdentifier(ply) }
@@ -1134,14 +1134,14 @@ library.RegisterCallback("vms_housing:checkLastProperty", function(sourceId, cb)
     cb(false)
 end)
 
--- Admin usage gate (read+clear adminAllowedSources[source])
+
 library.RegisterCallback("vms_housing:isAllowedToUseAdmin", function(sourceId, cb)
     cb(adminAllowedSources[sourceId] ~= nil)
 end)
 
--- ============================================================================
--- Automatic sale
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:automaticSale")
 AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
@@ -1153,17 +1153,17 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Permission check
+
     if not library.HasPermissions(propertyId, identifier, "automaticSell") then
         return library.Notification(src, TRANSLATE("notify.not_allowed"), 5500, "error")
     end
 
-    -- Can't sell with renter
+
     if prop.renter then
         return library.Notification(src, TRANSLATE("notify.property:cannot_sell_with_renter"), 5000, "error")
     end
 
-    -- Compute sell payout (kept as original logic shape)
+
     local payout = prop.sale.defaultPrice
     if payout and payout >= 1 then
         SV.AddMoney(ply, "bank", payout)
@@ -1172,7 +1172,7 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
         library.Notification(src, TRANSLATE("notify.property:sold_property", 0), 5500, "success")
     end
 
-    -- Reset property state
+
     prop.metadata.deedSignature = nil
     prop.owner = nil
     prop.owner_name = nil
@@ -1188,7 +1188,7 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
     prop.last_enter = nil
     prop.furniture = {}
 
-    -- === [ASYNC] Persist reset ============================================
+
     MySQL.query(
         "UPDATE `houses` SET `owner` = NULL, `owner_name` = NULL, `keys` = ?, `permissions` = ?, `metadata` = ?, `sale` = ?, `rental` = ?, last_enter = NULL WHERE `id` = ?",
         {
@@ -1201,7 +1201,7 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
         }
     )
 
-    -- Furniture belongs to a property by house_id, not the furniture row id.
+
     MySQL.query("DELETE FROM houses_furniture WHERE `house_id` = ?", { tonumber(propertyId) })
 
     TriggerClientEvent(
@@ -1219,9 +1219,9 @@ AddEventHandler("vms_housing:sv:automaticSale", function(propertyId)
     )
 end)
 
--- ============================================================================
--- Purchase property
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:purchaseProperty")
 AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account, extra)
@@ -1236,7 +1236,7 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Apartment purchase mapping (if buying an apartment within a building)
+
     if extra and extra.apartmentId then
         if tostring(propertyId) ~= tostring(extra.apartmentId) then
             local buildingId = prop.id
@@ -1249,13 +1249,13 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         end
     end
 
-    -- Must not already have owner/renter
+
     if prop.owner or prop.renter then return end
 
-    -- Must be actively for sale with price
+
     if not (prop.metadata and prop.sale and prop.sale.active and prop.sale.price) then return end
 
-    -- Max properties check
+
     if Config.MaxPropertiesPerPlayer and Config.MaxPropertiesPerPlayer >= 0 and Config.MaxPropertiesPerPlayer ~= -1 then
         local owned = GetPlayerProperties(identifier)
         if #owned >= Config.MaxPropertiesPerPlayer then
@@ -1263,14 +1263,14 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         end
     end
 
-    -- Money check
+
     local money = SV.GetMoney(ply, account)
     if not tonumber(money) then return end
     if tonumber(money) < tonumber(prop.sale.price) then
         return library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
     end
 
-    -- IPL theme selection on purchase
+
     if prop.type == "ipl" and extra and prop.metadata.ipl and extra.selectedTheme then
         local theme = AvailableIPLS[prop.metadata.ipl] and AvailableIPLS[prop.metadata.ipl].settings
             and AvailableIPLS[prop.metadata.ipl].settings.Themes
@@ -1283,19 +1283,19 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         end
     end
 
-    -- Cadastral tax stamp
+
     if Config.CityHallTaxes and Config.CityHallTaxes.PropertyCadastralTax and Config.CityHallTaxes.PropertyCadastralTax.Enabled then
         prop.metadata.lastCadastralPeriod = os.date("%m:%Y", os.time())
         updateMetadata = true
     end
 
-    -- Reset sale/rental and bills
+
     prop.sale.active = false
     prop.rental.active = false
     prop.bills = library.GetOrCreateBills(propertyId)
     prop.unpaidBills = 0
 
-    -- Purchase tax
+
     if Config.CityHallTaxes and Config.CityHallTaxes.PropertyPurchase and Config.CityHallTaxes.PropertyPurchase.Enabled then
         SV.AddTax(
             identifier,
@@ -1307,7 +1307,7 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         )
     end
 
-    -- Charge money
+
     SV.RemoveMoney(ply, account, tonumber(prop.sale.price))
 
     library.Notification(
@@ -1317,13 +1317,13 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         "success"
     )
 
-    -- Assign owner
+
     prop.metadata.deedSignature = nil
     updateMetadata = true
     prop.owner = identifier
     prop.owner_name = SV.GetCharacterName(ply)
 
-    -- Persist ownership + optional keys on item
+
     local sql = "UPDATE houses SET owner = @owner, owner_name = @owner_name, sale = @sale, rental = @rental"
 
     if Config.UseKeysOnItem and Config.AutomaticGiveKeyForProperty then
@@ -1334,7 +1334,7 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         table.insert(prop.keys, serial)
         prop.keys = json.encode(prop.keys)
 
-        -- Give the physical key item
+
         SV.AddItem(src, ply, "house_key", 1, { propertyId = propertyId, keySerialNumber = serial })
     end
 
@@ -1344,7 +1344,7 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
 
     sql = sql .. " WHERE id = @id"
 
-    -- === [ASYNC] DB UPDATE ================================================
+
     MySQL.update.await(sql, {
         ["@owner"] = prop.owner,
         ["@owner_name"] = prop.owner_name,
@@ -1365,7 +1365,7 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
         iplTheme = updatedTheme and extra.selectedTheme or nil
     })
 
-    -- Webhook
+
     SV.Webhook(
         "PurchasedProperty",
         WebhookText["TITLE.PurchasedProperty"],
@@ -1375,9 +1375,9 @@ AddEventHandler("vms_housing:sv:purchaseProperty", function(propertyId, account,
     )
 end)
 
--- ============================================================================
--- Rent property
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:rentProperty")
 AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cycleKey, extra)
@@ -1394,7 +1394,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Apartment rent mapping (if renting an apartment within a building)
+
     if extra and extra.apartmentId then
         if tostring(propertyId) ~= tostring(extra.apartmentId) then
             local buildingId = prop.id
@@ -1410,7 +1410,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
     if prop.renter then return end
     if not (prop.metadata and prop.rental and prop.rental.active and prop.rental.price) then return end
 
-    -- Max properties check
+
     if Config.MaxPropertiesPerPlayer and Config.MaxPropertiesPerPlayer >= 0 and Config.MaxPropertiesPerPlayer ~= -1 then
         local owned = GetPlayerProperties(identifier)
         if #owned >= Config.MaxPropertiesPerPlayer then
@@ -1418,7 +1418,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         end
     end
 
-    -- Price calculation for weekly cycle (kept)
+
     local rentPrice
     if cycleKey == "weekly" then
         rentPrice = math.floor((tonumber(prop.rental.price) * 12) / 52.17857142857143)
@@ -1433,7 +1433,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         return library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
     end
 
-    -- IPL theme selection on rent
+
     if prop.type == "ipl" and extra and extra.selectedTheme and prop.metadata.ipl then
         local theme = AvailableIPLS[prop.metadata.ipl] and AvailableIPLS[prop.metadata.ipl].settings
             and AvailableIPLS[prop.metadata.ipl].settings.Themes
@@ -1445,10 +1445,10 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         end
     end
 
-    -- Charge
+
     SV.RemoveMoney(ply, account, tonumber(rentPrice))
 
-    -- Assign renter + default permissions
+
     prop.renter = identifier
     prop.renter_name = SV.GetCharacterName(ply)
     prop.permissions[identifier] = { _name = prop.renter_name }
@@ -1456,7 +1456,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         prop.permissions[identifier][perm] = true
     end
 
-    -- Stop sale/rental listings, set rental timers
+
     prop.sale.active = false
     prop.rental.active = false
     prop.rental.startTime = os.time()
@@ -1474,7 +1474,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
     prop.unpaidRentBills = 0
     prop.bills = library.GetOrCreateBills(propertyId, true)
 
-    -- Persist rent info
+
     local sql = "UPDATE houses SET renter = @renter, renter_name = @renter_name, sale = @sale, rental = @rental, permissions = @permissions"
 
     if Config.UseKeysOnItem and Config.AutomaticGiveKeyForProperty then
@@ -1485,7 +1485,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         table.insert(prop.keys, serial)
         prop.keys = json.encode(prop.keys)
 
-        -- Give the physical key item
+
         SV.AddItem(src, ply, "house_key", 1, { propertyId = propertyId, keySerialNumber = serial })
     end
 
@@ -1495,7 +1495,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
 
     sql = sql .. " WHERE id = @id"
 
-    -- === [ASYNC] DB UPDATE ================================================
+
     MySQL.update.await(sql, {
         ["@renter"] = prop.renter,
         ["@renter_name"] = prop.renter_name,
@@ -1518,7 +1518,7 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
         iplTheme = updatedTheme and extra.selectedTheme or nil
     })
 
-    -- Webhook
+
     SV.Webhook(
         "RentedProperty",
         WebhookText["TITLE.RentedProperty"],
@@ -1528,9 +1528,9 @@ AddEventHandler("vms_housing:sv:rentProperty", function(propertyId, account, cyc
     )
 end)
 
--- ============================================================================
--- Enter / Exit property (routing bucket + coords teleport)
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:enterHouse")
 AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
@@ -1565,34 +1565,34 @@ AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
     prop.playersInside = prop.playersInside or {}
     table.insert(prop.playersInside, src)
 
-    -- Store last property in DB for reconnect recovery
+
     local lastPropertyPayload = { id = propertyId, coords = prop.metadata.exit }
 
     if Config.Core == "ESX" then
-        -- === [ASYNC] DB UPDATE ============================================
+
         MySQL.query("UPDATE `users` SET `last_property` = ? WHERE `identifier` = ?", {
             json.encode(lastPropertyPayload),
             SV.GetIdentifier(ply)
         })
         ply.set("lastProperty", lastPropertyPayload)
     else
-        -- === [ASYNC] DB UPDATE ============================================
+
         MySQL.query("UPDATE `players` SET `last_property` = ? WHERE `citizenid` = ?", {
             json.encode(lastPropertyPayload),
             SV.GetIdentifier(ply)
         })
     end
 
-    -- Server-side state
+
     Player(src).state.currentProperty = propertyId
 
-    -- Track last_enter
+
     MySQL.query("UPDATE `houses` SET `last_enter` = ? WHERE `id` = ?", {
         os.time(),
         tonumber(propertyId)
     })
 
-    -- Teleport into interior door coords
+
     if prop.type == "shell" then
         local shell = AvailableShells[prop.metadata.shell]
         SetEntityCoords(ped, vector3(shell.doors.x, shell.doors.y, shell.doors.z))
@@ -1605,8 +1605,8 @@ AddEventHandler("vms_housing:sv:enterHouse", function(propertyId)
 
     SetPlayerRoutingBucket(src, tonumber(propertyId) + 1)
 
-    -- For fixed map interiors, also move the ped on its owning client after the
-    -- bucket change; a server-side coordinate update alone can be overwritten.
+
+
     if prop.type == "shell" then
         local shell = AvailableShells[prop.metadata.shell]
         if shell and shell.mapInterior then
@@ -1627,7 +1627,7 @@ AddEventHandler("vms_housing:sv:exitHouse", function(propertyId, goDownOnExit, e
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- If this is an apartment inside a building, exit might be redirected to building property
+
     if prop.object_id and not isApartment then
         local building = GetProperty(prop.object_id)
         if not building then return end
@@ -1636,7 +1636,7 @@ AddEventHandler("vms_housing:sv:exitHouse", function(propertyId, goDownOnExit, e
         end
     end
 
-    -- Clear last_property in DB
+
     if Config.Core == "ESX" then
         MySQL.query("UPDATE `users` SET `last_property` = NULL WHERE `identifier` = ?", { SV.GetIdentifier(ply) })
         ply.set("lastProperty", nil)
@@ -1646,10 +1646,10 @@ AddEventHandler("vms_housing:sv:exitHouse", function(propertyId, goDownOnExit, e
 
     Player(src).state.currentProperty = nil
 
-    -- Teleport out unless A2_2 was set (kept behavior)
+
     if not emergencyExit then
         if isApartment then
-            -- emergencyOutside
+
             local e = prop.metadata.emergencyOutside or {}
             SetEntityCoords(ped, vector3(e.x or 0.0, e.y or 0.0, e.z or 0.0))
             SetEntityHeading(ped, e.w or 0.0)
@@ -1663,7 +1663,7 @@ AddEventHandler("vms_housing:sv:exitHouse", function(propertyId, goDownOnExit, e
 
     SetPlayerRoutingBucket(src, 0)
 
-    -- Remove from playersInside list
+
     local inside = Properties[propertyId] and Properties[propertyId].playersInside
     if inside then
         for i = 1, #inside do
@@ -1675,7 +1675,7 @@ AddEventHandler("vms_housing:sv:exitHouse", function(propertyId, goDownOnExit, e
     end
 end)
 
--- Preview enter/exit (just bucket changes)
+
 RegisterNetEvent("vms_housing:sv:enterPreviewHouse")
 AddEventHandler("vms_housing:sv:enterPreviewHouse", function(propertyId)
     local src = source
@@ -1700,7 +1700,7 @@ AddEventHandler("vms_housing:sv:exitPreviewHouse", function(propertyId)
     SetPlayerRoutingBucket(src, 0)
 end)
 
--- Camera mode: move between inside/outside without leaving property context
+
 RegisterNetEvent("vms_housing:sv:enterCameraModeDifferentEnvironment")
 AddEventHandler("vms_housing:sv:enterCameraModeDifferentEnvironment", function(propertyId, environment)
     local src = source
@@ -1757,9 +1757,9 @@ AddEventHandler("vms_housing:sv:exitCameraMode", function(propertyId, environmen
     end
 end)
 
--- ============================================================================
--- Light toggle
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:toggleLight")
 AddEventHandler("vms_housing:sv:toggleLight", function(propertyId)
@@ -1785,7 +1785,7 @@ AddEventHandler("vms_housing:sv:toggleLight", function(propertyId)
         library.ApplyCurrentLightUsage(propertyId, nil, false)
     end
 
-    -- === [ASYNC] DB UPDATE ================================================
+
     MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
         json.encode(prop.metadata),
         tonumber(propertyId),
@@ -1796,9 +1796,9 @@ AddEventHandler("vms_housing:sv:toggleLight", function(propertyId)
     }, src)
 end)
 
--- ============================================================================
--- Doorbell
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:ringDoorbell")
 AddEventHandler("vms_housing:sv:ringDoorbell", function(propertyId)
@@ -1819,7 +1819,7 @@ AddEventHandler("vms_housing:sv:ringDoorbell", function(propertyId)
 
     prop.lastDoorBell = GetGameTimer()
 
-    -- Notify ringer + everyone inside
+
     TriggerClientEvent("vms_housing:cl:updateProperty", src, "ringDoorbell", propertyId, nil, src)
 
     if prop.playersInside and #prop.playersInside >= 1 then
@@ -1829,9 +1829,9 @@ AddEventHandler("vms_housing:sv:ringDoorbell", function(propertyId)
     end
 end)
 
--- ============================================================================
--- Property lock toggle (main lock)
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:toggleLock")
 AddEventHandler("vms_housing:sv:toggleLock", function(propertyId, keySerial, forceAfterRaid)
@@ -1843,12 +1843,12 @@ AddEventHandler("vms_housing:sv:toggleLock", function(propertyId, keySerial, for
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Forced lock after raid resolves raid state and sets locked=true
+
     if forceAfterRaid then
         prop.isUnderRaid = false
         prop.metadata.locked = true
 
-        -- === [ASYNC] DB UPDATE ============================================
+
         MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
             json.encode(prop.metadata),
             tonumber(propertyId),
@@ -1861,7 +1861,7 @@ AddEventHandler("vms_housing:sv:toggleLock", function(propertyId, keySerial, for
         return
     end
 
-    -- Key check
+
     local hasKeys = library.HasKeys(src, identifier, propertyId, keySerial)
     if not hasKeys then
         library.Notification(src, TRANSLATE("notify.not_allowed"), 5500, "error")
@@ -1874,7 +1874,7 @@ AddEventHandler("vms_housing:sv:toggleLock", function(propertyId, keySerial, for
 
     prop.metadata.locked = not prop.metadata.locked
 
-    -- === [ASYNC] DB UPDATE ============================================
+
     MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
         json.encode(prop.metadata),
         tonumber(propertyId),
@@ -1886,9 +1886,9 @@ AddEventHandler("vms_housing:sv:toggleLock", function(propertyId, keySerial, for
     }, src)
 end)
 
--- ============================================================================
--- Door locks (multi-door setups) + lockpick + raid ram interactions
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:toggleDoorlock")
 AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, keySerial, isLockpick, isRaidRam, lockpickSuccess, isLockpickFailSilent)
@@ -1900,10 +1900,10 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Lockpick branch
+
     if isLockpick then
         if not lockpickSuccess then
-            -- Optional dispatch alert on fail
+
             if DispatchAlertServer and Config.Alarm and Config.Alarm.AlertPoliceOnLockpickFail then
                 if Config.Alarm.AlertPoliceOnlyWithUpgrade then
                     if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.alarm then
@@ -1916,7 +1916,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
             return
         end
 
-        -- Consume lockpick item if required
+
         if Config.Lockpick and Config.Lockpick.Item and Config.Lockpick.Item.Required then
             local itemName = Config.Lockpick.Item.Name
             local cnt = SV.GetItemCount(ply, itemName)
@@ -1930,7 +1930,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
             end
         end
 
-        -- Optional dispatch alert on success
+
         if DispatchAlertServer and Config.Alarm and Config.Alarm.AlertPoliceOnLockpickSuccess then
             if Config.Alarm.AlertPoliceOnlyWithUpgrade then
                 if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.alarm then
@@ -1941,7 +1941,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
             end
         end
 
-        -- Webhook
+
         SV.Webhook(
             "LockpickedPropertyDoors",
             WebhookText["TITLE.LockpickedPropertyDoors"],
@@ -1950,15 +1950,15 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
             identifier
         )
 
-        -- Unlock door
+
         if prop.metadata.doors and prop.metadata.doors[doorId] then
             prop.metadata.doors[doorId].locked = false
         end
 
-    -- Raid ram branch
+
     elseif isRaidRam then
         if prop.isUnderRaid then
-            -- If already under raid, locking the door ends raid
+
             if prop.metadata.doors and prop.metadata.doors[doorId] then
                 prop.metadata.doors[doorId].locked = true
             end
@@ -1969,7 +1969,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
                 return library.Notification(src, TRANSLATE("notify.raid:" .. reason), 5500, "error")
             end
 
-            -- Anti-burglary raid chance check
+
             if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.antiBurglaryDoors then
                 local chanceOk = library.DrawChance(Config.PropertyRaids.AntiBurglaryDoors.RaidChance)
                 if not chanceOk then
@@ -1977,18 +1977,18 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
                 end
             end
 
-            -- Consume raid item if required
+
             if Config.PropertyRaids.Item and Config.PropertyRaids.Item.Required and Config.PropertyRaids.Item.RemoveOnUse then
                 SV.RemoveItem(src, ply, Config.PropertyRaids.Item.Name, Config.PropertyRaids.Item.Count or 1)
             end
 
-            -- Unlock the door, mark raid state
+
             if prop.metadata.doors and prop.metadata.doors[doorId] then
                 prop.metadata.doors[doorId].locked = false
             end
             prop.isUnderRaid = true
 
-            -- Break anti-burglary doors if configured
+
             if Config.PropertyRaids.AntiBurglaryDoors.BreakOnRam then
                 if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.antiBurglaryDoors then
                     prop.metadata.upgrades.antiBurglaryDoors = nil
@@ -2000,7 +2000,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
             end
         end
 
-    -- Normal key toggle branch
+
     else
         local hasKeys = library.HasKeys(src, identifier, propertyId, keySerial)
         if not hasKeys then
@@ -2016,13 +2016,13 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
         end
     end
 
-    -- Persist metadata
+
     MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
         json.encode(prop.metadata),
         tonumber(propertyId),
     })
 
-    -- Broadcast updated door state
+
     TriggerClientEvent("vms_housing:cl:updateProperty", -1, "toggleDoorlock", propertyId, {
         doorId = doorId,
         locked = prop.metadata.doors and prop.metadata.doors[doorId] and prop.metadata.doors[doorId].locked,
@@ -2031,7 +2031,7 @@ AddEventHandler("vms_housing:sv:toggleDoorlock", function(propertyId, doorId, ke
     }, src)
 end)
 
--- Lockpick start event (alerts)
+
 RegisterNetEvent("vms_housing:sv:startedLockpickDoors")
 AddEventHandler("vms_housing:sv:startedLockpickDoors", function(propertyId)
     local src = source
@@ -2052,7 +2052,7 @@ AddEventHandler("vms_housing:sv:startedLockpickDoors", function(propertyId)
     end
 end)
 
--- Lockpick main lock (not per-door) – preserved
+
 RegisterNetEvent("vms_housing:sv:lockpickDoors")
 AddEventHandler("vms_housing:sv:lockpickDoors", function(propertyId, success)
     local src = source
@@ -2076,7 +2076,7 @@ AddEventHandler("vms_housing:sv:lockpickDoors", function(propertyId, success)
         return
     end
 
-    -- Consume lockpick item if required
+
     if Config.Lockpick and Config.Lockpick.Item and Config.Lockpick.Item.Required then
         local itemName = Config.Lockpick.Item.Name
         local cnt = SV.GetItemCount(ply, itemName)
@@ -2090,7 +2090,7 @@ AddEventHandler("vms_housing:sv:lockpickDoors", function(propertyId, success)
         end
     end
 
-    -- Success alert
+
     if DispatchAlertServer and Config.Alarm and Config.Alarm.AlertPoliceOnLockpickSuccess then
         if Config.Alarm.AlertPoliceOnlyWithUpgrade then
             if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.alarm then
@@ -2101,7 +2101,7 @@ AddEventHandler("vms_housing:sv:lockpickDoors", function(propertyId, success)
         end
     end
 
-    -- Unlock property (main lock)
+
     prop.metadata.locked = false
 
     MySQL.query("UPDATE `houses` SET `metadata` = ? WHERE `id` = ?", {
@@ -2123,9 +2123,9 @@ AddEventHandler("vms_housing:sv:lockpickDoors", function(propertyId, success)
     )
 end)
 
--- ============================================================================
--- Lockdown / Police seal
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:lockdown")
 AddEventHandler("vms_housing:sv:lockdown", function(propertyId)
@@ -2139,7 +2139,7 @@ AddEventHandler("vms_housing:sv:lockdown", function(propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Job check
+
     if Config.PropertyLockdown.Jobs then
         local jobName = SV.GetPlayerJob(ply, "name")
         local ok = false
@@ -2156,7 +2156,7 @@ AddEventHandler("vms_housing:sv:lockdown", function(propertyId)
         end
     end
 
-    -- Item check + optional consume
+
     if Config.PropertyLockdown.Item and Config.PropertyLockdown.Item.Required then
         local cnt = SV.GetItemCount(ply, Config.PropertyLockdown.Item.Name)
         local need = Config.PropertyLockdown.Item.Count or 1
@@ -2201,7 +2201,7 @@ AddEventHandler("vms_housing:sv:removePoliceSeal", function(propertyId)
     local prop = GetProperty(propertyId)
     if not prop then return end
 
-    -- Job check
+
     if Config.PropertyLockdown.Jobs then
         local jobName = SV.GetPlayerJob(ply, "name")
         local ok = false
@@ -2238,9 +2238,9 @@ AddEventHandler("vms_housing:sv:removePoliceSeal", function(propertyId)
     )
 end)
 
--- ============================================================================
--- Raid property (main lock)
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:raidProperty")
 AddEventHandler("vms_housing:sv:raidProperty", function(propertyId)
@@ -2262,7 +2262,7 @@ AddEventHandler("vms_housing:sv:raidProperty", function(propertyId)
         return
     end
 
-    -- Anti-burglary doors chance check
+
     if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.antiBurglaryDoors then
         local chanceOk = library.DrawChance(Config.PropertyRaids.AntiBurglaryDoors.RaidChance)
         if not chanceOk then
@@ -2270,16 +2270,16 @@ AddEventHandler("vms_housing:sv:raidProperty", function(propertyId)
         end
     end
 
-    -- Consume item if configured
+
     if Config.PropertyRaids.Item and Config.PropertyRaids.Item.Required and Config.PropertyRaids.Item.RemoveOnUse then
         SV.RemoveItem(src, ply, Config.PropertyRaids.Item.Name, Config.PropertyRaids.Item.Count or 1)
     end
 
-    -- Unlock + flag raid
+
     prop.metadata.locked = false
     prop.isUnderRaid = true
 
-    -- Break anti-burglary doors if configured
+
     if Config.PropertyRaids.AntiBurglaryDoors.BreakOnRam then
         if prop.metadata and prop.metadata.upgrades and prop.metadata.upgrades.antiBurglaryDoors then
             prop.metadata.upgrades.antiBurglaryDoors = nil
@@ -2304,9 +2304,9 @@ AddEventHandler("vms_housing:sv:raidProperty", function(propertyId)
     )
 end)
 
--- ============================================================================
--- Keys management (buy key / give key / remove key / lock replacement)
--- ============================================================================
+
+
+
 
 RegisterNetEvent("vms_housing:sv:buyKey")
 AddEventHandler("vms_housing:sv:buyKey", function(propertyId, targetSource)
@@ -2324,7 +2324,7 @@ AddEventHandler("vms_housing:sv:buyKey", function(propertyId, targetSource)
         return library.Notification(src, TRANSLATE("notify.not_allowed"), 5500, "error")
     end
 
-    -- Charge key price (bank)
+
     if Config.KeyPrice > 0 then
         local money = SV.GetMoney(ply, "bank")
         if not tonumber(money) then return end
@@ -2337,7 +2337,7 @@ AddEventHandler("vms_housing:sv:buyKey", function(propertyId, targetSource)
     local serial = library.GenerateKeySerialNumber(propertyId)
     prop.keys = json.decode(prop.keys)
 
-    -- Keys limit
+
     if prop.metadata.keysLimit then
         if #prop.keys >= tonumber(prop.metadata.keysLimit) then
             prop.keys = json.encode(prop.keys)
@@ -2353,7 +2353,7 @@ AddEventHandler("vms_housing:sv:buyKey", function(propertyId, targetSource)
     table.insert(prop.keys, serial)
     prop.keys = json.encode(prop.keys)
 
-    -- Give key item to target or self
+
     if targetSource then
         local target = SV.GetPlayer(tonumber(targetSource))
         if target then
@@ -2378,7 +2378,7 @@ AddEventHandler("vms_housing:sv:buyKey", function(propertyId, targetSource)
     )
 end)
 
--- giveKey / removeKey are used when NOT using keys as items
+
 RegisterNetEvent("vms_housing:sv:giveKey")
 AddEventHandler("vms_housing:sv:giveKey", function(propertyId, targetSource)
     if Config.UseKeysOnItem then return end
@@ -2405,13 +2405,13 @@ AddEventHandler("vms_housing:sv:giveKey", function(propertyId, targetSource)
 
     prop.keys = json.decode(prop.keys)
 
-    -- Already has keys?
+
     if prop.keys[targetIdentifier] then
         prop.keys = json.encode(prop.keys)
         return library.Notification(src, TRANSLATE("notify.property:already_have_keys"), 5500, "error")
     end
 
-    -- Count keys for limits (original used pairs count)
+
     local keyCount = 0
     for _ in pairs(prop.keys) do keyCount = keyCount + 1 end
 
@@ -2501,7 +2501,7 @@ AddEventHandler("vms_housing:sv:lockReplacement", function(propertyId)
         return library.Notification(src, TRANSLATE("notify.not_allowed"), 5500, "error")
     end
 
-    -- Charge replacement price
+
     if Config.LockReplacementPrice > 0 then
         local money = SV.GetMoney(ply, "bank")
         if not tonumber(money) then return end
@@ -2511,7 +2511,7 @@ AddEventHandler("vms_housing:sv:lockReplacement", function(propertyId)
         SV.RemoveMoney(ply, "bank", tonumber(Config.LockReplacementPrice))
     end
 
-    -- Reset keys
+
     prop.keys = json.encode({})
 
     MySQL.query("UPDATE `houses` SET `keys` = ? WHERE `id` = ?", { prop.keys, tonumber(propertyId) })
@@ -2526,26 +2526,26 @@ AddEventHandler("vms_housing:sv:lockReplacement", function(propertyId)
         identifier
     )
 end)
---========================================================================
--- vms_housing (server) - Deobfuscated / refactored (PART 2A)
---========================================================================
--- Goals:
---  - Replace L0_1/L1_1/... variables with meaningful names
---  - Reduce nesting via early returns + small helper functions
---  - Add comments for intent and server ↔ client flow
---  - Keep behavior identical (same events, same DB writes, same triggers)
---
--- NOTE:
---  This is a very large file segment. This “PART 2A” covers the events
---  included in your paste up through the most critical housing flows
---  (furniture, deliveries, upgrades, marketplace, billing, rental control).
---  The remaining contract/permissions/owner-renter events follow the same
---  helper patterns shown here and can be refactored identically.
---========================================================================
 
---========================================================================
--- Helpers (non-functional changes; only reduce repetition / nesting)
---========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 local function notifyNotAllowed(src)
   return library.Notification(src, TRANSLATE("notify.not_allowed"), 5500, "error")
@@ -2573,9 +2573,9 @@ local function requirePermissionOrNotify(src, propertyId, identifier, permission
   return true
 end
 
---========================================================================
--- Furniture: Move furniture item to storage (stored=1, position=NULL)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:takeFurnitureToStorage", function(propertyId, furnitureId)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2588,7 +2588,7 @@ RegisterNetEvent("vms_housing:sv:takeFurnitureToStorage", function(propertyId, f
     return
   end
 
-  -- Update in-memory cache
+
   for _, item in pairs(property.furniture or {}) do
     if item.id == furnitureId then
       item.stored = 1
@@ -2597,26 +2597,26 @@ RegisterNetEvent("vms_housing:sv:takeFurnitureToStorage", function(propertyId, f
     end
   end
 
-  -- ASYNC DB write
+
   MySQL.query(
     "UPDATE `houses_furniture` SET `stored` = 1, `position` = NULL WHERE `id` = ? AND `house_id` = ?",
     { furnitureId, tonumber(propertyId) }
   )
 
-  -- Broadcast state change to everyone
+
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "storeFurniture", propertyId, {
     furnitureId = furnitureId
   })
 end)
 
---========================================================================
--- Furniture: Purchase / checkout furniture
---  - Calculates delivery charge + price
---  - Removes money
---  - Inserts furniture row stored=1
---  - Optionally schedules delivery metadata + PendingDeliveries
---  - Broadcasts orderedFurniture update
---========================================================================
+
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymentMethod, modelName)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2629,7 +2629,7 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     return
   end
 
-  -- Furniture limit check
+
   if property.furniture then
     local currentCount = #property.furniture
     local limit = GetFurnitureLimit(property.metadata and property.metadata.upgrades)
@@ -2643,7 +2643,7 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     return library.Debug(("Furniture '%s' does not exist!"):format(modelName), "warn")
   end
 
-  -- Delivery charge
+
   local deliveryCharge = furnitureDef.deliveryCharge
   if not deliveryCharge then
     deliveryCharge = Config.Deliveries[tostring(furnitureDef.deliverySize)].defaultDeliveryCharge
@@ -2652,7 +2652,7 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
   local basePrice = furnitureDef.price or 0
   local totalPrice = basePrice + (deliveryCharge or 0)
 
-  -- If any cost exists, validate & take payment
+
   if furnitureDef.price or deliveryCharge then
     local balance = SV.GetMoney(player, paymentMethod)
     if not tonumber(balance) then return end
@@ -2661,36 +2661,36 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
       return library.Notification(src, TRANSLATE("notify.not_enough_money"), 5000, "error")
     end
 
-    -- Remove money (can be multi-return in your framework; keep as-is)
+
     SV.RemoveMoney(player, paymentMethod, tonumber(totalPrice))
   end
 
-  -- Delivery time
+
   local deliveryTimeMs = furnitureDef.deliveryTime
   if not deliveryTimeMs then
     deliveryTimeMs = Config.Deliveries[tostring(furnitureDef.deliverySize)].defaultDeliveryTime
   end
 
-  -- Build row object (stored by default)
+
   local newItem = {
     model = modelName,
     stored = 1,
     metadata = {}
   }
 
-  -- Insert DB row (await)
+
   local insertedId = MySQL.insert.await(
     "INSERT INTO `houses_furniture` (`house_id`, `model`, `stored`, `metadata`) VALUES (?, ?, ?, ?)",
     { propertyId, newItem.model, newItem.stored, json.encode(newItem.metadata) }
   )
   newItem.id = insertedId
 
-  -- Copy default metadata from config if present
+
   if furnitureDef.metadata then
     newItem.metadata = furnitureDef.metadata
   end
 
-  -- Interactable setup: storage/safe get unique ids + safe pin init
+
   if furnitureDef.interactableName then
     newItem.metadata.interactableName = furnitureDef.interactableName
 
@@ -2702,7 +2702,7 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     end
   end
 
-  -- Delivery scheduling (DeliveryType 2 or 3)
+
   if Config.DeliveryType == 2 or Config.DeliveryType == 3 then
     newItem.metadata.deliveryTime = math.floor(os.time() + (deliveryTimeMs / 1000))
 
@@ -2713,7 +2713,7 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     })
   end
 
-  -- Webhook logging
+
   SV.Webhook(
     "OrderedFurniture",
     WebhookText["TITLE.OrderedFurniture"],
@@ -2734,10 +2734,10 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     identifier
   )
 
-  -- Client notification to buyer
+
   library.Notification(src, TRANSLATE("notify.property:ordered_furniture", furnitureDef.label, totalPrice), 5000, "success")
 
-  -- If metadata has any keys, update DB metadata + register storages
+
   if next(newItem.metadata) then
     MySQL.query(
       "UPDATE `houses_furniture` SET `metadata` = ? WHERE `id` = ? AND `house_id` = ?",
@@ -2749,19 +2749,19 @@ RegisterNetEvent("vms_housing:sv:checkoutFurniture", function(propertyId, paymen
     end
   end
 
-  -- Ensure property cache has furniture list
+
   Properties[propertyId].furniture = Properties[propertyId].furniture or {}
   table.insert(Properties[propertyId].furniture, newItem)
 
-  -- Broadcast update
+
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "orderedFurniture", propertyId, {
     furniture = newItem
   }, src)
 end)
 
---========================================================================
--- Furniture: Place furniture (stored=0 + save position json)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:placeFurniture", function(propertyId, placementData)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2802,9 +2802,9 @@ RegisterNetEvent("vms_housing:sv:placeFurniture", function(propertyId, placement
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "placedFurniture", propertyId, {furnitureId = item.id, position = pos}, src)
 end)
 
---========================================================================
--- Furniture: Sell furniture (only if stored=1 in DB delete condition)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:sellFurniture", function(propertyId, furnitureId, _modelName)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2819,7 +2819,7 @@ RegisterNetEvent("vms_housing:sv:sellFurniture", function(propertyId, furnitureI
   local price = definition and tonumber(definition.price) or 0
   local refund = math.floor(price * (tonumber(Config.FurnitureSellPercentage) or 0) / 100)
   if refund < 1 then return library.Notification(src, TRANSLATE("notify.furniture:cannot_sold"), 5500, "error") end
-  -- Delete first, atomically: invalid/repeated requests must never pay twice.
+
   local affected = MySQL.update.await("DELETE FROM houses_furniture WHERE `house_id` = ? AND `id` = ? AND `stored` = 1", {tonumber(propertyId), tonumber(furnitureId)})
   if not affected or affected < 1 then return end
   for i, candidate in ipairs(property.furniture or {}) do
@@ -2830,7 +2830,7 @@ RegisterNetEvent("vms_housing:sv:sellFurniture", function(propertyId, furnitureI
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "soldFurniture", propertyId, {furnitureId = furnitureId}, src)
 end)
 
--- Remove either stored or placed furniture from the current property.
+
 RegisterNetEvent("vms_housing:sv:removeFurniture", function(propertyId, furnitureId, _modelName)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2850,9 +2850,9 @@ RegisterNetEvent("vms_housing:sv:removeFurniture", function(propertyId, furnitur
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "removedFurniture", propertyId, {furnitureId = furnitureId}, src)
 end)
 
---========================================================================
--- Safe: Change safe pin (checks old pin, disallow same pin)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:changeSafePin", function(propertyId, furnitureId, newPin, oldPin)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -2861,7 +2861,7 @@ RegisterNetEvent("vms_housing:sv:changeSafePin", function(propertyId, furnitureI
   local property = getPropertyOrReturn(propertyId)
   if not property then return end
 
-  -- Find furniture entry by id
+
   local index
   for i, item in pairs(property.furniture or {}) do
     if item.id == furnitureId then
@@ -2886,7 +2886,7 @@ RegisterNetEvent("vms_housing:sv:changeSafePin", function(propertyId, furnitureI
 
   library.Notification(src, TRANSLATE("notify.safe:changed_pin", oldPin, newPin), 5500, "success")
 
-  -- Webhook
+
   SV.Webhook(
     "ChangedSafePin",
     WebhookText["TITLE.ChangedSafePin"],
@@ -2902,7 +2902,7 @@ RegisterNetEvent("vms_housing:sv:changeSafePin", function(propertyId, furnitureI
     identifier
   )
 
-  -- Update in memory + DB
+
   item.metadata.pin = newPin
 
   MySQL.query(
@@ -2910,17 +2910,17 @@ RegisterNetEvent("vms_housing:sv:changeSafePin", function(propertyId, furnitureI
     { json.encode(item.metadata), furnitureId, tonumber(propertyId) }
   )
 
-  -- Broadcast update
+
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "changedSafePin", propertyId, {
     furnitureId = furnitureId,
     newPin = item.metadata.pin
   }, player)
 end)
 
---========================================================================
--- Delivery: Unpack deliveries (DeliveryType=3 only)
---  Removes `"delivered":true` flag from metadata in-memory and in DB.
---========================================================================
+
+
+
+
 RegisterNetEvent("vms_housing:sv:unpackDelivery", function(propertyId)
   if Config.DeliveryType ~= 3 then return end
 
@@ -2931,14 +2931,14 @@ RegisterNetEvent("vms_housing:sv:unpackDelivery", function(propertyId)
   local property = getPropertyOrReturn(propertyId)
   if not property then return end
 
-  -- Strip delivered flag in memory
+
   for _, item in pairs(property.furniture or {}) do
     if item.metadata and item.metadata.delivered then
       item.metadata.delivered = nil
     end
   end
 
-  -- DB: remove `"delivered":true` (string replace like original)
+
   MySQL.query([[
         UPDATE `houses_furniture`
         SET 
@@ -2956,9 +2956,9 @@ RegisterNetEvent("vms_housing:sv:unpackDelivery", function(propertyId)
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "unpackedDelivery", propertyId, {}, src)
 end)
 
---========================================================================
--- Upgrades: Purchase upgrade or upgrade-level
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
   local upgradeCfg = Config.HousingUpgrades[upgradeKey]
   if not upgradeCfg then return end
@@ -2974,12 +2974,12 @@ RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
     return
   end
 
-  -- Ensure upgrades table exists
+
   property.metadata.upgrades = property.metadata.upgrades or {}
 
-  --======================================================================
-  -- LEVELLED upgrades
-  --======================================================================
+
+
+
   if upgradeCfg.levels then
     local metadataName = upgradeCfg.metadata
     local currentLevelStr = property.metadata.upgrades[metadataName] or "0"
@@ -2992,7 +2992,7 @@ RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
     if price then
       local paid = false
 
-      -- Try cash first, then bank (matches original intent)
+
       local cash = SV.GetMoney(player, "cash")
       if cash >= price then
         paid = true
@@ -3014,10 +3014,10 @@ RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
       library.Notification(src, TRANSLATE("notify.property:purchased_upgrade_free", upgradeCfg.label), 5500, "success")
     end
 
-    -- Apply upgrade
+
     property.metadata.upgrades[metadataName] = tostring(tonumber(currentLevelStr) + 1)
 
-    -- Webhook
+
     SV.Webhook(
       "UpgradedToLevel",
       WebhookText["TITLE.UpgradedToLevel"],
@@ -3033,9 +3033,9 @@ RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
       identifier
     )
 
-  --======================================================================
-  -- ONE-TIME upgrades
-  --======================================================================
+
+
+
   else
     if upgradeCfg.price then
       local paid = false
@@ -3078,26 +3078,26 @@ RegisterNetEvent("vms_housing:sv:upgrade", function(propertyId, upgradeKey)
     )
   end
 
-  -- Persist property metadata (DB)
+
   MySQL.query(
     "UPDATE `houses` SET `metadata` = ? WHERE `id` = ?",
     { json.encode(property.metadata), tonumber(propertyId) }
   )
 
-  -- Broadcast upgrade update
+
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "upgrade", propertyId, {
     metadataName = upgradeCfg.metadata,
     [upgradeCfg.metadata] = property.metadata.upgrades[upgradeCfg.metadata]
   }, src)
 end)
 
---========================================================================
--- Marketplace: Add / update offer
---  - Blocks if renter exists
---  - Requires marketplaceManage permission
---  - Updates description, furnished, contact_number, sale/rental settings
---  - Saves to DB, broadcasts to everyone, webhook
---========================================================================
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -3106,7 +3106,7 @@ RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData
   local property = getPropertyOrReturn(propertyId)
   if not property then return end
 
-  -- blocked if rented
+
   if property.renter then
     return library.Notification(src, TRANSLATE("notify.property:marketplace_blocked_by_renter"), 5000, "info")
   end
@@ -3129,14 +3129,14 @@ RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData
     property.rental.price = tonumber(offerData.rentalPrice)
   end
 
-  -- Notify (added vs updated)
+
   if not property.sale.active and not property.rental.active then
     library.Notification(src, TRANSLATE("notify.property:marketplace_offer_updated"), 5500, "success")
   else
     library.Notification(src, TRANSLATE("notify.property:marketplace_offer_added"), 5500, "success")
   end
 
-  -- DB persist
+
   MySQL.query(
     "UPDATE `houses` SET `description` = ?, `sale` = ?, `rental` = ?, `metadata` = ? WHERE `id` = ?",
     {
@@ -3148,7 +3148,7 @@ RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData
     }
   )
 
-  -- Broadcast state update
+
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "marketplace", propertyId, {
     description = property.description,
     sale = property.sale,
@@ -3157,7 +3157,7 @@ RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData
     furnished = property.metadata.furnished
   }, src)
 
-  -- Webhook
+
   local furnishedIcon = property.metadata.furnished and "✅" or "❌"
   local saleText = property.sale.active and ("✅ $" .. tostring(property.sale.price)) or "❌"
   local rentalText = property.rental.active and ("✅ $" .. tostring(property.rental.price)) or "❌"
@@ -3180,9 +3180,9 @@ RegisterNetEvent("vms_housing:sv:marketplaceAdd", function(propertyId, offerData
   )
 end)
 
---========================================================================
--- Marketplace: Remove offer (disable both sale & rental)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:marketplaceRemove", function(propertyId)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -3217,13 +3217,13 @@ RegisterNetEvent("vms_housing:sv:marketplaceRemove", function(propertyId)
   }, src)
 end)
 
---========================================================================
--- Bills: Pay a bill (services / rent)
---  - Permission: billPayments
---  - Rejects if already this month for non-rent (same original check)
---  - Debits bank
---  - Marks paid, adjusts counters, webhooks, updates DB + broadcast
---========================================================================
+
+
+
+
+
+
+
 local utilityPaymentLocks = {}
 RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billType)
   if (billType ~= "services" and billType ~= "rent") or type(period) ~= "string" then return end
@@ -3251,8 +3251,8 @@ RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billT
   if utilityPaymentLocks[key] then return end
   utilityPaymentLocks[key] = true
 
-  -- ESX/QB accounts and SQL cannot share a transaction. Keep a per-invoice lock,
-  -- debit synchronously, then compare-and-set the invoice; refund on SQL failure.
+
+
   local balance = tonumber(SV.GetMoney(player, "bank"))
   if not balance or balance < total then
     utilityPaymentLocks[key] = nil
@@ -3297,13 +3297,13 @@ RegisterNetEvent("vms_housing:sv:payTheBill", function(propertyId, period, billT
   end)
 end)
 
---========================================================================
--- Rental: Terminate now (owner action; requires rentersManage)
---  - Optionally clears keys
---  - Removes unpaid rent bills
---  - Clears renter fields, locks property, resets rental fields
---  - Persists to DB + broadcast
---========================================================================
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
   local src = source
   local property = getPropertyOrReturn(propertyId)
@@ -3316,20 +3316,20 @@ RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
     return
   end
 
-  -- Remove keys on rent end
+
   if Config.RemoveKeysOnRentEnd then
     property.keys = json.encode({})
   end
 
   property.unpaidRentBills = nil
 
-  -- DB delete unpaid rent bills
+
   MySQL.prepare(
     "DELETE FROM houses_bills WHERE `house_id` = ? AND `type` = ? AND `paid` = 0",
     { tonumber(propertyId), "rent" }
   )
 
-  -- Remove rent bills from memory list
+
   for i = #property.bills, 1, -1 do
     local b = property.bills[i]
     if b.type == "rent" and (b.paid == 0 or b.paid == false) then
@@ -3337,7 +3337,7 @@ RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
     end
   end
 
-  -- Webhook
+
   SV.Webhook(
     "RentalTerminated",
     WebhookText["TITLE.RentalTerminated"],
@@ -3352,7 +3352,7 @@ RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
     identifier
   )
 
-  -- Clear renter permission entry
+
   if property.permissions and property.renter then
     property.permissions[property.renter] = nil
   end
@@ -3365,7 +3365,7 @@ RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
 
   library.Notification(src, TRANSLATE("notify.property:rent_terminated_now"), 5000, "success")
 
-  -- Persist full state
+
   MySQL.Async.execute([[
         UPDATE `houses`
             SET
@@ -3395,9 +3395,9 @@ RegisterNetEvent("vms_housing:sv:rentalTerminateNow", function(propertyId)
   }, src)
 end)
 
---========================================================================
--- Rental: Schedule termination next period (requires rentersManage)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:setRentalTermination", function(propertyId)
   local src = source
   local property = getPropertyOrReturn(propertyId)
@@ -3410,7 +3410,7 @@ RegisterNetEvent("vms_housing:sv:setRentalTermination", function(propertyId)
     return
   end
 
-  -- Next month calculation (matches original)
+
   local now = os.date("*t")
   local nextMonth = now.month + 1
   local year = now.year
@@ -3448,9 +3448,9 @@ RegisterNetEvent("vms_housing:sv:setRentalTermination", function(propertyId)
   }, src)
 end)
 
---========================================================================
--- Rental: Cancel scheduled termination (requires rentersManage)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:clearRentalTermination", function(propertyId)
   local src = source
   local property = getPropertyOrReturn(propertyId)
@@ -3489,9 +3489,9 @@ RegisterNetEvent("vms_housing:sv:clearRentalTermination", function(propertyId)
   }, src)
 end)
 
---========================================================================
--- Marketplace: Save photo URL (metadata.images[imageId] = url)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:saveMarketplacePhoto", function(propertyId, imageId, imageUrl)
   local src = source
   if not imageId then return end
@@ -3521,9 +3521,9 @@ RegisterNetEvent("vms_housing:sv:saveMarketplacePhoto", function(propertyId, ima
   }, src)
 end)
 
---========================================================================
--- Wardrobe position change (requires furniture permission)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:changeWardrobePosition", function(propertyId, coords)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -3556,9 +3556,9 @@ RegisterNetEvent("vms_housing:sv:changeWardrobePosition", function(propertyId, c
   }, src)
 end)
 
---========================================================================
--- Storage position change (requires furniture permission)
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:changeStoragePosition", function(propertyId, coords)
   local src = source
   local player, identifier = getPlayerAndIdentifier(src)
@@ -3591,28 +3591,28 @@ RegisterNetEvent("vms_housing:sv:changeStoragePosition", function(propertyId, co
   }, src)
 end)
 
---========================================================================
--- END PART 2A
---========================================================================
--- The rest of your paste continues with:
---  - sendPropertyContract / signedPropertyContract / cancelContract
---  - purchasePropertyMarketplace / rentPropertyMarketplace
---  - removePermission / updatePermission / addPermission
---  - moveOut / removeOwner / removeRenter
---
--- They can be refactored using the same helpers shown above:
---  - getPlayerAndIdentifier()
---  - getPropertyOrReturn()
---  - requirePermissionOrNotify()
--- and with early returns to flatten nested code.
---
--- If you paste the remaining tail (or confirm this paste already includes it),
--- I can apply the same treatment and output “PART 2B” + “PART 2C” in the
--- same style, keeping logic identical.
---========================================================================
---========================================================================
--- Creator/admin force-remove helpers
---========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local function getCreatorPropertyContext(src, propertyId)
   local player = SV.GetPlayer(src)
   if not player then return nil end
@@ -3683,9 +3683,9 @@ local function removeUnpaidRentBills(property, propertyId)
   end
 end
 
---========================================================================
--- Creator/admin: force remove owner
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:removeOwner", function(propertyId)
   local src = source
   local propertyIdStr = tostring(propertyId)
@@ -3732,9 +3732,9 @@ RegisterNetEvent("vms_housing:sv:removeOwner", function(propertyId)
   TriggerClientEvent("vms_housing:cl:updateProperty", -1, "forceRemovedOwner", propertyIdStr, payload, src)
 end)
 
---========================================================================
--- Creator/admin: force remove renter
---========================================================================
+
+
+
 RegisterNetEvent("vms_housing:sv:removeRenter", function(propertyId)
   local src = source
   local propertyIdStr = tostring(propertyId)

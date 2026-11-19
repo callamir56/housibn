@@ -1,11 +1,11 @@
 CL = {}
 
--- ███╗   ██╗ ██████╗ ████████╗██╗███████╗██╗ ██████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗███████╗
--- ████╗  ██║██╔═══██╗╚══██╔══╝██║██╔════╝██║██╔════╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
--- ██╔██╗ ██║██║   ██║   ██║   ██║█████╗  ██║██║     ███████║   ██║   ██║██║   ██║██╔██╗ ██║███████╗
--- ██║╚██╗██║██║   ██║   ██║   ██║██╔══╝  ██║██║     ██╔══██║   ██║   ██║██║   ██║██║╚██╗██║╚════██║
--- ██║ ╚████║╚██████╔╝   ██║   ██║██║     ██║╚██████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║███████║
--- ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚═╝╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+
+
+
+
+
+
 CL.Notification = function(message, time, type)
     if type == "success" then
         if GetResourceState("vms_notify") == 'started' then
@@ -40,12 +40,12 @@ end
 
 
 
--- ██╗  ██╗██╗   ██╗██████╗ 
--- ██║  ██║██║   ██║██╔══██╗
--- ███████║██║   ██║██║  ██║
--- ██╔══██║██║   ██║██║  ██║
--- ██║  ██║╚██████╔╝██████╔╝
--- ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
+
+
+
+
+
+
 CL.Hud = {
     Enable = function()
         if GetResourceState('vms_hud') ~= 'missing' then
@@ -61,12 +61,12 @@ CL.Hud = {
 
 
 
--- ████████╗ █████╗ ██████╗  ██████╗ ███████╗████████╗
--- ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝ ██╔════╝╚══██╔══╝
---    ██║   ███████║██████╔╝██║  ███╗█████╗     ██║   
---    ██║   ██╔══██║██╔══██╗██║   ██║██╔══╝     ██║   
---    ██║   ██║  ██║██║  ██║╚██████╔╝███████╗   ██║   
---    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   
+
+
+
+
+
+
 CL.Target = function(targetType, data)
     if targetType == 'zone' then
         if Config.TargetResource == 'ox_target' then
@@ -193,7 +193,7 @@ CL.Target = function(targetType, data)
             
             if data.options and next(data.options) then
                 for k, v in pairs(data.options) do
-                    local icon = v.icon or 'fa-solid fa-bars' -- Default Icon
+                    local icon = v.icon or 'fa-solid fa-bars'
 
                     if v.interactableName then
                         if v.interactableName == 'delivery' then
@@ -269,7 +269,7 @@ CL.Target = function(targetType, data)
             
             if data.options and next(data.options) then
                 for k, v in pairs(data.options) do
-                    local icon = v.icon or 'fa-solid fa-bars' -- Default Icon
+                    local icon = v.icon or 'fa-solid fa-bars'
 
                     if v.interactableName then
                         if v.interactableName == 'delivery' then
@@ -320,12 +320,12 @@ end
 
 
 
--- ███╗   ███╗██╗███╗   ██╗██╗ ██████╗  █████╗ ███╗   ███╗███████╗███████╗
--- ████╗ ████║██║████╗  ██║██║██╔════╝ ██╔══██╗████╗ ████║██╔════╝██╔════╝
--- ██╔████╔██║██║██╔██╗ ██║██║██║  ███╗███████║██╔████╔██║█████╗  ███████╗
--- ██║╚██╔╝██║██║██║╚██╗██║██║██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  ╚════██║
--- ██║ ╚═╝ ██║██║██║ ╚████║██║╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗███████║
--- ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝
+
+
+
+
+
+
 CL.Minigame = function(type, cb, data)
     if type == 'lockpick' then
         if GetResourceState('t3_lockpick') ~= 'started' then
@@ -363,12 +363,12 @@ end
 
 
 
--- ███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
--- ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
--- █████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝ 
--- ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗ 
--- ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
--- ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
+
+
+
+
+
+
 CL.IsPlayerLoaded = function(type)
     if Config.Core == "ESX" then
         return ESX.IsPlayerLoaded()
@@ -489,43 +489,43 @@ end
 
 
 
--- ██╗   ██╗ █████╗ ██████╗ ██╗ █████╗ ██████╗ ██╗     ███████╗███████╗
--- ██║   ██║██╔══██╗██╔══██╗██║██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝
--- ██║   ██║███████║██████╔╝██║███████║██████╔╝██║     █████╗  ███████╗
--- ╚██╗ ██╔╝██╔══██║██╔══██╗██║██╔══██║██╔══██╗██║     ██╔══╝  ╚════██║
---  ╚████╔╝ ██║  ██║██║  ██║██║██║  ██║██████╔╝███████╗███████╗███████║
---   ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝╚══════╝
+
+
+
+
+
+
 CL.HandleAction = function(action)
-    if action == 'enterInteriorPreview' then -- enterInteriorPreview: is called when the player enters the interior preview in the bid using the "Check Inside" button
+    if action == 'enterInteriorPreview' then
         if Config.Inventory == 'ox_inventory' then
-            LocalPlayer.state.invBusy = true -- Lock player inventory during preview
+            LocalPlayer.state.invBusy = true
             LocalPlayer.state.canUseWeapons = false
         end
         if Config.Inventory == 'qb-inventory' then
-            LocalPlayer.state:set('inv_busy', true, true) -- Lock player inventory during preview
+            LocalPlayer.state:set('inv_busy', true, true)
         end
         if Config.Inventory == 'qs-inventory' then
-            exports['qs-inventory']:setInventoryDisabled(true) -- Lock player inventory during preview
+            exports['qs-inventory']:setInventoryDisabled(true)
         end
 
-    elseif action == 'exitInteriorPreview' then -- exitInteriorPreview: is called when the player exits the interior preview
+    elseif action == 'exitInteriorPreview' then
         if Config.Inventory == 'ox_inventory' then
-            LocalPlayer.state.invBusy = false -- Unlock the player's inventory after previewing
-            LocalPlayer.state.canUseWeapons = true -- Unlock the player's inventory after previewing
+            LocalPlayer.state.invBusy = false
+            LocalPlayer.state.canUseWeapons = true
         end
         if Config.Inventory == 'qb-inventory' then
-            LocalPlayer.state:set('inv_busy', true, true) -- Unlock the player's inventory after previewing
+            LocalPlayer.state:set('inv_busy', true, true)
         end
         if Config.Inventory == 'qs-inventory' then
-            exports['qs-inventory']:setInventoryDisabled(false) -- Unlock the player's inventory after previewing
+            exports['qs-inventory']:setInventoryDisabled(false)
         end
         
     end
 end
 
 CL.CanEnterHouse = function()
-    -- This function is triggered when a player tries to enter the property.
-    -- You can return false to block access, for example if they are handcuffed or anything else
+
+
 
     if IsEntityDead(PlayerPedId()) then
         return false
@@ -535,8 +535,8 @@ CL.CanEnterHouse = function()
 end
 
 CL.CanExitHouse = function()
-    -- This function is triggered when a player tries to exit the property.
-    -- You can return false to block access, for example if they are handcuffed or anything else
+
+
 
     return true
 end
@@ -606,12 +606,12 @@ end
 
 
 
---  ██████╗ ██╗  ██╗    ██╗███╗   ██╗██╗   ██╗███████╗███╗   ██╗████████╗ ██████╗ ██████╗ ██╗   ██╗    ███╗   ███╗███████╗████████╗ █████╗ ██████╗  █████╗ ████████╗ █████╗ 
--- ██╔═══██╗╚██╗██╔╝    ██║████╗  ██║██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝    ████╗ ████║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
--- ██║   ██║ ╚███╔╝     ██║██╔██╗ ██║██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║   ██║██████╔╝ ╚████╔╝     ██╔████╔██║█████╗     ██║   ███████║██║  ██║███████║   ██║   ███████║
--- ██║   ██║ ██╔██╗     ██║██║╚██╗██║╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝      ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║  ██║██╔══██║   ██║   ██╔══██║
--- ╚██████╔╝██╔╝ ██╗    ██║██║ ╚████║ ╚████╔╝ ███████╗██║ ╚████║   ██║   ╚██████╔╝██║  ██║   ██║       ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║██████╔╝██║  ██║   ██║   ██║  ██║
---  ╚═════╝ ╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝       ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+
+
+
+
+
+
 Citizen.CreateThread(function()
     Citizen.Wait(500)
     if GetResourceState('ox_inventory') ~= 'missing' then

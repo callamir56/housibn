@@ -1,32 +1,32 @@
--- ============================================================================
--- NUI callbacks (deobfuscated / cleaned)
--- Keeps original behavior; only renamed variables + formatted + commented.
--- ============================================================================
 
--- Some builds/resources accidentally use RegisterNuiCallback instead of RegisterNUICallback.
--- Keep compatibility without changing behavior if the alias exists.
+
+
+
+
+
+
 local RegisterNuiCallbackCompat = RegisterNuiCallback or RegisterNUICallback
 local RegisterNUICallbackCompat = RegisterNUICallback
 
--- ---------------------------------------------------------------------------
--- NUI: UI finished loading (initial bootstrap payload)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("loaded", function(_, _cb)
-  -- Small delay to let player/framework state settle (original behavior)
+
   Citizen.Wait(1500)
 
   local payload = {
     action = "loaded",
     lang = Config.Language,
 
-    -- data tables prepared elsewhere
+
     availableShells = AvailableShells,
     availableIPLS = AvailableIPLS,
 
-    -- player info
+
     characterName = CharacterName,
 
-    -- config flags used by UI
+
     keysOnItem = Config.UseKeysOnItem,
     keyPrice = Config.KeyPrice,
     keysLimit = Config.KeysLimit,
@@ -54,18 +54,18 @@ RegisterNUICallbackCompat("loaded", function(_, _cb)
 
   Citizen.Wait(200)
 
-  -- [NUI]
+
   SendNUIMessage(payload)
 end)
 
--- ---------------------------------------------------------------------------
--- CloseNUI(closeNonCreatorMenus)
--- IMPORTANT: preserves original semantics:
---   - if closeNonCreatorMenus is falsy -> ONLY closes HousingCreator (if opened)
---   - if closeNonCreatorMenus is truthy -> closes other menus (offer/manage/furniture/etc)
--- ---------------------------------------------------------------------------
+
+
+
+
+
+
 local function CloseNUI(closeNonCreatorMenus)
-  -- Creator-only close
+
   if not closeNonCreatorMenus then
     if openedMenu == "HousingCreator" then
       HousingCreator:Close()
@@ -73,14 +73,14 @@ local function CloseNUI(closeNonCreatorMenus)
     return
   end
 
-  -- Non-creator close logic
+
   if openedMenu == "PropertyOffer"
     or openedMenu == "BuildingMenu"
     or openedMenu == "ApartmentMenu"
     or openedMenu == "Contract"
   then
     if openedMenu == "Contract" then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:cancelContract")
     end
 
@@ -97,7 +97,7 @@ local function CloseNUI(closeNonCreatorMenus)
     if closeFurnitureMenu then
       closeFurnitureMenu()
     else
-      -- Fallback: furniture module not loaded yet (or failed).
+
       SendNUIMessage({ action = "Property", actionName = "CloseFurniture" })
       SetNuiFocus(false, false)
       openedMenu = nil
@@ -131,11 +131,11 @@ local function CloseNUI(closeNonCreatorMenus)
   end
 end
 
-closeNUI = CloseNUI -- keep original global name
+closeNUI = CloseNUI
 
 RegisterNUICallbackCompat("close", function(data, cb)
-  -- NUI sends `{ menu: currentMenu }` (e.g. housing_creator / housing_manage / safe / marketplace).
-  -- Preserve CloseNUI semantics: creator closes with no arg; everything else uses `true`.
+
+
   local menu = data and data.menu
 
   if menu == "housing_creator" or openedMenu == "HousingCreator" then
@@ -149,9 +149,9 @@ RegisterNUICallbackCompat("close", function(data, cb)
   end
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: select shell / ipl (updates local config state)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:selectShell", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
@@ -170,15 +170,15 @@ RegisterNUICallbackCompat("creator:selectIPL", function(data, _cb)
   houseConfiguration.ipl = data.ipl
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: preview shell (spawns shell and shows overlay; X to go back)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:previewShell", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
   end
 
-  -- [NUI] hide creator menu
+
   SendNUIMessage({
     action = "HousingCreator",
     actionName = "Update",
@@ -188,23 +188,23 @@ RegisterNUICallbackCompat("creator:previewShell", function(data, _cb)
   SetNuiFocus(false, false)
 
   HousingCreator:EnterShell(data.shell, function()
-    -- [ASYNC THREAD] draw helper UI until preview exits
+
     Citizen.CreateThread(function()
       while CurrentShell do
         drawText2D("Selected Shell:", 0.5, 0.08, 0.4, 255, 255, 255)
         drawText2D(("~p~%s~s~"):format(data.shell), 0.5, 0.1, 0.65, 255, 255, 255)
         drawText2D("Press ~g~[X]~s~ to back", 0.5, 0.14, 0.3, 255, 255, 255)
 
-        -- X
+
         if IsControlJustPressed(0, 73) then
           DeleteHousingShell(CurrentShell)
 
-          -- restore previous coords if saved
+
           if houseConfiguration.previousCoords and houseConfiguration.previousCoords.x then
             SetEntityCoords(PlayerPedId(), houseConfiguration.previousCoords.xyz)
           end
 
-          -- [NUI] show creator menu again
+
           SendNUIMessage({
             action = "HousingCreator",
             actionName = "Update",
@@ -213,7 +213,7 @@ RegisterNUICallbackCompat("creator:previewShell", function(data, _cb)
 
           SetNuiFocus(true, true)
 
-          -- original uses false sentinel
+
           CurrentShell = false
           break
         end
@@ -224,15 +224,15 @@ RegisterNUICallbackCompat("creator:previewShell", function(data, _cb)
   end)
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: preview IPL (loads IPL settings; E to go back)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:previewIPL", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
   end
 
-  -- [NUI] hide creator menu
+
   SendNUIMessage({
     action = "HousingCreator",
     actionName = "Update",
@@ -241,7 +241,7 @@ RegisterNUICallbackCompat("creator:previewIPL", function(data, _cb)
 
   SetNuiFocus(false, false)
 
-  -- pick first theme key if available (matches original behavior)
+
   local firstThemeKey = nil
   local iplDef = AvailableIPLS[data.ipl]
   if iplDef and iplDef.settings and iplDef.settings.Themes then
@@ -252,14 +252,14 @@ RegisterNUICallbackCompat("creator:previewIPL", function(data, _cb)
   end
 
   HousingCreator:EnterIPL(data.ipl, function()
-    -- [ASYNC THREAD]
+
     Citizen.CreateThread(function()
       while CurrentIPL do
         drawText2D("Selected IPL:", 0.5, 0.08, 0.4, 255, 255, 255)
         drawText2D(("~p~%s~s~"):format(data.ipl), 0.5, 0.1, 0.65, 255, 255, 255)
         drawText2D("Press ~g~[E]~s~ to back", 0.5, 0.14, 0.3, 255, 255, 255)
 
-        -- E
+
         if IsControlJustPressed(0, 38) then
           if houseConfiguration.previousCoords and houseConfiguration.previousCoords.x then
             SetEntityCoords(PlayerPedId(), houseConfiguration.previousCoords.xyz)
@@ -267,7 +267,7 @@ RegisterNUICallbackCompat("creator:previewIPL", function(data, _cb)
 
           IPL.UnloadSettings(data.ipl)
 
-          -- [NUI] show creator menu again
+
           SendNUIMessage({
             action = "HousingCreator",
             actionName = "Update",
@@ -286,9 +286,9 @@ RegisterNUICallbackCompat("creator:previewIPL", function(data, _cb)
   end, firstThemeKey)
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: main action handler (save/delete/address/region/points/doors/etc)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
@@ -312,7 +312,7 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
       nuiMsg.actionName = "Open"
 
     elseif action == "delete" then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:deleteHouse", data.id)
       nuiMsg.actionName = "Open"
 
@@ -349,14 +349,14 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
       }
 
     else
-      -- Any "point/zone/door" action
-      -- Ensure creator input updates target the correct configuration section.
+
+
       houseConfiguration.type = housingType
 
       nuiMsg.actionName = "Update"
       nuiMsg.data = { type = "hide-menu" }
 
-      -- Remove focus for most actions (original excludes remove_door)
+
       if action ~= "remove_door" then
         SetNuiFocus(false, false)
       end
@@ -392,7 +392,7 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
         HousingCreator:CreateDoor(false, true)
 
       elseif action == "remove_door" then
-        -- Special: returns early in original
+
         HousingCreator:RemoveDoor(data.doorId)
         return
 
@@ -417,7 +417,7 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
       end
     end
   else
-    -- Furniture creator actions
+
     if housingType == "furniture" then
       if action == "save" then
         if not data.model then return end
@@ -426,13 +426,13 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
 
       elseif action == "delete" then
         if not data.model then return end
-        -- [SERVER]
+
         TriggerServerEvent("vms_housing:sv:deleteFurniture", data.model)
         nuiMsg.actionName = "Open"
 
       elseif action == "register" then
         if data.props then
-          -- [ASYNC THREAD]
+
           Citizen.CreateThread(function()
             RegisterFurniture(data.props)
           end)
@@ -448,13 +448,13 @@ RegisterNUICallbackCompat("creator:actionButton", function(data, _cb)
     SetNuiFocus(false, false)
   end
 
-  -- [NUI]
+
   SendNUIMessage(nuiMsg)
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: load an existing property into houseConfiguration
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:loadPropertyConfig", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
@@ -471,18 +471,18 @@ RegisterNUICallbackCompat("creator:loadPropertyConfig", function(data, _cb)
 
   local meta = property.metadata
 
-  -- base fields
+
   houseConfiguration.type = property.type
   houseConfiguration.address = property.address
   houseConfiguration.region = property.region
 
-  -- interior selector
+
   if property.type == "shell" then
     houseConfiguration.shell = meta.shell
   elseif property.type == "ipl" then
     houseConfiguration.ipl = meta.ipl
   elseif property.type == "mlo" then
-    -- deep-copies to avoid editing live data
+
     local interiorZone = meta and meta.interiorZone or {}
     houseConfiguration.interiorZone = {
       points = library.Deepcopy(interiorZone.points) or {},
@@ -492,7 +492,7 @@ RegisterNUICallbackCompat("creator:loadPropertyConfig", function(data, _cb)
 
     houseConfiguration.doors = library.Deepcopy(meta.doors) or {}
 
-    -- remove hashes (original strips hash fields for editor)
+
     for _, door in pairs(houseConfiguration.doors) do
       if door.left and door.left.hash then door.left.hash = nil end
       if door.right and door.right.hash then door.right.hash = nil end
@@ -502,7 +502,7 @@ RegisterNUICallbackCompat("creator:loadPropertyConfig", function(data, _cb)
     houseConfiguration.menuCoords = library.Deepcopy(meta.menu) or { x = 0.0, y = 0.0, z = 0.0, w = 0.0 }
   end
 
-  -- zones / points
+
   if meta and meta.zone then
     houseConfiguration.zone = {
       points = library.Deepcopy(meta.zone.points),
@@ -558,9 +558,9 @@ RegisterNUICallbackCompat("creator:loadPropertyConfig", function(data, _cb)
   end
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: info endpoints for UI
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:getAllBuildings", function(_, cb)
   local buildings, motels = HousingCreator:GetObjects(true, true)
   cb({ buildings = buildings, motels = motels })
@@ -579,9 +579,9 @@ RegisterNUICallbackCompat("creator:getAllFurniture", function(_, cb)
   cb(Furniture)
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: teleport helpers
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:teleportToProperty", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
@@ -594,19 +594,19 @@ RegisterNUICallbackCompat("creator:teleportToProperty", function(data, _cb)
 
   local meta = property.metadata
 
-  -- Prefer menu coords if present
+
   if meta.menu then
     SetEntityCoords(PlayerPedId(), meta.menu.x, meta.menu.y, meta.menu.z)
     return
   end
 
-  -- Fallback: exit coords
+
   if meta.exit then
     SetEntityCoords(PlayerPedId(), meta.exit.x, meta.exit.y, meta.exit.z)
     return
   end
 
-  -- Fallback: if it's an apartment/motel room referencing a building, teleport to parent exit
+
   if property.object_id then
     local parent = Properties[tostring(property.object_id)]
     if parent and parent.metadata and parent.metadata.exit then
@@ -633,14 +633,14 @@ RegisterNUICallbackCompat("creator:teleportToDoors", function(data, _cb)
   end
 end)
 
--- ---------------------------------------------------------------------------
--- HousingCreator: force remove owner/renter
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("creator:removeOwner", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
   end
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:removeOwner", data.id)
 end)
 
@@ -648,13 +648,13 @@ RegisterNUICallbackCompat("creator:removeRenter", function(data, _cb)
   if openedMenu ~= "HousingCreator" then
     return
   end
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:removeRenter", data.id)
 end)
 
--- ---------------------------------------------------------------------------
--- Apartments: open apartment menu / view offer (building only)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("apartments:getInformations", function(data, _cb)
   if not data.apartmentId then
     return
@@ -674,14 +674,14 @@ RegisterNUICallbackCompat("apartments:getInformations", function(data, _cb)
 
   SelectedApartment = apartmentId
 
-  -- apartment must belong to current building
+
   if tostring(apartment.object_id) ~= tostring(building.id) then
     return
   end
 
   local menuData = {}
 
-  -- if not owned/rented => open offer view
+
   if not apartment.owner and not apartment.renter then
     Property:ViewOffer(apartmentId)
     return
@@ -690,7 +690,7 @@ RegisterNUICallbackCompat("apartments:getInformations", function(data, _cb)
   menuData.buildingData = building
   ReloadApartmentMenu()
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "ApartmentMenu",
@@ -701,9 +701,9 @@ RegisterNUICallbackCompat("apartments:getInformations", function(data, _cb)
   openedMenu = "ApartmentMenu"
 end)
 
--- ---------------------------------------------------------------------------
--- Apartments: actions (cooldown protected)
--- ---------------------------------------------------------------------------
+
+
+
 local apartmentsActionCooldown = 0
 
 RegisterNUICallbackCompat("apartments:action", function(data, _cb)
@@ -713,7 +713,7 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
 
   local apartmentId = tostring(data.apartmentId)
 
-  -- cooldown (original: 3s)
+
   if apartmentsActionCooldown ~= 0 and (apartmentsActionCooldown + 3000) > GetGameTimer() then
     CL.Notification(TRANSLATE("notify.wait"), 4500, "error")
     return
@@ -741,7 +741,7 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
       manageTarget.action()
       SelectedApartment = nil
 
-      -- [NUI]
+
       SendNUIMessage({
         action = "Property",
         actionName = "CloseViewOffer",
@@ -751,20 +751,20 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
 
   elseif data.action == "lockdown" then
     if not apartment.metadata.lockdown then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:lockdown", apartmentId)
     end
 
   elseif data.action == "remove_police_seal" then
     if apartment.metadata.lockdown then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:removePoliceSeal", apartmentId)
     end
 
   elseif data.action == "raid" then
     local raidTarget = TargetHandler.Raid(apartmentId, function(confirmed)
       if confirmed then
-        -- [SERVER]
+
         TriggerServerEvent("vms_housing:sv:raidProperty", apartmentId)
       end
     end)
@@ -785,7 +785,7 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
     end)
 
   elseif data.action == "doorbell" then
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:ringDoorbell", apartmentId)
 
   elseif data.action == "lock" then
@@ -798,7 +798,7 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
     local alarm = apartment.metadata and apartment.metadata.upgrades and apartment.metadata.upgrades.alarm
 
     local lockpickTarget = TargetHandler.Lockpick(apartmentId, antiBurglary, alarm, function(mode)
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:lockpickDoors", apartmentId, mode)
     end)
 
@@ -809,11 +809,11 @@ RegisterNUICallbackCompat("apartments:action", function(data, _cb)
   end
 end)
 
--- ---------------------------------------------------------------------------
--- Property offer: interior preview (shell/ipl) for offers
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
-  -- If called for an apartment in a building menu, use that apartment; otherwise current offer property
+
   local offerProperty = nil
   if data.apartmentId and Properties[data.apartmentId] then
     offerProperty = Properties[data.apartmentId]
@@ -825,7 +825,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
     return
   end
 
-  -- Doors/exit marker comes from shell/ipl definition
+
   if offerProperty.metadata.shell then
     local shellName = offerProperty.metadata.shell
     local shellDef = AvailableShells[shellName]
@@ -835,18 +835,18 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
 
     local doors = shellDef.doors
     HousingCreator:EnterShell(shellName, function()
-      -- local previewExitZoneId
+
       local previewExitZoneId = nil
 
       CL.HandleAction("enterInteriorPreview")
 
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:enterPreviewHouse",
         data.apartmentId or GetCurrentPropertyId()
       )
 
-      -- [ASYNC THREAD] keep weather forced while preview active
+
       if ToggleWeather then
         Citizen.CreateThread(function()
           while CurrentShell do
@@ -856,7 +856,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
         end)
       end
 
-      -- Create an exit target inside preview
+
       previewExitZoneId = CL.Target("zone", {
         coords = vector3(doors.x, doors.y, doors.z + 1.5),
         size = vec(1.5, 2.1, 2.0),
@@ -873,7 +873,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
                 ToggleWeather(false)
               end
 
-              -- Teleport back outside
+
               if offerProperty.object_id then
                 local parent = Properties[tostring(offerProperty.object_id)]
                 if parent and parent.metadata and parent.metadata.exit then
@@ -889,7 +889,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
 
               CL.HandleAction("exitInteriorPreview")
 
-              -- [SERVER]
+
               TriggerServerEvent(
                 "vms_housing:sv:exitPreviewHouse",
                 data.apartmentId or GetCurrentPropertyId()
@@ -919,7 +919,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
 
       CL.HandleAction("enterInteriorPreview")
 
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:enterPreviewHouse",
         data.apartmentId or GetCurrentPropertyId()
@@ -950,7 +950,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
                 ToggleWeather(false)
               end
 
-              -- Teleport back outside
+
               if offerProperty.object_id then
                 local parent = Properties[tostring(offerProperty.object_id)]
                 if parent and parent.metadata and parent.metadata.exit then
@@ -966,7 +966,7 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
 
               CL.HandleAction("exitInteriorPreview")
 
-              -- [SERVER]
+
               TriggerServerEvent(
                 "vms_housing:sv:exitPreviewHouse",
                 data.apartmentId or GetCurrentPropertyId()
@@ -983,13 +983,13 @@ RegisterNUICallbackCompat("propertyOffer:enterHouse", function(data, _cb)
   end
 end)
 
--- ---------------------------------------------------------------------------
--- Contracts: buy/rent from offer screen
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("propertyOffer:contractDone", function(data, _cb)
   if data.contractType == "rent" then
     if isOfferByMarketplace then
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:rentPropertyMarketplace",
         marketplaceOfferId,
@@ -998,7 +998,7 @@ RegisterNUICallbackCompat("propertyOffer:contractDone", function(data, _cb)
         { apartmentId = data.apartmentId }
       )
     else
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:rentProperty",
         GetCurrentPropertyId(),
@@ -1009,7 +1009,7 @@ RegisterNUICallbackCompat("propertyOffer:contractDone", function(data, _cb)
     end
   else
     if isOfferByMarketplace then
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:purchasePropertyMarketplace",
         marketplaceOfferId,
@@ -1017,7 +1017,7 @@ RegisterNUICallbackCompat("propertyOffer:contractDone", function(data, _cb)
         { apartmentId = data.apartmentId }
       )
     else
-      -- [SERVER]
+
       TriggerServerEvent(
         "vms_housing:sv:purchaseProperty",
         GetCurrentPropertyId(),
@@ -1033,7 +1033,7 @@ end)
 RegisterNUICallbackCompat("propertyContract:send", function(data, _cb)
   local propertyId = MotelManageId or CurrentProperty or GetCurrentPropertyId()
 
-  -- [SERVER]
+
   TriggerServerEvent(
     "vms_housing:sv:sendPropertyContract",
     propertyId,
@@ -1049,14 +1049,14 @@ RegisterNUICallbackCompat("propertyContract:send", function(data, _cb)
 end)
 
 RegisterNUICallbackCompat("propertyContract:signed", function(_, _cb)
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:signedPropertyContract")
   Property.CloseOffer()
 end)
 
--- ---------------------------------------------------------------------------
--- Theme / furniture entry points
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("propertyTheme:edit", function(data, _cb)
   closeFurnitureMenu()
   editTheme(data.theme)
@@ -1068,7 +1068,7 @@ RegisterNUICallbackCompat("propertyFurniture:edit", function(_, _cb)
   closeFurnitureMenu()
 end)
 
--- Edit a placed item belonging to the property currently occupied.
+
 RegisterNUICallbackCompat("propertyFurniture:editExisting", function(data, cb)
   local id = CurrentProperty
   local prop = id and Properties[tostring(id)]
@@ -1092,7 +1092,7 @@ RegisterNUICallbackCompat("propertyFurniture:editExisting", function(data, cb)
   Citizen.CreateThread(function() manageFurniture(true, item.model, item.id) end)
 end)
 
--- Begin a cash purchase by previewing it inside the current property.
+
 RegisterNUICallbackCompat("propertyFurniture:previewPurchase", function(data, cb)
   local id = CurrentProperty
   if not id or tostring(MotelManageId or id) ~= tostring(id) or not Furniture[data.model]
@@ -1116,23 +1116,23 @@ RegisterNUICallbackCompat("propertyFurniture:placeNew", function(data, _cb)
   closeFurnitureMenu()
 end)
 
--- ---------------------------------------------------------------------------
--- Furniture purchase: accept/cancel
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("propertyFurniture:purchaseAccept", function(data, _cb)
   if Property.EditingTheme then
-    -- [ASYNC SERVER CALLBACK]
+
     library.Callback("vms_housing:buyTheme", function(success)
       if success then
         Property.EditingTheme = false
 
-        -- [NUI]
+
         SendNUIMessage({ action = "Property", actionName = "CloseFurniturePurchase" })
         SetNuiFocus(false, false)
       end
     end, (CurrentProperty or GetCurrentPropertyId()), Property.EditingTheme, data.paymentMethod)
   else
-    -- [ASYNC SERVER CALLBACK]
+
     library.Callback("vms_housing:buyFurniture", function(success)
       if success then
         Property.EditingFurniture = false
@@ -1140,7 +1140,7 @@ RegisterNUICallbackCompat("propertyFurniture:purchaseAccept", function(data, _cb
         DeleteObject(Property.EditingFurnitureObj)
         Property.EditingFurnitureObj = nil
 
-        -- [NUI]
+
         SendNUIMessage({ action = "Property", actionName = "CloseFurniturePurchase" })
         SetNuiFocus(false, false)
       end
@@ -1149,15 +1149,15 @@ RegisterNUICallbackCompat("propertyFurniture:purchaseAccept", function(data, _cb
 end)
 
 RegisterNUICallbackCompat("propertyFurniture:purchaseCancel", function(_, _cb)
-  -- [NUI]
+
   SendNUIMessage({ action = "Property", actionName = "CloseFurniturePurchase" })
 
-  -- If theme preview was active, restore current theme (IPL only)
+
   if Property.EditingTheme and CurrentIPL then
     local prop = CurrentPropertyData or GetCurrentPropertyData()
     if prop then
       IPL.LoadSettings(CurrentIPL, prop.metadata.iplTheme, prop.metadata.iplSettings, function()
-        -- keep player coords stable (original does this)
+
         local coords = GetEntityCoords(PlayerPedId())
         SetEntityCoords(PlayerPedId(), coords.x, coords.y, coords.z)
       end)
@@ -1165,7 +1165,7 @@ RegisterNUICallbackCompat("propertyFurniture:purchaseCancel", function(_, _cb)
     Property.EditingTheme = false
   end
 
-  -- If furniture editing object exists, restore controls menu overlay
+
   if Property.EditingFurnitureObj then
     SendNUIMessage({
       action = "ControlsMenu",
@@ -1178,10 +1178,10 @@ RegisterNUICallbackCompat("propertyFurniture:purchaseCancel", function(_, _cb)
   SetNuiFocus(false, false)
 end)
 
--- ---------------------------------------------------------------------------
--- Property manage actions (big switch)
--- NOTE: original used RegisterNuiCallback (typo/alias); keep compatibility.
--- ---------------------------------------------------------------------------
+
+
+
+
 local function drawPlacementMarker(coords)
   if not coords or coords.x == nil or coords.y == nil or coords.z == nil then
     return
@@ -1204,10 +1204,10 @@ local function drawPlacementMarker(coords)
 end
 
 local function startManagePointPlacement(propertyId, controlsLabel, serverEventName)
-  -- Close manage menu + release focus before entering placement mode
+
   closeNUI(true)
 
-  -- Show the same "ControlsMenu" overlay creator uses for point placement
+
   SendNUIMessage({
     action = "ControlsMenu",
     toggle = true,
@@ -1246,7 +1246,7 @@ local function startManagePointPlacement(propertyId, controlsLabel, serverEventN
 
     SendNUIMessage({ action = "ControlsMenu", toggle = false })
 
-    -- Return to manage menu after placement/cancel
+
     if propertyId then
       openManageMenu(propertyId)
     else
@@ -1262,34 +1262,34 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
 
   local propertyId = MotelManageId or CurrentProperty or GetCurrentPropertyId()
 
-  -- buy-key
+
   if data.action == "buy-key" then
     if not library.HasPermissions(propertyId, "keysManage") then return end
     if library.ActionLimiter() then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:buyKey", propertyId)
     return
   end
 
-  -- lock replacement
+
   if data.action == "lock-replacement" then
     if not library.HasPermissions(propertyId, "keysManage") then return end
     if library.ActionLimiter() then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:lockReplacement", propertyId)
     return
   end
 
-  -- take furniture to storage
+
   if data.action == "take-to-storage" then
     if not data.furnitureId then return end
     if not library.HasPermissions(propertyId, "furniture") then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:takeFurnitureToStorage", propertyId, data.furnitureId)
     return
   end
 
-  -- checkout furniture
+
   if data.action == "checkout-furniture" then
     if not (data.payment and data.model) then return end
     if not library.HasPermissions(propertyId, "furniture") then return end
@@ -1304,24 +1304,24 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
       end
     end
 
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:checkoutFurniture", propertyId, data.payment, data.model)
     return
   end
 
-  -- purchase upgrade
+
   if data.action == "purchase-upgrade" then
     if not data.name then return end
     if not library.HasPermissions(propertyId, "upgradesManage") then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:upgrade", propertyId, data.name)
     return
   end
 
-  -- marketplace remove/add
+
   if data.action == "marketplace-remove" then
     if not library.HasPermissions(propertyId, "marketplaceManage") then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:marketplaceRemove", propertyId)
     return
   end
@@ -1329,12 +1329,12 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
   if data.action == "marketplace-add" then
     if not library.HasPermissions(propertyId, "marketplaceManage") then return end
     if library.ActionLimiter() then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:marketplaceAdd", propertyId, data)
     return
   end
 
-  -- change wardrobe/storage positions (uses creator flow)
+
   if data.action == "change-wardrobe-position" then
     if not library.HasPermissions(propertyId, "furniture") then return end
     startManagePointPlacement(propertyId, "creator:wardrobe", "vms_housing:sv:changeWardrobePosition")
@@ -1347,7 +1347,7 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
     return
   end
 
-  -- cameras
+
   if data.action == "check-cameras" then
     closeNUI(true)
     checkCameras(propertyId, function(found)
@@ -1359,35 +1359,35 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
     return
   end
 
-  -- remove permission / key
+
   if data.action == "remove-permission" then
     if library.ActionLimiter() then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:removePermission", propertyId, data.identifier)
     return
   end
 
   if data.action == "remove-key" then
     if not library.HasPermissions(propertyId, "keysManage") then return end
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:removeKey", propertyId, data.identifier)
     return
   end
 
-  -- modal accepted sub-actions
+
   if data.action == "modal-accepted" then
     local modalType = data.type
 
     if modalType == "marketplace-sell" then
       if not library.HasPermissions(propertyId, "automaticSell") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:automaticSale", propertyId)
       return
     end
 
     if modalType == "pay-bill" then
       if not library.HasPermissions(propertyId, "billPayments") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:payTheBill", propertyId, data.period, data.billType)
       return
     end
@@ -1401,47 +1401,47 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
     if modalType == "save-photo" then
       if not library.HasPermissions(propertyId, "marketplaceManage") then return end
       if not data.imageUrl or data.imageUrl == "" then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:saveMarketplacePhoto", propertyId, data.imageId, data.imageUrl)
       return
     end
 
     if modalType == "remove-photo" then
       if not library.HasPermissions(propertyId, "marketplaceManage") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:saveMarketplacePhoto", propertyId, data.imageId, nil)
       return
     end
 
     if modalType == "rental-terminate-now" then
       if not library.HasPermissions(propertyId, "rentersManage") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:rentalTerminateNow", propertyId)
       return
     end
 
     if modalType == "rental-termination" then
       if not library.HasPermissions(propertyId, "rentersManage") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:setRentalTermination", propertyId)
       return
     end
 
     if modalType == "rental-cancel-termination" then
       if not library.HasPermissions(propertyId, "rentersManage") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:clearRentalTermination", propertyId)
       return
     end
 
     if modalType == "add-player-permission" then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:addPermission", propertyId, data.id)
       return
     end
 
     if modalType == "save-permission" then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:updatePermission", propertyId, data.identifier, {
         garage = data.garage,
         furniture = data.furniture,
@@ -1460,7 +1460,7 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
     if modalType == "sell-furniture" then
       if not data.furnitureId then return end
       if not library.HasPermissions(propertyId, "furniture") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:sellFurniture", propertyId, data.furnitureId, data.model)
       return
     end
@@ -1468,29 +1468,29 @@ RegisterNuiCallbackCompat("propertyManage:action", function(data, _cb)
     if modalType == "remove-furniture" then
       if not data.furnitureId then return end
       if not library.HasPermissions(propertyId, "furniture") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:removeFurniture", propertyId, data.furnitureId, data.model)
       return
     end
 
     if modalType == "give-key" then
       if not library.HasPermissions(propertyId, "keysManage") then return end
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:giveKey", propertyId, data.id)
       return
     end
 
     if modalType == "move-out" then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:moveOut", propertyId)
       return
     end
   end
 end)
 
--- ---------------------------------------------------------------------------
--- Marketplace: get property detail (only if sale/rental active)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNuiCallbackCompat("marketplace:getProperty", function(data, cb)
   local property = Properties[tostring(data.id)]
   if not property then return end
@@ -1576,7 +1576,7 @@ RegisterNuiCallbackCompat("marketplace:showContract", function(data, _cb)
     purchasePrice = property.sale.price
   end
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "ViewOfferContract",
@@ -1592,9 +1592,9 @@ RegisterNuiCallbackCompat("marketplace:showContract", function(data, _cb)
   })
 end)
 
--- ---------------------------------------------------------------------------
--- Generic: closest players list (used in contracts/permissions UI)
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("getClosestPlayers", function(_, _cb)
   if not openedMenu then
     return
@@ -1611,7 +1611,7 @@ RegisterNUICallbackCompat("getClosestPlayers", function(_, _cb)
     end
   end
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "RefreshClosestPlayers",
@@ -1619,14 +1619,14 @@ RegisterNUICallbackCompat("getClosestPlayers", function(_, _cb)
   })
 end)
 
--- ---------------------------------------------------------------------------
--- NUI requests a local notification
--- ---------------------------------------------------------------------------
+
+
+
 RegisterNUICallbackCompat("sendNotification", function(data, _cb)
   CL.Notification(TRANSLATE(data.name), 5000, data.type)
 end)
 
--- Deeds are opened from property management and verified again by the server.
+
 RegisterNUICallbackCompat('deed:request', function(data, cb)
   local action = type(data) == 'table' and data.action
   local id = MotelManageId or CurrentProperty or GetCurrentPropertyId()

@@ -1,30 +1,30 @@
--- ============================================================================
---  Deobfuscated / Refactored Client Module: Property
---  Notes:
---   - Logic is preserved 1:1 with the obfuscated version.
---   - Server interactions are marked with:  -- [SERVER]
---   - Async callbacks are marked with:      -- [ASYNC]
---   - NUI messages/focus are marked with:   -- [NUI]
--- ============================================================================
+
+
+
+
+
+
+
+
 
 local Property = {
-  -- Furniture editing state
+
   EditingFurniture = false,
   EditingFurnitureObj = nil,
   EditingFurnitureData = {},
 
-  -- IPL theme editing state
+
   EditingTheme = false,
 
-  -- Spawned entities we manage
-  LoadedFurnitures = {},       -- { { entity=entity, model=model, furnitureId=id, metadata=table }, ... }
-  StaticInteractable = {},     -- { { type=string, coords=?, id=zoneId }, ... }
 
-  -- Rate-limit for door lock toggles
+  LoadedFurnitures = {},
+  StaticInteractable = {},
+
+
   LastLockedDoors = nil,
 }
 
--- Small helper used many times in the original
+
 local function isInEditMode(self)
   return self.EditingFurniture or self.EditingTheme
 end
@@ -33,12 +33,12 @@ local function notifyFurnitureModeBlocked()
   CL.Notification(TRANSLATE("notify.furniture:you_are_in_furniture_mode"), 5000, "info")
 end
 
--- ============================================================================
---  View Offer UI
--- ============================================================================
+
+
+
 
 function Property.ViewOffer(self, propertyId)
-  -- These were present in the obfuscated code (unused afterwards), kept for parity.
+
   local isBuilding = false
   local isMotel = false
 
@@ -52,7 +52,7 @@ function Property.ViewOffer(self, propertyId)
       end
     end
 
-    -- If a specific propertyId is provided, it is looked up in Properties table.
+
     propertyData = Properties[tostring(propertyId)]
   else
     propertyId = GetCurrentPropertyId()
@@ -62,7 +62,7 @@ function Property.ViewOffer(self, propertyId)
     return
   end
 
-  -- Rooms list + IPL info (only for shell/ipl types)
+
   local rooms = nil
   local iplName = nil
   local allowChangeTheme = false
@@ -85,7 +85,7 @@ function Property.ViewOffer(self, propertyId)
   local hasGarage = propertyData.metadata and propertyData.metadata.garage ~= nil
   local parking = propertyData.metadata and propertyData.metadata.parking or nil
 
-  -- Building parking spaces are stored on the building object (object_id property)
+
   local parkingSpaces = nil
   if propertyData.object_id then
     local buildingData = Properties[tostring(propertyData.object_id)]
@@ -94,7 +94,7 @@ function Property.ViewOffer(self, propertyId)
     end
   end
 
-  -- Sale / rental prices (only when active and price present)
+
   local purchasePrice = nil
   if propertyData.sale and propertyData.sale.active and propertyData.sale.price then
     purchasePrice = propertyData.sale.price
@@ -105,7 +105,7 @@ function Property.ViewOffer(self, propertyId)
     rentPrice = propertyData.rental.price
   end
 
-  -- Region-based utilities fallback
+
   local electricity = (Config.Regions[propertyData.region] and Config.Regions[propertyData.region].electricity)
     or Config.NoRegion.electricity
 
@@ -120,7 +120,7 @@ function Property.ViewOffer(self, propertyId)
     area = propertyData.metadata.zone.area
   end
 
-  -- [NUI] Open offer view
+
   SendNUIMessage({
     action = "Property",
     actionName = "OpenViewOffer",
@@ -151,13 +151,13 @@ function Property.ViewOffer(self, propertyId)
     },
   })
 
-  -- [NUI]
+
   SetNuiFocus(true, true)
   openedMenu = "PropertyOffer"
 end
 
 function Property.CloseOffer(self)
-  -- [NUI] Close offer view
+
   SendNUIMessage({ action = "Property", actionName = "CloseViewOffer" })
   SetNuiFocus(false, false)
 
@@ -167,13 +167,13 @@ function Property.CloseOffer(self)
   SelectedApartment = nil
 end
 
--- ============================================================================
---  Enter / Exit Property
--- ============================================================================
+
+
+
 
 function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, bypassChecks)
-  -- Capture the target before async callbacks and fades: leaving the outside
-  -- zone clears GetCurrentPropertyId/GetCurrentPropertyData.
+
+
   local targetId = propertyIdOverride or (propertyData and propertyData.id) or GetCurrentPropertyId()
   if not targetId or type(propertyData) ~= "table" or type(propertyData.metadata) ~= "table" then
     if onDone then onDone(false) end
@@ -181,12 +181,12 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
   end
   targetId = tostring(targetId)
 
-  -- If not bypassing, block entering while editing furniture/theme (original behavior)
+
   if not bypassChecks and isInEditMode(self) then
     return
   end
 
-  -- Client-side permission gating (original behavior)
+
   if not bypassChecks then
     if not CL.CanEnterHouse() then
       if onDone then onDone(false) end
@@ -194,15 +194,15 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
     end
   end
 
-  -- [ASYNC] Server callback permission check
+
   library.Callback("vms_housing:canEnterHouse", function(canEnter)
-    -- If not bypassing and server denies, abort
+
     if (not bypassChecks) and (not canEnter) then
       if onDone then onDone(false) end
       return
     end
 
-    -- Prevent entering while already in another interior type
+
     if CurrentShell then
       if onDone then onDone(false) end
       return CL.Notification("You are already in shell!", 5000, "error")
@@ -212,7 +212,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
       return CL.Notification("You are already in IPL!", 5000, "error")
     end
 
-    -- Validate/load shell or IPL definitions before fading (original checks)
+
     if propertyData.type == "shell" then
       if not AvailableShells[propertyData.metadata.shell] then
         if onDone then onDone(false) end
@@ -237,7 +237,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
       end
     end
 
-    -- Remove any previously spawned furniture before swapping interiors
+
     self:RemoveFurniture()
 
     if onDone then onDone(true) end
@@ -256,7 +256,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
     CurrentProperty = targetId
     CurrentPropertyData = (Properties and Properties[targetId]) or propertyData
 
-    -- Spawn/load the actual interior
+
     if propertyData.type == "shell" then
       CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
@@ -268,10 +268,10 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
       self:LoadStaticInteractable(AvailableIPLS[propertyData.metadata.ipl])
     end
 
-    -- [SERVER]
+
     TriggerServerEvent("vms_housing:sv:enterHouse", CurrentProperty)
 
-    -- Optional weather toggling thread
+
     if ToggleWeather then
       Citizen.CreateThread(function()
         while CurrentShell or CurrentIPL do
@@ -285,8 +285,8 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
 
     Wait(1500)
 
-    -- Another event may refresh or clear the cache while the transition yields.
-    -- Do not resurrect an entry that has already been cancelled or replaced.
+
+
     if CurrentProperty ~= targetId then
       DoScreenFadeIn(1500)
       FreezeEntityPosition(PlayerPedId(), false)
@@ -300,7 +300,7 @@ function Property.EnterProperty(self, propertyData, propertyIdOverride, onDone, 
 
     DoScreenFadeIn(1500)
 
-    -- Load furniture for inside environment (if provided)
+
     if CurrentPropertyData and CurrentPropertyData.furniture then
       self:LoadFurniture("inside", CurrentPropertyData.furniture, CurrentProperty)
     end
@@ -321,7 +321,7 @@ function Property.ExitProperty(self, onDone, skipRefreshTargets, skipServerLeave
 
   FreezeEntityPosition(PlayerPedId(), true)
 
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:exitHouse", CurrentProperty, skipRefreshTargets, skipServerLeave, bypassAudio)
 
   if ToggleWeather then
@@ -357,9 +357,9 @@ function Property.ExitProperty(self, onDone, skipRefreshTargets, skipServerLeave
   if onDone then onDone(true) end
 end
 
--- ============================================================================
---  Interior-only enter/exit (used for MLO / motel transitions)
--- ============================================================================
+
+
+
 
 function Property.EnterPropertyInterior(self, _unusedPropertyData, propertyIdOverride, _unusedCb)
   local resolvedPropertyId
@@ -386,7 +386,7 @@ function Property.EnterPropertyInterior(self, _unusedPropertyData, propertyIdOve
 end
 
 function Property.ExitPropertyInterior(self, _unusedCb)
-  -- Original special-case: if currently in "mlo" but current property is motel, do not remove furniture
+
   if CurrentPropertyData and CurrentPropertyData.type == "mlo" then
     local cur = GetCurrentPropertyData()
     if cur and cur.type ~= "motel" then
@@ -401,9 +401,9 @@ function Property.ExitPropertyInterior(self, _unusedCb)
   RefreshTargets()
 end
 
--- ============================================================================
---  Furniture spawning / removal
--- ============================================================================
+
+
+
 
 function Property.LoadFurniture(self, environment, furnitureList, permissionContext)
   local generation = self.FurnitureGeneration or 0
@@ -411,7 +411,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
 
   for _, furnitureData in pairs(furnitureList or {}) do
     if (self.FurnitureGeneration or 0) ~= generation then return end
-    -- Spawn placed furniture (stored == 0) for the requested environment
+
     if furnitureData.stored == 0 then
       if furnitureData.position and furnitureData.position.environment == environment then
         local entity = library.SpawnProp(
@@ -436,13 +436,13 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
         SetEntityAsMissionEntity(entity, true, true)
         FreezeEntityPosition(entity, true)
 
-        -- Add target interaction if furniture has interactable metadata
+
         if next(furnitureData.metadata) and furnitureData.metadata.interactableName then
           local interactableName = furnitureData.metadata.interactableName
 
-          -- Original special-case for "device" with RequirePurchaseFurniture
+
           if interactableName == "device" and Config.RequirePurchaseFurniture then
-            -- (kept exactly as original gating: it falls through to "device" ~= check below)
+
           end
 
           if interactableName ~= "device" then
@@ -452,7 +452,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
               label = TRANSLATE("target.interactable:" .. furnitureData.metadata.interactableName)
                 or furnitureData.metadata.interactableName,
               action = function()
-                -- NOTE: This closure intentionally references the loop variable (same semantics as obfuscated code).
+
                 CL.InteractableFurniture(furnitureData.model, furnitureData.metadata.interactableName, furnitureData.id, furnitureData.metadata)
               end,
             }
@@ -511,7 +511,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
         })
       end
 
-    -- Delivery object spawn logic (RequirePurchaseFurniture + DeliveryType == 3)
+
     else
       if Config.RequirePurchaseFurniture and Config.DeliveryType == 3 and not spawnedDelivery then
         if furnitureData.stored == 1 and furnitureData.metadata and furnitureData.metadata.delivered then
@@ -568,7 +568,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
     end
   end
 
-  -- Outside lockdown object (visual prop at door), only in certain cases
+
   if environment == "outside" and (Config.PropertyLockdown and Config.PropertyLockdown.Enable) then
     local propData = nil
     if permissionContext ~= nil then
@@ -586,7 +586,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
       end
 
       if not isBuildingProperty then
-        -- "outsidePoint" = where the player interacts with the property from the outside
+
         local outsidePoint = nil
         if propData.metadata.enter and propData.metadata.enter.x and propData.metadata.enter.y and propData.metadata.enter.z then
           outsidePoint = propData.metadata.enter
@@ -597,7 +597,7 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
         end
 
         if outsidePoint and outsidePoint.x and outsidePoint.y and outsidePoint.z then
-          -- Door anchor (best-effort): for MLO properties use the closest configured door, otherwise fallback to outside point.
+
           local doorHeadingSource = nil
           local fallbackHeading = nil
           if propData.metadata.exit and propData.metadata.exit.w ~= nil then
@@ -678,8 +678,8 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
           local dirY = outsidePoint.y - doorPoint.y
           local len = math.sqrt((dirX * dirX) + (dirY * dirY))
 
-          -- If the outside interaction point is basically on top of the door point (common for shells/IPLs),
-          -- use the configured exit point as a better "outside direction" reference.
+
+
           if len < 0.001 and propData.metadata.exit and propData.metadata.exit.x and propData.metadata.exit.y and propData.metadata.exit.z then
             dirX = propData.metadata.exit.x - doorPoint.x
             dirY = propData.metadata.exit.y - doorPoint.y
@@ -741,8 +741,8 @@ function Property.LoadFurniture(self, environment, furnitureList, permissionCont
             local ty = math.cos(tr)
             local dot = (tx * dirX) + (ty * dirY)
 
-            -- Only trust a stored heading if it's roughly pointing "out" (or "in") relative to the outside direction.
-            -- This avoids cases where exit/menu heading was placed sideways.
+
+
             if math.abs(dot) >= 0.25 then
               baseHeading = doorPoint.w
               if dot < 0.0 then
@@ -818,17 +818,17 @@ function Property.RemoveFurniture(self, furnitureId, onDone)
   if onDone then onDone() end
 end
 
--- ============================================================================
---  Lights / locks / deliveries
--- ============================================================================
+
+
+
 
 function Property.ToggleLight()
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:toggleLight", CurrentProperty)
 end
 
 function Property.ToggleLock(self, propertyId, extra1, extra2)
-  -- Rate-limit (same as obfuscated)
+
   if self.LastLockedDoors then
     if not self.LastLockedDoors or not (GetGameTimer() > self.LastLockedDoors) then
       CL.Notification(TRANSLATE("notify.doors:wait"), 3500, "info")
@@ -844,7 +844,7 @@ function Property.ToggleLock(self, propertyId, extra1, extra2)
     end
   end
 
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:toggleLock", resolvedId, extra1, extra2)
 
   self.LastLockedDoors = GetGameTimer() + 2000
@@ -867,16 +867,16 @@ function Property.UnpackDelivery(self, deliveryEntity)
 
   local propertyId = CurrentProperty or GetCurrentPropertyId()
 
-  -- [SERVER]
+
   TriggerServerEvent("vms_housing:sv:unpackDelivery", propertyId)
 end
 
--- ============================================================================
---  Interior interactables (targets inside property)
--- ============================================================================
+
+
+
 
 function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused, permissionContext)
-  -- Reset zones from TargetPoints
+
   if TargetPoints then
     for i = 1, #TargetPoints do
       if TargetPoints[i].type == "zone" then
@@ -886,8 +886,8 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
   end
   TargetPoints = {}
 
-  -- Creator/preview shells can set CurrentShell without setting a property context.
-  -- In that case, interior interactables should not load (and must not error).
+
+
   local propertyId = permissionContext or CurrentProperty
   if propertyId ~= nil then
     propertyId = tostring(propertyId)
@@ -907,19 +907,19 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
 
   local doorZoneOptions = {}
 
-  -- Manage (any permission)
+
   table.insert(doorZoneOptions, TargetHandler.Manage(nil, function()
     return library.HasAnyPermission(CurrentProperty) and not CurrentPropertyData.metadata.lockdown
   end))
 
-  -- Furniture placement permissions
+
   if CurrentPropertyData.metadata.allowFurnitureInside then
     table.insert(doorZoneOptions, TargetHandler.Furniture(function()
       return library.HasPermissions(CurrentProperty, "furniture") and not CurrentPropertyData.metadata.lockdown
     end))
   end
 
-  -- Wardrobe
+
   if CurrentPropertyData.metadata and CurrentPropertyData.metadata.wardrobe and CurrentPropertyData.metadata.wardrobe.x then
     table.insert(TargetPoints, TargetHandler.Wardrobe(
       CurrentProperty,
@@ -929,7 +929,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     ))
   end
 
-  -- Storage
+
   if CurrentPropertyData.metadata and CurrentPropertyData.metadata.storage and CurrentPropertyData.metadata.storage.x then
     table.insert(TargetPoints, TargetHandler.Storage(
       CurrentProperty,
@@ -941,7 +941,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     ))
   end
 
-  -- Emergency inside exit zone
+
   if CurrentPropertyData.metadata and CurrentPropertyData.metadata.emergencyInside and CurrentPropertyData.metadata.emergencyInside.x then
     table.insert(TargetPoints, {
       type = "emergency_exit",
@@ -971,7 +971,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     })
   end
 
-  -- Peephole option
+
   table.insert(doorZoneOptions, {
     name = "property-door-peephole",
     icon = "fa-solid fa-video",
@@ -985,7 +985,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     end,
   })
 
-  -- Toggle light option (with bills check)
+
   table.insert(doorZoneOptions, {
     name = "property-light",
     icon = "fa-solid fa-lightbulb",
@@ -1007,12 +1007,12 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     end,
   })
 
-  -- Toggle lock option (handler)
+
   table.insert(doorZoneOptions, TargetHandler.ToggleLock(nil, function()
     return not CurrentPropertyData.metadata.lockdown
   end))
 
-  -- Exit option (guarded by door lock + server callback)
+
   table.insert(doorZoneOptions, {
     name = "property-exit",
     icon = "fa-solid fa-door-open",
@@ -1027,7 +1027,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
         return
       end
 
-      -- [ASYNC] server callback check before exit
+
       library.Callback("vms_housing:canExitHouse", function(ok)
         if not ok then return end
         self:ExitProperty()
@@ -1038,7 +1038,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     end,
   })
 
-  -- Optional underground parking options (vms_garagesv2)
+
   if Config.Garages == "vms_garagesv2" and buildingData then
     if buildingData.metadata and buildingData.metadata.parkingEnter and buildingData.metadata.parkingSpaces then
       for idx, _space in pairs(buildingData.metadata.parkingSpaces) do
@@ -1055,7 +1055,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
               return
             end
 
-            -- [ASYNC] canExit -> exit -> enter parking
+
             library.Callback("vms_housing:canExitHouse", function(ok)
               if not ok then return end
               self:ExitProperty(function()
@@ -1071,7 +1071,7 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
     end
   end
 
-  -- Create the door interaction zone depending on interior type
+
   if CurrentPropertyData.type == "shell" then
     table.insert(TargetPoints, {
       type = "zone",
@@ -1103,9 +1103,9 @@ function Property.LoadInteriorInteractable(self, _unused, buildingData, _unused,
   end
 end
 
--- ============================================================================
---  Static interactables (from shell / IPL definitions)
--- ============================================================================
+
+
+
 
 function Property.LoadStaticInteractable(self, interiorDef)
   if not interiorDef.interactable then
@@ -1122,7 +1122,7 @@ function Property.LoadStaticInteractable(self, interiorDef)
         label = TRANSLATE("target.interactable:" .. optionDef.type),
         distance = 1.0,
         action = function()
-          -- [ASYNC] Server callback to validate usage + handle bills/usage
+
           library.Callback("vms_housing:useStaticInteractable", function(ok)
             if not ok then return end
             CL.InteractableFurniture(nil, optionDef.type, nil, {
@@ -1168,9 +1168,9 @@ function Property.RemoveStaticInteractable(self)
   self.StaticInteractable = {}
 end
 
--- ============================================================================
---  Door registration + lock/unlock helpers
--- ============================================================================
+
+
+
 
 function Property.RegisterDoors(self, doorsConfig)
   if type(doorsConfig) ~= "table" or type(doorsConfig.doors) ~= "table" then return end
@@ -1241,12 +1241,12 @@ function Property.UnlockDoors(self, doors)
   end
 end
 
--- ============================================================================
---  Door targets (lockpick/raid/toggle door lock)
--- ============================================================================
+
+
+
 
 function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorTargets, skipWorldSearch)
-  -- Remove existing door targets (type == "door")
+
   if removeExistingDoorTargets then
     for i = #TargetPoints, 1, -1 do
       if TargetPoints[i].type == "door" then
@@ -1256,7 +1256,7 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
     end
   end
 
-  -- Attach options to a specific door entity
+
   local function attachDoorTarget(doorEntity, doorIndex, interactionDistance)
     local propertyId = propertyIdOverride or GetCurrentPropertyId()
 
@@ -1269,7 +1269,7 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
 
     local options = {}
 
-    -- Optional direct toggle (only when not using keys-on-item)
+
     if not Config.UseKeysOnItem then
       table.insert(options, {
         interactableName = "door",
@@ -1277,7 +1277,7 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
         label = TRANSLATE("target.toggle_lock_door"),
         distance = interactionDistance or 1.2,
         action = function()
-          -- Rate-limit (same behavior)
+
           if self.LastLockedDoors then
             if not self.LastLockedDoors or not (GetGameTimer() > self.LastLockedDoors) then
               CL.Notification(TRANSLATE("notify.doors:wait"), 3500, "info")
@@ -1285,7 +1285,7 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
             end
           end
 
-          -- [SERVER]
+
           TriggerServerEvent("vms_housing:sv:toggleDoorlock", propertyId, doorIndex, nil, false, false)
           self.LastLockedDoors = GetGameTimer() + 2000
         end,
@@ -1295,13 +1295,13 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
       })
     end
 
-    -- Lockpick handler
+
     table.insert(options, TargetHandler.Lockpick(
       propertyId,
       propertyData.metadata and propertyData.metadata.upgrades and propertyData.metadata.upgrades.antiBurglaryDoors,
       propertyData.metadata and propertyData.metadata.upgrades and propertyData.metadata.upgrades.alarm,
       function(minigameResult)
-        -- [SERVER]
+
         TriggerServerEvent("vms_housing:sv:toggleDoorlock", propertyId, doorIndex, nil, true, false, minigameResult)
       end,
       function()
@@ -1313,11 +1313,11 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
       end
     ))
 
-    -- Raid handler(s)
+
     local raidOption = TargetHandler.Raid(propertyId,
       function(success)
         if success then
-          -- [SERVER]
+
           TriggerServerEvent("vms_housing:sv:toggleDoorlock", propertyId, doorIndex, nil, false, true)
         end
       end,
@@ -1336,7 +1336,7 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
     local raidLockOption = TargetHandler.RaidLock(
       function(success)
         if success then
-          -- [SERVER]
+
           TriggerServerEvent("vms_housing:sv:toggleDoorlock", propertyId, doorIndex, nil, false, true)
         end
       end,
@@ -1348,13 +1348,13 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
       table.insert(options, raidLockOption)
     end
 
-    -- Attach entity target
+
     CL.Target("entity", { entity = doorEntity, options = options })
 
     table.insert(TargetPoints, { type = "door", entity = doorEntity })
   end
 
-  -- World search for door objects (unless caller requests to skip)
+
   if doors and not skipWorldSearch then
     for doorIndex, doorDef in pairs(doors) do
       if doorDef.type == "double" then
@@ -1389,9 +1389,9 @@ function Property.LoadDoors(self, doors, propertyIdOverride, removeExistingDoorT
   end
 end
 
--- ============================================================================
---  Utility: apartments/buildings/motels
--- ============================================================================
+
+
+
 
 function Property.IsHaveAnyApartment(self, buildingObjectId)
   local hasAny = false
@@ -1428,7 +1428,7 @@ function Property.GetApartments(self, buildingData, shortList)
 end
 
 function Property.BuildingMenu(self, buildingData, apartments)
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "BuildingMenu",
@@ -1459,9 +1459,9 @@ function Property.GetMotelRooms(self, motelData)
   return rooms
 end
 
--- ============================================================================
---  Door peephole camera mode
--- ============================================================================
+
+
+
 
 function Property.OpenDoorPeephole(self)
   DoScreenFadeOut(1500)
@@ -1469,7 +1469,7 @@ function Property.OpenDoorPeephole(self)
 
   FreezeEntityPosition(PlayerPedId(), true)
 
-  -- [SERVER] Exit house but keep in special peephole mode (original uses true param)
+
   TriggerServerEvent("vms_housing:sv:exitHouse", CurrentProperty, true)
 
   if ToggleWeather then
@@ -1488,7 +1488,7 @@ function Property.OpenDoorPeephole(self)
 
   self:RemoveFurniture(nil, function() end)
 
-  -- [NUI] Show peephole controls
+
   SendNUIMessage({
     action = "ControlsMenu",
     toggle = true,
@@ -1506,7 +1506,7 @@ function Property.OpenDoorPeephole(self)
     SetTimecycleModifier("CAMERA_secuirity")
     SetTimecycleModifierStrength(0.8)
   else
-    -- [NUI]
+
     SendNUIMessage({ action = "Property", actionName = "OpenDoorPeephole" })
   end
 
@@ -1515,11 +1515,11 @@ function Property.OpenDoorPeephole(self)
 
   SetEntityVisible(PlayerPedId(), false, 0)
 
-  -- Camera positioning math (original kept)
+
   local behindDist = 0.2
   local heightOffset = 1.56
 
-  -- If this is an apartment inside a building, use building exit heading for camera calculations
+
   local buildingData = nil
   if CurrentPropertyData.object_id then
     local maybe = Properties[tostring(CurrentPropertyData.object_id)]
@@ -1552,7 +1552,7 @@ function Property.OpenDoorPeephole(self)
   SetCamActive(cam, true)
   RenderScriptCams(true, true, 1, true, true)
 
-  -- Wait for BACK (194) to exit peephole camera
+
   while true do
     DisableAllControlActions(0)
     EnableControlAction(0, 194, true)
@@ -1564,10 +1564,10 @@ function Property.OpenDoorPeephole(self)
     Citizen.Wait(1)
   end
 
-  -- [NUI] Hide controls
+
   SendNUIMessage({ action = "ControlsMenu", toggle = false })
 
-  -- Re-enter the property silently; on success, cleanup camera and restore visuals
+
   self:EnterProperty(CurrentPropertyData, CurrentProperty, function(entered)
     if not entered then return end
 
@@ -1583,18 +1583,18 @@ function Property.OpenDoorPeephole(self)
       ClearTimecycleModifier()
       ClearExtraTimecycleModifier()
 
-      -- [NUI] Close peephole UI (if used)
+
       SendNUIMessage({ action = "Property", actionName = "CloseDoorPeephole" })
     end)
   end, true)
 end
 
--- ============================================================================
---  Raid
--- ============================================================================
+
+
+
 
 function Property.Raid(self, propertyId)
-  -- [ASYNC] Await server permission + reason code
+
   local allowed, reason = library.CallbackAwait("vms_housing:isAllowedToRaid", propertyId or GetCurrentPropertyId())
   if not allowed then
     CL.Notification(TRANSLATE("notify.raid:" .. reason), 5500, "error")
@@ -1609,7 +1609,7 @@ function Property.Raid(self, propertyId)
   CL.Minigame("police_raid", function(success)
     library.StopAnimation(ped)
     if success then
-      -- [SERVER]
+
       TriggerServerEvent("vms_housing:sv:raidProperty", propertyId or GetCurrentPropertyId())
     end
   end, {
@@ -1617,9 +1617,9 @@ function Property.Raid(self, propertyId)
   })
 end
 
--- ============================================================================
---  Marketplace Photo Mode
--- ============================================================================
+
+
+
 
 function Property.MarketplacePhotoMode(self, propertyId, offerId)
   if not MARKETPLACE_PHOTOS_WEBHOOK then
@@ -1639,7 +1639,7 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
       CreateMobilePhone(0)
       CellCamActivate(true, true)
 
-      -- [NUI]
+
       SendNUIMessage({
         action = "ControlsMenu",
         toggle = true,
@@ -1652,7 +1652,7 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
       DestroyMobilePhone()
       CellCamActivate(false, false)
 
-      -- [NUI]
+
       SendNUIMessage({
         action = "ControlsMenu",
         toggle = true,
@@ -1666,7 +1666,7 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
 
   CL.Hud:Disable()
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "ControlsMenu",
     toggle = true,
@@ -1678,21 +1678,21 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
     DisabledControls()
 
     if not busyTakingShot then
-      -- ENTER (191) => take screenshot (only when photomode enabled)
+
       if photoModeEnabled and IsControlJustPressed(0, 191) then
         busyTakingShot = true
 
-        -- [NUI]
+
         SendNUIMessage({ action = "ControlsMenu", toggle = false })
 
         Citizen.Wait(100)
 
-        -- [ASYNC] Upload screenshot
+
         exports["screenshot-basic"]:requestScreenshotUpload("", "files[]", function(resp)
           local decoded = json.decode(resp)
 
           if decoded and decoded.attachments and decoded.attachments[1] and decoded.attachments[1].url then
-            -- [SERVER]
+
             TriggerServerEvent("vms_housing:sv:saveMarketplacePhoto", propertyId, offerId, decoded.attachments[1].url)
             running = false
           else
@@ -1701,12 +1701,12 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
         end)
       end
 
-      -- E (38) => toggle photomode
+
       if IsControlJustPressed(0, 38) then
         togglePhotoMode()
       end
 
-      -- BACKSPACE / ESC (202) => exit photomode flow
+
       if IsControlJustPressed(0, 202) then
         running = false
       end
@@ -1720,13 +1720,13 @@ function Property.MarketplacePhotoMode(self, propertyId, offerId)
 
   CL.Hud:Enable()
 
-  -- [NUI]
+
   SendNUIMessage({ action = "ControlsMenu", toggle = false })
 end
 
--- ============================================================================
---  Export(s)
--- ============================================================================
+
+
+
 
 _G.Property = Property
 exports("IsHaveAnyApartment", function(buildingObjectId)

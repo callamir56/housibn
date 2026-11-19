@@ -1,10 +1,10 @@
---[[--------------------------------------------------------------------------
-  Ownership helpers
-----------------------------------------------------------------------------]]
 
----Returns true if the player is owner, renter, or has keys for this property.
----@param property table
----@return boolean
+
+
+
+
+
+
 function HasOwnership(property)
   if not property then
     return false
@@ -15,8 +15,8 @@ function HasOwnership(property)
     or library.HasKeys(property.id)
 end
 
----@param property table
----@return boolean
+
+
 function IsOwner(property)
   if not property or not Identifier then
     return false
@@ -25,8 +25,8 @@ function IsOwner(property)
   return property.owner ~= nil and tostring(property.owner) == tostring(Identifier)
 end
 
----@param property table
----@return boolean
+
+
 function IsRenter(property)
   if not property or not Identifier then
     return false
@@ -35,28 +35,28 @@ function IsRenter(property)
   return property.renter ~= nil and tostring(property.renter) == tostring(Identifier)
 end
 
---[[--------------------------------------------------------------------------
-  Furniture limit (supports upgrade-based limit when configured)
-----------------------------------------------------------------------------]]
 
----Gets max furniture limit for a property based on configured upgrade metadata.
----Falls back to Config.FurnitureLimit when upgrades are missing.
----@param upgradesOrMetadata table  -- the table that holds the upgrade metadata key
----@return number|nil
+
+
+
+
+
+
+
 function GetFurnitureLimit(upgradesOrMetadata)
   local upgradeCfg = Config.HousingUpgrades and Config.HousingUpgrades.furniture_limit
   if not upgradeCfg then
     return Config.FurnitureLimit
   end
 
-  -- Which metadata key holds the "furniture limit level"
+
   local metadataKey = upgradeCfg.metadata
   local level = upgradesOrMetadata[metadataKey]
   if not level then
     return Config.FurnitureLimit
   end
 
-  -- Defensive checks (kept equivalent to original)
+
   local levels = Config.HousingUpgrades
     and Config.HousingUpgrades.furniture_limit
     and Config.HousingUpgrades.furniture_limit.levels
@@ -65,18 +65,18 @@ function GetFurnitureLimit(upgradesOrMetadata)
     return levels[level].limit
   end
 
-  -- Original code returns nil if the level is not found
+
   return nil
 end
 
---[[--------------------------------------------------------------------------
-  Blips
-----------------------------------------------------------------------------]]
 
----Removes all currently created blips and rebuilds them based on Properties state.
----Blip style depends on property type + whether player owns/rents/has keys/etc.
+
+
+
+
+
 function RefreshBlips()
-  -- Clear previous blips
+
   for i = 1, #Blips do
     RemoveBlip(Blips[i])
     Blips[i] = nil
@@ -85,7 +85,7 @@ function RefreshBlips()
   for propertyId, propertyData in pairs(Properties) do
     local blipStyle = nil
 
-    -- Decide which blip template to use
+
     if propertyData.type == "building" then
       blipStyle = Config.Blips.Building
     elseif propertyData.type == "motel" then
@@ -97,14 +97,14 @@ function RefreshBlips()
     elseif library.HasKeys(propertyId) then
       blipStyle = Config.Blips.HouseKeyHolder
     else
-      -- For sale / no owner / no renter
+
       if not propertyData.owner and not propertyData.renter then
         blipStyle = Config.Blips.HouseForSale
       end
     end
 
     if blipStyle and propertyData.metadata then
-      -- Motel uses zone center as blip coords
+
       if propertyData.type == "motel" then
         local zone = propertyData.metadata.zone
         local center = getZoneCenter(zone.points, zone.minZ, zone.maxZ)
@@ -120,7 +120,7 @@ function RefreshBlips()
         }))
 
       else
-        -- Prefer "menu" coords, fallback to "enter"
+
         if propertyData.metadata.menu then
           if not propertyData.object_id then
             table.insert(Blips, library.CreateBlip({
@@ -160,15 +160,15 @@ function RefreshBlips()
   end
 end
 
---[[--------------------------------------------------------------------------
-  Targets
-----------------------------------------------------------------------------]]
+
+
+
 
 local function clearTargetPoints()
   for i = 1, #TargetPoints do
     local tp = TargetPoints[i]
 
-    -- Original behavior: entity/door uses remove-entity, everything else remove-zone
+
     if tp.type == "entity" or tp.type == "door" then
       CL.Target("remove-entity", tp.entity)
     else
@@ -179,10 +179,10 @@ local function clearTargetPoints()
   TargetPoints = {}
 end
 
----Rebuilds interaction targets depending on:
----- property type (building/motel/house/mlo)
----- whether player has permissions / keys
----- whether player is inside an interior (shell / IPL / MLO)
+
+
+
+
 local function DeedAgencyOption(propertyId, suffix)
   local id = tostring(propertyId)
   return {
@@ -199,13 +199,13 @@ function RefreshTargets()
   local currentZonePropertyId = GetCurrentPropertyId()
   local currentZonePropertyData = GetCurrentPropertyData()
 
-  -- If player is in a property zone (outside)
+
   if currentZonePropertyData then
     clearTargetPoints()
 
-    --[[----------------------------
-      BUILDING TARGETS
-    ------------------------------]]
+
+
+
     if currentZonePropertyData.type == "building" then
       local apartments = Property:GetApartments(currentZonePropertyData, true)
 
@@ -219,7 +219,7 @@ function RefreshTargets()
         buildingOptions[#buildingOptions + 1] = DeedAgencyOption(apartment.id, tostring(apartment.name or apartment.id))
       end
 
-      -- Building "view house" target
+
       table.insert(TargetPoints, {
         type = "zone",
         id = CL.Target("zone", {
@@ -230,7 +230,7 @@ function RefreshTargets()
         }),
       })
 
-      -- Optional underground parking integration (vms_garagesv2)
+
       if Config.Garages == "vms_garagesv2"
         and currentZonePropertyData.metadata.parkingEnter
         and currentZonePropertyData.metadata.parkingSpaces
@@ -244,7 +244,7 @@ function RefreshTargets()
             label = TRANSLATE("target.enter_underground_parking", spaceIndex),
             distance = 3.0,
 
-            -- [ASYNC/SERVER-BOUND EXPORT] enters apartment parking instance
+
             action = function()
               exports.vms_garagesv2:enterApartmentParking(
                 ("vms_housing:parking:%s:%s"):format(currentZonePropertyId, spaceIndex)
@@ -272,9 +272,9 @@ function RefreshTargets()
         })
       end
 
-    --[[----------------------------
-      MOTEL TARGETS
-    ------------------------------]]
+
+
+
     elseif currentZonePropertyData.type == "motel" then
       local rooms = Property:GetMotelRooms(currentZonePropertyData)
 
@@ -282,28 +282,28 @@ function RefreshTargets()
         local roomIdStr = tostring(room.id)
         local options = { DeedAgencyOption(roomIdStr) }
 
-        -- Player has some connection to the room (owner/renter)
+
         if room.owner or room.renter then
-          -- Manage
+
           table.insert(options, TargetHandler.Manage(roomIdStr, function()
             return library.HasAnyPermission(roomIdStr) and not room.metadata.lockdown
           end))
 
-          -- Furniture (MLO only, requires permission + allowFurnitureInside)
+
           if room.type == "mlo" and room.metadata.allowFurnitureInside then
             table.insert(options, TargetHandler.Furniture(function()
               return library.HasPermissions(roomIdStr, "furniture") and not room.metadata.lockdown
             end))
           end
 
-          -- Toggle lock (only if keys are NOT item-based, and not MLO)
+
           if (not Config.UseKeysOnItem) and room.type ~= "mlo" then
             table.insert(options, TargetHandler.ToggleLock(roomIdStr, function()
               return (not room.metadata.lockdown) and library.HasKeys(roomIdStr)
             end))
           end
 
-          -- Non-MLO: doorbell, enter, lockpick, raids
+
           if room.type ~= "mlo" then
             table.insert(options, TargetHandler.Doorbell(roomIdStr))
 
@@ -316,7 +316,7 @@ function RefreshTargets()
               end
             ))
 
-            -- Lockpick (server event)
+
             if Config.Lockpick and Config.Lockpick.Enable then
               local antiBurglaryDoors = room.metadata and room.metadata.upgrades and room.metadata.upgrades.antiBurglaryDoors
               local alarmUpgrade = room.metadata and room.metadata.upgrades and room.metadata.upgrades.alarm
@@ -326,7 +326,7 @@ function RefreshTargets()
                 antiBurglaryDoors,
                 alarmUpgrade,
                 function(result)
-                  -- [SERVER CALL]
+
                   TriggerServerEvent("vms_housing:sv:lockpickDoors", roomIdStr, result)
                 end,
                 function()
@@ -341,12 +341,12 @@ function RefreshTargets()
             end
           end
 
-          -- MLO rooms: load door entities/targets
+
           if room.type == "mlo" then
             Property:LoadDoors(room.metadata.doors, roomIdStr)
           end
 
-        -- No owner/renter: can view offers + load doors read-only
+
         else
           local hasOffer =
             (room.sale and room.sale.active) or
@@ -356,14 +356,14 @@ function RefreshTargets()
             table.insert(options, TargetHandler.ViewOffer(roomIdStr))
           end
 
-          -- Load doors in "preview" mode (args preserved)
+
           Property:LoadDoors(room.metadata.doors, roomIdStr, false, true)
         end
 
-        -- Police actions (lockdown / seal / raids)
+
         local lockdownOption = TargetHandler.Lockdown(
           function()
-            -- [SERVER CALL]
+
             TriggerServerEvent("vms_housing:sv:lockdown", roomIdStr)
           end,
           function()
@@ -376,7 +376,7 @@ function RefreshTargets()
 
         local removeSealOption = TargetHandler.RemoveSeal(
           function()
-            -- [SERVER CALL]
+
             TriggerServerEvent("vms_housing:sv:removePoliceSeal", roomIdStr)
           end,
           function()
@@ -387,13 +387,13 @@ function RefreshTargets()
           table.insert(options, removeSealOption)
         end
 
-        -- Raid / Raid lock (non-MLO only)
+
         if room.type ~= "mlo" then
           local raidOption = TargetHandler.Raid(
             roomIdStr,
             function(confirmed)
               if confirmed then
-                -- [SERVER CALL]
+
                 TriggerServerEvent("vms_housing:sv:raidProperty", roomIdStr)
               end
             end,
@@ -423,7 +423,7 @@ function RefreshTargets()
           end
         end
 
-        -- Create zone target only if options exist
+
         if next(options) then
           local coords
           if room.type == "mlo" and room.metadata.menu then
@@ -446,38 +446,38 @@ function RefreshTargets()
         end
       end
 
-    --[[----------------------------
-      HOUSE / GENERIC PROPERTY TARGETS (outside)
-    ------------------------------]]
+
+
+
     else
-      -- Only build outside targets when not already inside an interior AND we have a usable entry/menu
+
       if not CurrentShell and not CurrentIPL then
         local hasEntryOrMenu = currentZonePropertyData.metadata.enter or currentZonePropertyData.metadata.menu
         if hasEntryOrMenu then
           local options = { DeedAgencyOption(currentZonePropertyId) }
 
-          -- Owned/rented path
+
           if currentZonePropertyData.owner or currentZonePropertyData.renter then
-            -- Manage
+
             table.insert(options, TargetHandler.Manage(nil, function()
               return library.HasAnyPermission(currentZonePropertyId) and not currentZonePropertyData.metadata.lockdown
             end))
 
-            -- Furniture outside
+
             if currentZonePropertyData.metadata.allowFurnitureOutside then
               table.insert(options, TargetHandler.Furniture(function()
                 return library.HasPermissions(currentZonePropertyId, "furniture") and not currentZonePropertyData.metadata.lockdown
               end))
             end
 
-            -- Toggle lock (non-MLO only, keys not item-based)
+
             if (not Config.UseKeysOnItem) and currentZonePropertyData.type ~= "mlo" then
               table.insert(options, TargetHandler.ToggleLock(nil, function()
                 return (not currentZonePropertyData.metadata.lockdown) and library.HasKeys(currentZonePropertyId)
               end))
             end
 
-            -- Non-MLO: doorbell + enter + lockpick
+
             if currentZonePropertyData.type ~= "mlo" then
               table.insert(options, TargetHandler.Doorbell(currentZonePropertyId))
 
@@ -504,7 +504,7 @@ function RefreshTargets()
                   antiBurglaryDoors,
                   alarmUpgrade,
                   function(result)
-                    -- [SERVER CALL]
+
                     TriggerServerEvent("vms_housing:sv:lockpickDoors", currentZonePropertyId, result)
                   end,
                   function()
@@ -519,7 +519,7 @@ function RefreshTargets()
             end
           end
 
-          -- Not owned/rented: view offer if sale/rental active
+
           else
             local hasOffer =
               (currentZonePropertyData.sale and currentZonePropertyData.sale.active) or
@@ -530,10 +530,10 @@ function RefreshTargets()
             end
           end
 
-          -- Police actions (lockdown / seal / raids)
+
           local lockdownOption = TargetHandler.Lockdown(
             function()
-              -- [SERVER CALL]
+
               TriggerServerEvent("vms_housing:sv:lockdown", currentZonePropertyId)
             end,
             function()
@@ -546,7 +546,7 @@ function RefreshTargets()
 
           local removeSealOption = TargetHandler.RemoveSeal(
             function()
-              -- [SERVER CALL]
+
               TriggerServerEvent("vms_housing:sv:removePoliceSeal", currentZonePropertyId)
             end,
             function()
@@ -561,7 +561,7 @@ function RefreshTargets()
             nil,
             function(confirmed)
               if confirmed then
-                -- [SERVER CALL]
+
                 TriggerServerEvent("vms_housing:sv:raidProperty", currentZonePropertyId)
               end
             end,
@@ -590,7 +590,7 @@ function RefreshTargets()
             table.insert(options, raidLockOption)
           end
 
-          -- Create zone if we have options
+
           if next(options) then
             local coords
             if currentZonePropertyData.type == "mlo" and currentZonePropertyData.metadata.menu then
@@ -621,7 +621,7 @@ function RefreshTargets()
         end
       end
 
-      -- Garage interaction (outside only, not inside shell/ipl)
+
       if not CurrentShell and not CurrentIPL then
         if currentZonePropertyData.metadata.garage and library.HasPermissions(currentZonePropertyId, "garage") then
           table.insert(TargetPoints, {
@@ -664,9 +664,9 @@ function RefreshTargets()
       end
     end
 
-    --[[----------------------------
-      INSIDE MLO: wardrobe/storage targets (only when inside)
-    ------------------------------]]
+
+
+
     if CurrentPropertyData and CurrentPropertyData.type == "mlo" then
       if IsInsideMLO() then
         local wardrobe = CurrentPropertyData.metadata and CurrentPropertyData.metadata.wardrobe
@@ -689,10 +689,10 @@ function RefreshTargets()
       end
     end
 
-    -- Always ensure MLO doors are loaded for the current zone property
+
     if currentZonePropertyData.type == "mlo" then
-      -- Args preserved from original:
-      -- (doors, propertyId=nil, true, ownerIsNil)
+
+
       Property:LoadDoors(
         currentZonePropertyData.metadata.doors,
         nil,
@@ -701,20 +701,20 @@ function RefreshTargets()
       )
     end
 
-  -- If player is NOT in a property zone
+
   else
-    -- But is inside an interior (shell/IPL), keep interior interactables loaded
+
     if CurrentShell or CurrentIPL then
       Property:LoadInteriorInteractable()
     end
   end
 end
 
---[[--------------------------------------------------------------------------
-  Apartment menu (NUI)
-----------------------------------------------------------------------------]]
 
----Reloads apartment menu data in NUI based on SelectedApartment
+
+
+
+
 function ReloadApartmentMenu()
   local apartmentData = Properties[SelectedApartment]
 
@@ -731,26 +731,26 @@ function ReloadApartmentMenu()
     canLockAfterRaid = false,
   }
 
-  -- [ASYNC SERVER CALLBACK (await)]
+
   local actions = library.CallbackAwait("vms_housing:checkApartmentActions", SelectedApartment) or {}
 
   local md = apartmentData.metadata or {}
 
-  -- Lockpick (anyone, gated by item on server + property state)
+
   payload.canLockpick = (Config.Lockpick and Config.Lockpick.Enable)
     and md.locked
     and (not md.lockdown)
     and actions.allowedLockpick
 
-  -- Police lockdown / seal actions
+
   payload.canLockdown = (not md.lockdown) and actions.allowedLockdown
   payload.canRemovePoliceSeal = md.lockdown and actions.allowedRemovePoliceSeal
 
-  -- Police raid actions
+
   payload.canRaid = md.locked and (not apartmentData.isUnderRaid) and actions.allowedRaid
   payload.canLockAfterRaid = apartmentData.isUnderRaid and actions.allowedLockAfterRaid
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "ReloadApartmentMenu",
@@ -758,18 +758,18 @@ function ReloadApartmentMenu()
   })
 end
 
---[[--------------------------------------------------------------------------
-  Spawn / restore last property
-----------------------------------------------------------------------------]]
 
----Restores player into their last property if server reports they were inside.
----Optional callback receives true/false to indicate success.
----@param onDone fun(success:boolean)|nil
+
+
+
+
+
+
 function SpawnInLastProperty(onDone)
-  -- [ASYNC SERVER CALLBACK]
+
   library.Callback("vms_housing:checkLastProperty", function(ok, propertyData, extraPropertyData)
     if ok and propertyData then
-      -- Validate shell/IPL availability before proceeding
+
       if propertyData.type == "shell" then
         if not AvailableShells[propertyData.metadata.shell] then
           return CL.Notification(('Could not find shell "%s"!'):format(propertyData.metadata.shell), 5000, "error")
@@ -785,19 +785,19 @@ function SpawnInLastProperty(onDone)
         end
       end
 
-      -- Freeze player while we set up interior
+
       FreezeEntityPosition(PlayerPedId(), true)
 
       if onDone then onDone(true) end
 
       CurrentProperty = tostring(propertyData.id)
 
-      -- Ensure Properties contains the propertyData
+
       if not (Properties and next(Properties) and Properties[CurrentProperty]) then
         Properties[CurrentProperty] = propertyData
       end
 
-      -- Optionally cache extra property
+
       if extraPropertyData then
         local extraId = tostring(extraPropertyData.id)
         if not (Properties and next(Properties) and Properties[extraId]) then
@@ -807,27 +807,27 @@ function SpawnInLastProperty(onDone)
 
       CurrentPropertyData = Properties[tostring(propertyData.id)]
 
-      -- Load interior type
+
       if propertyData.type == "shell" then
         CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
-        -- Load static interaction points for this shell
+
         Property:LoadStaticInteractable(AvailableShells[propertyData.metadata.shell])
 
       elseif propertyData.type == "ipl" then
         CurrentIPL = propertyData.metadata.ipl
 
-        -- Load IPL settings/theme
+
         IPL.LoadSettings(CurrentIPL, propertyData.metadata.iplTheme, propertyData.metadata.iplSettings)
 
-        -- Load static interaction points for this IPL
+
         Property:LoadStaticInteractable(AvailableIPLS[propertyData.metadata.ipl])
       end
 
-      -- [SERVER CALL] mark player as inside
+
       TriggerServerEvent("vms_housing:sv:enterHouse", CurrentProperty)
 
-      -- Weather control thread (async)
+
       if ToggleWeather then
         Citizen.CreateThread(function()
           while CurrentShell or CurrentIPL do
@@ -837,17 +837,17 @@ function SpawnInLastProperty(onDone)
         end)
       end
 
-      -- Lights state (if configured)
+
       if propertyData.metadata.lightState ~= nil then
         SetArtificialLightsState(not propertyData.metadata.lightState)
       end
 
-      -- Load furniture inside (if any)
+
       if propertyData.furniture then
         Property:LoadFurniture("inside", propertyData.furniture, CurrentProperty)
       end
 
-      -- Unfreeze player & load interior interactables (storage, wardrobe, etc.)
+
       FreezeEntityPosition(PlayerPedId(), false)
       Property:LoadInteriorInteractable()
 
@@ -857,12 +857,12 @@ function SpawnInLastProperty(onDone)
   end)
 end
 
---[[--------------------------------------------------------------------------
-  Property getters / exports
-----------------------------------------------------------------------------]]
 
----Returns a list of properties that the player owns or rents.
----@return table[]
+
+
+
+
+
 function GetPlayerProperties()
   local result = {}
 
@@ -877,9 +877,9 @@ end
 
 exports("GetPlayerProperties", GetPlayerProperties)
 
----Returns property data by id (string/number), or nil if not found.
----@param propertyId any
----@return table|nil
+
+
+
 function GetProperty(propertyId)
   local data = Properties[tostring(propertyId)]
   if not data then
@@ -890,18 +890,18 @@ end
 
 exports("GetProperty", GetProperty)
 
----Returns (isOnZone, propertyId)
+
 exports("IsPlayerOnPropertyZone", function()
   local propertyId = GetCurrentPropertyId()
   return propertyId ~= nil, propertyId
 end)
 
----Returns (CurrentProperty, CurrentPropertyData)
+
 exports("IsPlayerInsideProperty", function()
   return CurrentProperty, CurrentPropertyData
 end)
 
----Returns Config[key]
+
 exports("GetConfiguration", function(key)
   return Config[key]
 end)

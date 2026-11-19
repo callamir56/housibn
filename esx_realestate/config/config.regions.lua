@@ -1,10 +1,10 @@
 Config.NoRegion = {
     electricity = {
-        rate = 0.01, -- per kWh
+        rate = 0.01,
         unit = "kWh"
     },
     water = {
-        rate = 0.55, -- per 1L
+        rate = 0.55,
         unit = "1L"
     },
     internet = {
@@ -14,14 +14,14 @@ Config.NoRegion = {
 
 Config.Regions = {
     ['Mirror Park'] = {
-        debugColor = vec(200, 100, 120), -- r, g, b
+        debugColor = vec(200, 100, 120),
         
         electricity = {
-            rate = 0.0135, -- per kWh
+            rate = 0.0135,
             unit = "kWh"
         },
         water = {
-            rate = 0.6, -- per 1L
+            rate = 0.6,
             unit = "1L"
         },
         internet = {
@@ -57,11 +57,11 @@ Config.Regions = {
     },
     ['Paleto Bay'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -78,11 +78,11 @@ Config.Regions = {
     },
     ['Sandy Shores'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -104,11 +104,11 @@ Config.Regions = {
     },
     ['Richman'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -133,11 +133,11 @@ Config.Regions = {
     },
     ['West Vinewood'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -153,11 +153,11 @@ Config.Regions = {
     },
     ['Harmony'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -173,11 +173,11 @@ Config.Regions = {
     },
     ['Rockford Hills'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -201,11 +201,11 @@ Config.Regions = {
     },
     ['Burton'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -223,11 +223,11 @@ Config.Regions = {
     },
     ['Downtown Vinewood'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -243,11 +243,11 @@ Config.Regions = {
     },
     ['East Vinewood'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -268,11 +268,11 @@ Config.Regions = {
     },
     ['Vinewood Hills'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -292,11 +292,11 @@ Config.Regions = {
     },
     ['Alta'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -312,11 +312,11 @@ Config.Regions = {
     },
     ['Pillbox Hill'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -334,11 +334,11 @@ Config.Regions = {
     },
     ['Little Seoul'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -360,11 +360,11 @@ Config.Regions = {
     },
     ['Vespucci Canals'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -381,11 +381,11 @@ Config.Regions = {
     },
     ['Del Perro Beach'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -401,11 +401,11 @@ Config.Regions = {
     },
     ['Del Perro'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -424,11 +424,11 @@ Config.Regions = {
     },
     ['Vespucci Beach'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -446,11 +446,11 @@ Config.Regions = {
     },
     ['Pacific Bluffs'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -472,11 +472,11 @@ Config.Regions = {
     },
     ['Strawberry'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -492,11 +492,11 @@ Config.Regions = {
     },
     ['Davis'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -514,11 +514,11 @@ Config.Regions = {
     },
     ['Rancho'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {
@@ -537,11 +537,11 @@ Config.Regions = {
     },
     ['El Burro Heights'] = {
         electricity = {
-            rate = 0.0115, -- per kWh
+            rate = 0.0115,
             unit = "kWh"
         },
         water = {
-            rate = 0.5, -- per 1L
+            rate = 0.5,
             unit = "1L"
         },
         internet = {

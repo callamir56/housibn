@@ -1,4 +1,4 @@
--- Mock ox_inventory and OneSync; no client can supply deed or owner data.
+
 HousingDataReady=true;Config={Inventory='ox_inventory'}
 local handlers,net,callbacks,emitted={}, {}, {}, {}
 local positions={[1]={x=0,y=0,z=0},[2]={x=1,y=0,z=0},[3]={x=20,y=0,z=0}}
@@ -29,7 +29,7 @@ library={Notification=function() end,RegisterCallback=function(n,cb) callbacks[n
 function TriggerClientEvent(name,target,...) emitted[#emitted+1]={name=name,target=target,args={...}} end
 assert(loadfile('esx_realestate/server/modules/deed_share.lua'))()
 local used=handlers['ox_inventory:usedItem']
--- With nobody nearby, the holder still sees their own deed.
+
 positions[2]={x=40,y=0,z=0}; used(1,'property_deed',5,item.metadata)
 assert(#emitted==1 and emitted[1].target==1 and emitted[1].args[2]=='owner')
 source=1; net['vms_housing:deedShare:close'](emitted[1].args[1]); emitted={}; positions[2]={x=1,y=0,z=0}
@@ -39,14 +39,14 @@ local id=emitted[1].args[1]
 source=3;net['vms_housing:deedShare:close'](id);assert(#emitted==2)
 source=2;net['vms_housing:deedShare:close'](id);assert(#emitted==3 and emitted[3].target==2)
 source=1;net['vms_housing:deedShare:close'](id);assert(#emitted==4 and emitted[4].target==1)
--- Multiple nearby players force selection, which is rechecked when clicked.
+
 emitted={};positions[3]={x=2,y=0,z=0};used(1,'property_deed',5,item.metadata)
 assert(#emitted==1 and emitted[1].name:find(':select'))
 local result
 positions[2]={x=50,y=0,z=0};callbacks['vms_housing:deedShare:choose'](1,function(r) result=r end,2);assert(not result.ok)
 callbacks['vms_housing:deedShare:choose'](1,function(r) result=r end,3);assert(result.ok and #emitted==3)
 id=emitted[2].args[1];source=1;net['vms_housing:deedShare:close'](id);assert(#emitted==5 and emitted[4].target==3 and emitted[5].target==1)
--- Stale/transferred/deleted items cannot be used to impersonate an owner.
+
 emitted={};prop.owner='someone_else';used(1,'property_deed',5,item.metadata);assert(#emitted==0)
 prop.owner='owner';item=nil;used(1,'property_deed',5,{propertyId='42',owner='owner'});assert(#emitted==0)
 print('deed sharing target, ownership, distance and independent close passed')

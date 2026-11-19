@@ -1,4 +1,4 @@
--- Isolate the existing payment handler so validation can be tested without FiveM.
+
 local f = assert(io.open('esx_realestate/server/main.lua'))
 local text = f:read('*a'); f:close()
 local start = assert(text:find('RegisterNetEvent("vms_housing:sv:payTheBill", function', 1, true))
@@ -25,7 +25,7 @@ bill.total=-1; handler('1','01:2020','services'); assert(debits==0)
 bill.total=100; handler('1','01:2020','services'); assert(debits==1 and bill.paid==1)
 handler('1','01:2020','services'); assert(debits==1)
 print('bill validation test passed')
--- A second payer arrives while the first SQL update is in flight.
+
 bill.paid=0; local refunded=0; local calls=0
 SV.AddMoney=function(_,_,amount) refunded=refunded+amount end
 MySQL.update.await=function() calls=calls+1; coroutine.yield(); return 1 end
@@ -33,7 +33,7 @@ local first=coroutine.create(function() handler('1','01:2020','services') end)
 assert(coroutine.resume(first)); handler('1','01:2020','services')
 assert(debits==2 and calls==1)
 assert(coroutine.resume(first)); assert(bill.paid==1)
--- Failed compare-and-set must return the debit and keep invoice unpaid.
+
 bill.paid=0; MySQL.update.await=function() return 0 end
 handler('1','01:2020','services'); assert(debits==3 and refunded==100 and bill.paid==0)
 MySQL.update.await=function() error('database unavailable') end

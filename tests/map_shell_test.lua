@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 local created, deleted = 0, 0
 CL = {Notification = function() end}
 AvailableShells = { map = {mapInterior = true}, prop = {} }

@@ -30,7 +30,7 @@ properties['7'].owner='new-owner'; cb['vms_housing:tv:state'](2,function(r) resu
 source=3; events['vms_housing:tv:control']('8',6,'play','ABCDEFGHIJK'); assert(emitted[3].src==3 and emitted[3].id=='8')
 print('TV URL validation, permission, proximity, property isolation and ownership change passed')
 
--- Test each supported provider and reject non-video URLs and internal literals.
+
 local realTime=os.time; local clock=realTime(); os.time=function() return clock end
 local function play(url) clock=clock+3; source=3; events['vms_housing:tv:control']('8',6,'play',url); return emitted[#emitted].state end
 local before=#emitted
@@ -44,7 +44,7 @@ local c=play('https://www.youtube.com/watch?feature=share&v=abcdefghijk'); asser
 Config.HousingTV.DirectAllowedHosts={['safe.example.com']=true}; before=#emitted
 play('https://cdn.example.com/test.mp4'); assert(#emitted==before)
 assert(play('https://safe.example.com/test.webm').provider=='direct')
--- Turning off immediately after play must not be blocked by the play cooldown.
+
 local count=#emitted; source=3; events['vms_housing:tv:control']('8',6,'off')
 assert(#emitted==count+1 and emitted[#emitted].state.on==false)
 os.time=realTime

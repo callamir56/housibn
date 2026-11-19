@@ -3,10 +3,10 @@ if Config.Dispatch then
 end
 
 function DispatchAlertServer(src, xPlayer, property, type)
-    -- type:
-    --   'start'
-    --   'success'
-    --   'failed'
+
+
+
+
     
     if not property then
         return

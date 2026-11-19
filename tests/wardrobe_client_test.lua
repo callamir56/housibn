@@ -1,4 +1,4 @@
--- Run from the repository root; NUI, skinchanger and network callbacks are mocked.
+
 Config={Clothing='esx_skin'}
 local callbacks, messages, focus, saved, loaded = {}, {}, false, nil, nil
 function RegisterNUICallback(name, fn) callbacks[name] = fn end

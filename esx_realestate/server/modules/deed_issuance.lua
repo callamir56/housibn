@@ -1,5 +1,5 @@
--- Each signed ownership period receives a revision. Owner slots 1 and 2 are
--- unique in the database; agency slots are NULL and do not consume the limit.
+
+
 local locks = {}
 local function newRevision()
     return ('%x-%08x-%08x'):format(os.time(), math.random(0,0x7fffffff), math.random(0,0x7fffffff))
@@ -69,8 +69,8 @@ HousingDeedIssue=function(src, propertyId, expectedOwner, kind)
             MySQL.update.await('DELETE FROM `housing_deed_issuances` WHERE `id` = ?', {issuance})
             return false,'Request is no longer valid.'
         end
-        -- Fail closed: a failed/crashed delivery can leave a reserved slot;
-        -- a failed delivery is rolled back if the database is available.
+
+
         local metadata={propertyId=propertyId,owner=expectedOwner,holder=holder,revision=revision,issuanceId=issuance,
             description=kind=='agency' and 'Agency copy' or (slot==1 and 'Original deed' or 'Deed copy')}
         local addOk,added=pcall(function() return exports.ox_inventory:AddItem(src,'property_deed',1,metadata) end)

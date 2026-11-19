@@ -3,7 +3,7 @@ if Config.Inventory ~= 'ps-inventory' then
 end
 
 function RegisterStorage(metadata)
-    -- This resource does not require stash registration.
+
 end
 
 function RegisterUsableItem(name, cb)

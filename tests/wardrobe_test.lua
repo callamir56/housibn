@@ -1,4 +1,4 @@
--- Run from the repository root with Lua 5.4+; ESX and MySQL are mocked.
+
 local callback
 local rows = {}
 local currentIdentifier = 'character:a'

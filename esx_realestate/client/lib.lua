@@ -1,5 +1,5 @@
--- Clothing integrations load before this file. Keep wardrobe interactions safe
--- when no supported clothing resource is running.
+
+
 if not OpenWardrobe then
   function OpenWardrobe()
     CL.Notification("No compatible clothing resource is configured for the wardrobe.", 5000, "error")
@@ -12,15 +12,15 @@ if not OpenGarage then
   end
 end
 
--- ============================================================================
---  Shared Utility Library (deobfuscated)
---  Keeps original behavior/logic, but rewritten for readability.
--- ============================================================================
+
+
+
+
 
 library = library or {}
 
--- Fixed map interiors have no spawned shell object. Lua treats 0 as truthy,
--- so it can mark the inside-shell state without referring to a GTA entity.
+
+
 function library.RequestHousingShell(name)
   local definition = AvailableShells[name]
   if definition and definition.mapInterior then return true end
@@ -41,8 +41,8 @@ function DeleteHousingShell(entity)
   if entity and entity ~= 0 then DeleteObject(entity) end
 end
 
--- Apply the server-confirmed map entry on the owning client, which controls
--- its player ped. Ignore late confirmations after leaving or switching houses.
+
+
 function ApplyMapInteriorEntry(propertyId, x, y, z, heading)
   if not CurrentProperty or tostring(CurrentProperty) ~= tostring(propertyId) or CurrentShell ~= 0 then return end
   if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" or type(heading) ~= "number" then return end
@@ -53,20 +53,20 @@ function ApplyMapInteriorEntry(propertyId, x, y, z, heading)
   RequestCollisionAtCoord(x, y, z)
 end
 
--- Internal state used by some helpers
-library.WaitGameTimer   = nil   -- cooldown limiter timestamp (ms)
-library.IsHaveProp      = nil   -- prop handle spawned by PlayAnimation (slot #1)
-library.IsHaveProp2     = nil   -- prop handle spawned by PlayAnimation (slot #2)
+
+library.WaitGameTimer   = nil
+library.IsHaveProp      = nil
+library.IsHaveProp2     = nil
 library.IsPlayingAnimation = false
 
---[[--------------------------------------------------------------------------
-  ActionLimiter(delayMs?)
-  Simple anti-spam limiter using GetGameTimer().
 
-  Returns:
-    true  -> action is BLOCKED (still in cooldown, also shows notify.wait)
-    false -> action is ALLOWED (and cooldown is updated)
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
 function library.ActionLimiter(delayMs)
   local now = GetGameTimer()
 
@@ -80,11 +80,11 @@ function library.ActionLimiter(delayMs)
   return false
 end
 
---[[--------------------------------------------------------------------------
-  Debug(message, level?)
-  Only prints when Config.Debug is true.
-  level: "error" | "warn" | nil -> print
-----------------------------------------------------------------------------]]
+
+
+
+
+
 function library.Debug(message, level)
   if not Config.Debug then
     return
@@ -99,18 +99,18 @@ function library.Debug(message, level)
   end
 end
 
---[[--------------------------------------------------------------------------
-  Dump(value)
-  JSON pretty-print helper (indent = true)
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.Dump(value)
   return json.encode(value, { indent = true })
 end
 
---[[--------------------------------------------------------------------------
-  Deepcopy(value)
-  Deep-copies tables recursively (including metatable), otherwise returns value.
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.Deepcopy(value)
   if type(value) ~= "table" then
     return value
@@ -122,16 +122,16 @@ function library.Deepcopy(value)
     copy[library.Deepcopy(k)] = library.Deepcopy(v)
   end
 
-  -- Preserve metatable (original logic does deepcopy of getmetatable())
+
   return setmetatable(copy, library.Deepcopy(getmetatable(value)))
 end
 
---[[--------------------------------------------------------------------------
-  Callback(name, cb, ...)
-  Framework wrapper:
-    ESX -> ESX.TriggerServerCallback
-    QB  -> QBCore.Functions.TriggerCallback
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
 function library.Callback(callbackName, callbackFn, ...)
   if Config.Core == "ESX" then
     ESX.TriggerServerCallback(callbackName, callbackFn, ...)
@@ -140,13 +140,13 @@ function library.Callback(callbackName, callbackFn, ...)
   end
 end
 
---[[--------------------------------------------------------------------------
-  CallbackAwait(name, ...)
-  Awaitable callback wrapper (uses promise + Citizen.Await).
 
-  Returns whatever the server callback returns.
-  [ASYNC] This yields until server responds.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
 function library.CallbackAwait(callbackName, ...)
   local p = promise.new()
 
@@ -163,14 +163,14 @@ function library.CallbackAwait(callbackName, ...)
   return Citizen.Await(p)
 end
 
---[[--------------------------------------------------------------------------
-  CreateBlip(data)
-  data = {
-    coords = vector3(...),
-    sprite, display, scale, color, name,
-    blipCategory? (optional)
-  }
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
 function library.CreateBlip(data)
   local blip = AddBlipForCoord(data.coords)
 
@@ -191,9 +191,9 @@ function library.CreateBlip(data)
   return blip
 end
 
---[[--------------------------------------------------------------------------
-  DeleteBlip(blip)
-----------------------------------------------------------------------------]]
+
+
+
 function library.DeleteBlip(blip)
   if blip then
     RemoveBlip(blip)
@@ -201,19 +201,19 @@ function library.DeleteBlip(blip)
   end
 end
 
---[[--------------------------------------------------------------------------
-  RequestEntity(model)
-  Requests a model and waits until it loads or timeout (5s).
 
-  Returns:
-    true  -> model loaded
-    false -> timed out
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
 function library.RequestEntity(model)
   local ok = true
   local timeoutAt = GetGameTimer() + 5000
 
-  -- Keep original "string or number" handling exactly:
+
   local modelHash = tonumber(model)
   modelHash = model or modelHash
   if (not modelHash) or (not model) then
@@ -240,16 +240,16 @@ function library.RequestEntity(model)
   return ok
 end
 
---[[--------------------------------------------------------------------------
-  SpawnPed(opts)
-  opts = {
-    model = <hash or model name>,
-    coords = vector4/coords (x,y,z,w optional),
-    animation = { dict, name } optional
-  }
 
-  Returns ped entity id.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
 function library.SpawnPed(opts)
   library.RequestEntity(opts.model)
 
@@ -284,23 +284,23 @@ function library.SpawnPed(opts)
   return ped
 end
 
---[[--------------------------------------------------------------------------
-  SpawnProp(model, coords?, heading?, attachData?, disableCollision?, dynamic?)
-  This function keeps the original parameter behavior exactly.
 
-  model: string/hash
-  coords: vec3-like {x,y,z} (optional; defaults to player coords)
-  heading: number
-  attachData: { attachTo, boneIndex, placement={x,y,z,rx,ry,rz} } optional
-  disableCollision: boolean (if true -> no collision)
-  dynamic: boolean passed into CreateObject as last arg (defaults false)
 
-  Returns object entity id.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
+
 function library.SpawnProp(model, coords, heading, attachData, disableCollision, dynamic)
   local playerPed = PlayerPedId()
 
-  -- Keep original "string or number" handling exactly:
+
   local modelHash = tonumber(model)
   modelHash = model or modelHash
   if (not modelHash) or (not model) then
@@ -352,10 +352,10 @@ function library.SpawnProp(model, coords, heading, attachData, disableCollision,
   return obj
 end
 
---[[--------------------------------------------------------------------------
-  LoadDict(dict)
-  Requests an anim dict with a ~5s timeout (same behavior as obfuscated code).
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.LoadDict(dict)
   local timedOut = false
 
@@ -369,19 +369,19 @@ function library.LoadDict(dict)
   until HasAnimDictLoaded(dict) or timedOut
 end
 
---[[--------------------------------------------------------------------------
-  PlayAnimation(ped, dict, anim, blendIn?, blendOut?, duration, flags, prop1?, prop2?)
-  Spawns optional props while playing an animation:
-    prop1/prop2 format: { modelName, coords?, heading?, attachData?, disableCollision? }
 
-  NOTE: This function sets:
-    library.IsHaveProp / library.IsHaveProp2
-    library.IsPlayingAnimation = true
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
 function library.PlayAnimation(ped, dict, anim, blendIn, blendOut, duration, flags, prop1, prop2)
   library.LoadDict(dict)
 
-  -- Optional prop #1
+
   if prop1 then
     library.IsHaveProp = library.SpawnProp(
       GetHashKey(prop1[1]),
@@ -392,7 +392,7 @@ function library.PlayAnimation(ped, dict, anim, blendIn, blendOut, duration, fla
     )
   end
 
-  -- Optional prop #2
+
   if prop2 then
     library.IsHaveProp2 = library.SpawnProp(
       GetHashKey(prop2[1]),
@@ -420,10 +420,10 @@ function library.PlayAnimation(ped, dict, anim, blendIn, blendOut, duration, fla
   )
 end
 
---[[--------------------------------------------------------------------------
-  StopAnimation(ped)
-  Deletes spawned props and clears ped tasks if an animation was considered active.
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.StopAnimation(ped)
   if library.IsHaveProp then
     DeleteEntity(library.IsHaveProp)
@@ -442,10 +442,10 @@ function library.StopAnimation(ped)
   library.IsPlayingAnimation = false
 end
 
---[[--------------------------------------------------------------------------
-  StartParticles(assetName, fxName, coords, rot, scale, colorData?)
-  colorData = { r, g, b, alpha? } (strings/numbers)
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.StartParticles(assetName, fxName, coords, rot, scale, colorData)
   RequestNamedPtfxAsset(assetName)
   while not HasNamedPtfxAssetLoaded(assetName) do
@@ -480,20 +480,20 @@ function library.StartParticles(assetName, fxName, coords, rot, scale, colorData
   return fxHandle
 end
 
---[[--------------------------------------------------------------------------
-  StopParticles(handle)
-----------------------------------------------------------------------------]]
+
+
+
 function library.StopParticles(handle)
   if DoesParticleFxLoopedExist(handle) then
     RemoveParticleFx(handle, false)
   end
 end
 
---[[--------------------------------------------------------------------------
-  PlayAudio(key)
-  Plays a UI audio file via NUI:
-    SendNUIMessage({ action="PlayAudio", file=..., volume=... })
-----------------------------------------------------------------------------]]
+
+
+
+
+
 function library.PlayAudio(key)
   local file = ""
   local volume = 0
@@ -518,7 +518,7 @@ function library.PlayAudio(key)
     return
   end
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "PlayAudio",
     file = file,
@@ -526,10 +526,10 @@ function library.PlayAudio(key)
   })
 end
 
---[[--------------------------------------------------------------------------
-  GetCurrentRegion(point)
-  Returns region key where point is inside Config.Regions[region].zone polygon.
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.GetCurrentRegion(point)
   for regionKey, regionData in pairs(Config.Regions) do
     if regionData.zone then
@@ -542,14 +542,14 @@ function library.GetCurrentRegion(point)
   return nil
 end
 
---[[--------------------------------------------------------------------------
-  HasKeys(propertyId)
-  NOTE:
-    - If Config.UseKeysOnItem is false -> checks owner/renter/keys string
-    - If Config.UseKeysOnItem is true  -> client can't reliably inspect inventory metadata across
-      all supported inventories, so this returns true only for owner/renter as UI gating.
-      (Server-side checks are always the source of truth.)
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
 function library.HasKeys(propertyId)
   if not propertyId then
     return false
@@ -578,8 +578,8 @@ function library.HasKeys(propertyId)
     return false
   end
 
-  -- Keys are inventory items in this mode. Client can't reliably inspect all inventories here,
-  -- so only treat owner/renter as key-holders for UI gating (server still enforces real key checks).
+
+
   if Identifier and (property.owner == Identifier or property.renter == Identifier) then
     return true
   end
@@ -587,10 +587,10 @@ function library.HasKeys(propertyId)
   return false
 end
  
---[[--------------------------------------------------------------------------
-  Permissions helpers (client-side mirror of server/lib.lua)
-  Used by target refresh logic and management UI gating.
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.HasPermissions(propertyId, permissionKey)
   if not propertyId or not permissionKey then
     return false
@@ -627,7 +627,7 @@ function library.HasAnyPermission(propertyId)
     return true
   end
  
-  -- Backwards-compatible: allow renter even if permissions table wasn't populated
+
   if property.renter and property.renter == Identifier then
     return true
   end
@@ -640,10 +640,10 @@ function library.HasAnyPermission(propertyId)
   return false
 end
 
---[[--------------------------------------------------------------------------
-  Inventory helpers (client-side)
-  Used for target/UI gating only (server still enforces real checks).
-----------------------------------------------------------------------------]]
+
+
+
+
 function library.GetItemCount(itemName)
   if not itemName or itemName == "" then
     return 0
@@ -651,7 +651,7 @@ function library.GetItemCount(itemName)
 
   local searchName = tostring(itemName)
 
-  -- Prefer ox_inventory when it's the active inventory.
+
   if Config.Inventory == "ox_inventory" and GetResourceState("ox_inventory") == "started" then
     local ok, result = pcall(function()
       return exports.ox_inventory:Search("count", searchName)
@@ -662,7 +662,7 @@ function library.GetItemCount(itemName)
     end
   end
 
-  -- QB inventory items
+
   if Config.Core == "QB-Core" then
     local items = nil
 
@@ -685,7 +685,7 @@ function library.GetItemCount(itemName)
     end
   end
 
-  -- ESX inventory items
+
   if Config.Core == "ESX" then
     local inv = nil
 
@@ -719,7 +719,3 @@ function library.HasItem(itemName, count)
 
   return library.GetItemCount(itemName) >= needed
 end
-
--- NOTE:
--- Your snippet ends at: `function L1_1(A0_2, A1_2) ...`
--- If you paste the continuation, I’ll continue deobfuscating the rest in the same style.

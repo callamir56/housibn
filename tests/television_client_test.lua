@@ -27,7 +27,7 @@ assert(loadfile('esx_realestate/client/modules/television.lua'))()
 HousingTV.Refresh('7')
 events['vms_housing:tv:update']('7',{on=true,provider='youtube',video='abcdefghijk',version=1})
 assert(#threads==1 and registered)
-callbacks[1]({ok=true,state={on=false}}) -- old response must not turn off the new channel
+callbacks[1]({ok=true,state={on=false}})
 assert(disposed==0)
 events['vms_housing:tv:update']('8',{on=false}); assert(disposed==0)
 events['vms_housing:tv:update']('7',{on=true,provider='youtube',video='abcdefghijk',version=2}); assert(disposed==1 and targetReleased==0 and registered)
@@ -46,7 +46,7 @@ events['housingTV:submit']({url='https://example.com/test.mp4'},function(v) resu
 assert(not result.ok and not focus and not openedMenu)
 print('TV input open, submit and stale property tests passed')
 
--- Exit/stop must release the reused target exactly once.
+
 events['onResourceStop']('housing')
 assert(targetReleased==1 and not registered)
 print('TV target is reused across transitions and released on stop')

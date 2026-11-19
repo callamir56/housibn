@@ -1,6 +1,6 @@
--- Roll the existing invoice system forward without requiring a resource restart.
--- Deliberately do not backfill months while the server was offline: usage for
--- those periods cannot be reconstructed reliably from the existing schema.
+
+
+
 CreateThread(function()
     while not HousingDataReady do Wait(1000) end
     local previous = os.date('%m:%Y')

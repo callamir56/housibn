@@ -21,9 +21,9 @@ function DispatchAlertClient(property, type)
         job = Config.Alarm.AlarmJobs,
         text = TRANSLATE('notify.lockpick:alarm_' .. type),
         type = 'alerts',
-        -- blip_time = 5,
-        -- image = 'url_to_image.jpg',
-        -- custom_sound = 'url_to_sound.mp3',
+
+
+
         blip = {
             sprite = 480,
             colour = 1,

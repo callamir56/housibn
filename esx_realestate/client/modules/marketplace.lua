@@ -1,28 +1,28 @@
---[[-------------------------------------------------------------------------
-  Marketplace UI (deobfuscated)
 
-  Responsibilities:
-    - Build a list of properties currently for sale or rent (active listings)
-    - Optionally filter to "secondary market only" (see Config.Marketplace.ShowSecondaryMarketOnly)
-    - For each listed property, attach:
-        - address + region display name
-        - first available image (slots "1".."5")
-        - garage / parking / zone area
-        - sale & rental data
-        - optional building info if the property is an "object" with an associated building property
-    - Open / Close NUI Marketplace menu
-    - Export OpenMarketplace for other resources
 
-  Notes:
-    - No server calls / network events in this snippet.
-    - NUI: SendNUIMessage + SetNuiFocus
----------------------------------------------------------------------------]]
 
--- Global state used elsewhere in the resource
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 isOfferByMarketplace = false
 marketplaceOfferId = nil
 
----@return string|nil First available image from metadata.images["1".."5"]
+
 local function getFirstMarketplaceImage(propertyData)
   if not propertyData.metadata or not propertyData.metadata.images then
     return nil
@@ -39,7 +39,7 @@ local function getFirstMarketplaceImage(propertyData)
   return nil
 end
 
----@return boolean True if property is listed (sale active OR rental active) and passes secondary-market filter
+
 local function isPropertyListedForMarketplace(propertyData)
   local saleActive = propertyData.sale and propertyData.sale.active == true
   local rentalActive = propertyData.rental and propertyData.rental.active == true
@@ -48,8 +48,8 @@ local function isPropertyListedForMarketplace(propertyData)
     return false
   end
 
-  -- If "secondary market only" is enabled, require owner to be present.
-  -- (Matches original behavior: when owner is missing and the flag is true, do NOT list it)
+
+
   if not propertyData.owner and Config.Marketplace.ShowSecondaryMarketOnly then
     return false
   end
@@ -57,8 +57,8 @@ local function isPropertyListedForMarketplace(propertyData)
   return true
 end
 
----@param propertyData table
----@return string Address string, optionally "address, region" if region exists in Config.Regions
+
+
 local function buildDisplayAddress(propertyData)
   local display = propertyData.address
   if Config.Regions[propertyData.region] then
@@ -67,9 +67,9 @@ local function buildDisplayAddress(propertyData)
   return display
 end
 
----@param propertyKey any
----@param propertyData table
----@return table Marketplace item entry
+
+
+
 local function buildMarketplaceEntry(propertyKey, propertyData)
   local image = getFirstMarketplaceImage(propertyData)
   local displayAddress = buildDisplayAddress(propertyData)
@@ -92,7 +92,7 @@ local function buildMarketplaceEntry(propertyKey, propertyData)
     rental = propertyData.rental,
   }
 
-  -- If this property is an "object property", attach its building info if present in Properties table.
+
   if propertyData.object_id then
     local buildingKey = tostring(propertyData.object_id)
     local buildingData = Properties[buildingKey]
@@ -109,11 +109,11 @@ local function buildMarketplaceEntry(propertyKey, propertyData)
 end
 
 function openMarketplace()
-  -- Reset offer tracking (used by other marketplace flows)
+
   isOfferByMarketplace = false
   marketplaceOfferId = nil
 
-  -- Build listing map keyed by property id/key from Properties table
+
   local listedProperties = {}
 
   for propertyKey, propertyData in pairs(Properties) do
@@ -122,7 +122,7 @@ function openMarketplace()
     end
   end
 
-  -- NUI payload
+
   local payload = {
     action = "Marketplace",
     actionName = "Open",
@@ -133,7 +133,7 @@ function openMarketplace()
     }
   }
 
-  -- Open NUI
+
   SetNuiFocus(true, true)
   SendNUIMessage(payload)
   openedMenu = "Marketplace"
@@ -148,10 +148,10 @@ function closeMarketplace()
   SetNuiFocus(false, false)
   openedMenu = nil
 
-  -- Reset offer tracking
+
   isOfferByMarketplace = false
   marketplaceOfferId = nil
 end
 
--- Export for other resources
+
 exports("OpenMarketplace", openMarketplace)

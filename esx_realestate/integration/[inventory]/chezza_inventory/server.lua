@@ -3,7 +3,7 @@ if Config.Inventory ~= 'inventory' then
 end
 
 function RegisterStorage(metadata)
-    -- This resource does not require stash registration.
+
 end
 
 function RegisterUsableItem(name, cb)
@@ -13,7 +13,7 @@ function RegisterUsableItem(name, cb)
 end
 
 function GetItem(src, xPlayer, name, data, search)
-    -- Chezza Inventory does not have metadata.
+
 end
 
 function AddItem(src, xPlayer, name, count, metadata)

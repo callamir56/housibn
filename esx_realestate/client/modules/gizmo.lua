@@ -1,44 +1,44 @@
---[[-------------------------------------------------------------------------
-  Gizmo / DataView utilities (deobfuscated)
 
-  This file does 3 main things:
-    1) Builds a small "dataView" helper around FiveM's blob_pack/blob_unpack API
-       - Supports typed Get*/Set* for numeric types and strings
-       - Supports fixed-length string/int reads & writes (GetFixed*/SetFixed*)
 
-    2) Provides matrix helpers used by the gizmo editor:
-       - makeEntityMatrix(entity) -> returns a dataView buffer containing a 4x4 float matrix
-       - applyEntityMatrix(entity, matrixView) -> reads that buffer, normalizes axis vectors,
-         and applies it back via SetEntityMatrix
 
-    3) Registers key mappings for gizmo select/translate/rotate.
 
-  NOTE:
-    - This snippet has no NUI callbacks and no server/network events.
-    - It is synchronous (no Citizen threads here).
----------------------------------------------------------------------------]]
 
--- These look like gizmo state variables used elsewhere in the resource.
--- They are declared here in the original snippet, even if not used in this excerpt.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local isGizmoActive = false
-local gizmoOperation = "translate" -- e.g. "translate" (and likely "rotate"/"scale" elsewhere)
+local gizmoOperation = "translate"
 local gizmoIsSnapped = false
 local gizmoSelection = nil
 
---[[-------------------------------------------------------------------------
-  dataView (blob-backed DataView-like helper)
 
-  Backing storage uses:
-    - string.blob(size) to allocate
-    - blob:blob_pack(offset, fmt, value)
-    - blob:blob_unpack(offset, fmt)
 
-  Offsets:
-    - Internally uses 1-based offsets (offset = 1 + byteOffset)
-    - Public API takes byte offsets like 0, 4, 8, ...
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
 local dataView = {
-  -- Endianness prefixes for blob_pack/blob_unpack format strings
+
   EndBig = ">",
   EndLittle = "<",
 
@@ -59,14 +59,14 @@ local dataView = {
     UluaInt = { code = "J" },
     LuaNum  = { code = "n" },
 
-    -- "z" typically means a zero-terminated string in Lua pack formats.
-    -- Size = -1 => variable length
+
+
     String  = { code = "z", size = -1 },
   },
 
-  -- Fixed-length read/write helpers (caller supplies the length)
+
   FixedTypes = {
-    String = { code = "c" }, -- fixed-length char[] ("cN")
+    String = { code = "c" },
     Int    = { code = "i" },
     Uint   = { code = "I" },
   },
@@ -74,16 +74,16 @@ local dataView = {
 
 dataView.__index = dataView
 
--- Choose endian prefix; defaults to little if nil/false (matches original)
+
 local function endianPrefix(isBigEndian)
   return isBigEndian and dataView.EndBig or dataView.EndLittle
 end
 
--- Low-level pack/write that can optionally grow the underlying buffer
+
 local function writePacked(self, byteOffset1Based, value, format)
   local newBlob = self.blob:blob_pack(byteOffset1Based, format, value)
 
-  -- Subviews cannot grow; dataviews can (if cangrow=true)
+
   if not self.cangrow and newBlob ~= self.blob then
     return false
   end
@@ -93,17 +93,17 @@ local function writePacked(self, byteOffset1Based, value, format)
   return true
 end
 
--- Allocate a new blob buffer
+
 function dataView.ArrayBuffer(byteLength)
   return setmetatable({
     blob = string.blob(byteLength),
     length = byteLength,
-    offset = 1,     -- internal 1-based base offset
-    cangrow = true, -- root views can grow
+    offset = 1,
+    cangrow = true,
   }, dataView)
 end
 
--- Wrap an existing blob
+
 function dataView.Wrap(blob)
   return setmetatable({
     blob = blob,
@@ -113,34 +113,34 @@ function dataView.Wrap(blob)
   }, dataView)
 end
 
--- Accessors
+
 function dataView:Buffer()      return self.blob end
 function dataView:ByteLength()  return self.length end
 function dataView:ByteOffset()  return self.offset end
 
--- Create a non-growing subview of the same blob
+
 function dataView:SubView(byteOffset, byteLength)
   local length = byteLength or self.length
   return setmetatable({
     blob = self.blob,
     length = length,
     offset = 1 + byteOffset,
-    cangrow = false, -- IMPORTANT: subviews cannot grow (matches original)
+    cangrow = false,
   }, dataView)
 end
 
--- Allow calling dataView(size) as a shorthand for dataView.ArrayBuffer(size)
+
 setmetatable(dataView, {
   __call = function(_, byteLength)
     return dataView.ArrayBuffer(byteLength)
   end
 })
 
---[[-------------------------------------------------------------------------
-  Auto-generate Get<Type>/Set<Type> for dataView.Types
----------------------------------------------------------------------------]]
+
+
+
 for typeName, typeInfo in pairs(dataView.Types) do
-  -- Cache/validate type sizes where applicable (preserves original checks)
+
   if typeInfo.size == nil then
     typeInfo.size = string.packsize(typeInfo.code)
   elseif typeInfo.size >= 0 then
@@ -155,7 +155,7 @@ for typeName, typeInfo in pairs(dataView.Types) do
   local getName = "Get" .. typeName
   local setName = "Set" .. typeName
 
-  -- Read typed value at byte offset
+
   dataView[getName] = function(self, byteOffset, isBigEndian)
     if byteOffset == nil then byteOffset = 0 end
     if byteOffset < 0 then return nil end
@@ -166,15 +166,15 @@ for typeName, typeInfo in pairs(dataView.Types) do
     return value
   end
 
-  -- Write typed value at byte offset (may grow unless it's a subview)
+
   dataView[setName] = function(self, byteOffset, value, isBigEndian)
     if byteOffset >= 0 and value ~= nil then
       local absoluteOffset = self.offset + byteOffset
 
-      -- Determine how many bytes we need for boundary checks on non-growing views
+
       local size = typeInfo.size
       if size < 0 then
-        -- Variable-size (e.g., string): use blob length if available
+
         local vlen = value:len()
         size = vlen or typeInfo.size
       end
@@ -197,12 +197,12 @@ for typeName, typeInfo in pairs(dataView.Types) do
   end
 end
 
---[[-------------------------------------------------------------------------
-  Auto-generate GetFixed<Type>/SetFixed<Type> for dataView.FixedTypes
-  These treat size as caller-provided length (A2_2 in original).
----------------------------------------------------------------------------]]
+
+
+
+
 for typeName, typeInfo in pairs(dataView.FixedTypes) do
-  typeInfo.size = -1 -- fixed types are variable based on caller provided length
+  typeInfo.size = -1
 
   local getName = "GetFixed" .. typeName
   local setName = "SetFixed" .. typeName
@@ -242,10 +242,10 @@ for typeName, typeInfo in pairs(dataView.FixedTypes) do
   end
 end
 
---[[-------------------------------------------------------------------------
-  normalizeVector3(x, y, z)
-  Returns a unit vector, or (0,0,0) if length is 0.
----------------------------------------------------------------------------]]
+
+
+
+
 local function normalizeVector3(x, y, z)
   local len = math.sqrt(x * x + y * y + z * z)
   if len == 0 then
@@ -254,23 +254,23 @@ local function normalizeVector3(x, y, z)
   return x / len, y / len, z / len
 end
 
---[[-------------------------------------------------------------------------
-  makeEntityMatrix(entity) -> dataView buffer
 
-  Reads entity basis vectors + position from GetEntityMatrix(entity) and packs
-  them into a 4x4 float matrix layout:
 
-    [  v2.x  v2.y  v2.z  0 ]
-    [  v1.x  v1.y  v1.z  0 ]
-    [  v3.x  v3.y  v3.z  0 ]
-    [  pos.x pos.y pos.z 1 ]
 
-  Offsets written (Float32): 0..60 step 4 (16 floats)
 
-  IMPORTANT:
-    - The original allocates ArrayBuffer(60) even though it writes up to offset 60.
-      This is preserved exactly to avoid behavior changes in this environment.
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
+
+
+
 function makeEntityMatrix(entity)
   local v1, v2, v3, pos = GetEntityMatrix(entity)
 
@@ -299,22 +299,22 @@ function makeEntityMatrix(entity)
   return matrixView
 end
 
---[[-------------------------------------------------------------------------
-  applyEntityMatrix(entity, matrixView)
 
-  Reads the matrix buffer produced by makeEntityMatrix(), normalizes the axis
-  vectors (to remove scaling), and applies it using SetEntityMatrix.
 
-  SetEntityMatrix signature in FiveM:
-    SetEntityMatrix(entity,
-      rightX, rightY, rightZ,
-      forwardX, forwardY, forwardZ,
-      upX, upY, upZ,
-      posX, posY, posZ
-    )
----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
+
+
 function applyEntityMatrix(entity, matrixView)
-  -- Read basis vectors + position from the packed matrix
+
   local rightX  = matrixView:GetFloat32(16)
   local rightY  = matrixView:GetFloat32(20)
   local rightZ  = matrixView:GetFloat32(24)
@@ -331,7 +331,7 @@ function applyEntityMatrix(entity, matrixView)
   local posY    = matrixView:GetFloat32(52)
   local posZ    = matrixView:GetFloat32(56)
 
-  -- Normalize axes (preserves original behavior)
+
   rightX, rightY, rightZ = normalizeVector3(rightX, rightY, rightZ)
   forwardX, forwardY, forwardZ = normalizeVector3(forwardX, forwardY, forwardZ)
   upX, upY, upZ = normalizeVector3(upX, upY, upZ)
@@ -345,11 +345,11 @@ function applyEntityMatrix(entity, matrixView)
   )
 end
 
---[[-------------------------------------------------------------------------
-  Key mappings (gizmo)
----------------------------------------------------------------------------]]
 
--- Select with mouse left
+
+
+
+
 RegisterKeyMapping(
   "+gizmoSelect",
   TRANSLATE("control.gizmo:select"),
@@ -357,7 +357,7 @@ RegisterKeyMapping(
   "MOUSE_LEFT"
 )
 
--- Translation mode toggle
+
 RegisterKeyMapping(
   "+gizmoTranslation",
   TRANSLATE("control.gizmo:translation"),
@@ -365,7 +365,7 @@ RegisterKeyMapping(
   Config.FurnitureControls.GIZMO_TRANSLATION.control
 )
 
--- Rotation mode toggle
+
 RegisterKeyMapping(
   "+gizmoRotation",
   TRANSLATE("control.gizmo:rotation"),

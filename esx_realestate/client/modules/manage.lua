@@ -1,35 +1,35 @@
---[[-------------------------------------------------------------------------
-  Property Management Menu (deobfuscated)
 
-  Responsibilities:
-    - Resolve which property to manage (explicit id, current property, etc.)
-    - Permission-gate access to management UI
-    - Detect inside/outside state (shell / ipl / mlo)
-    - Fetch/manage cached "bills" info via async server callback
-    - Build and send NUI payload: Property -> OpenManage
-    - Register exports + optional command/keybind to open menu
-    - Provide a close function for the NUI menu
 
-  Highlights:
-    - [ASYNC SERVER CALLBACK] library.Callback("vms_housing:openManageMenu", ...)
-      uses promise + Citizen.Await.
----------------------------------------------------------------------------]]
 
-local ManageMenu = {} -- (kept like original; not used directly but harmless)
 
--- Cache: avoid spamming the callback if the same property is reopened quickly
-local lastManageFetchPropertyId = nil      -- was L0_1
-local manageFetchCacheExpiresAt = nil      -- was L1_1 (stores GetGameTimer()+60000)
 
----@param propertyId string|number|nil
----@param isDevice boolean|nil  -- if opened from a device/tablet etc.
+
+
+
+
+
+
+
+
+
+
+
+
+local ManageMenu = {}
+
+
+local lastManageFetchPropertyId = nil
+local manageFetchCacheExpiresAt = nil
+
+
+
 function openManageMenu(propertyId, isDevice)
-  -- Preserve original side-effect: store motel manage id if provided
+
   if propertyId then
     MotelManageId = propertyId
   end
 
-  -- Resolve property id if not explicitly provided
+
   local resolvedPropertyId = propertyId
   if not resolvedPropertyId then
     resolvedPropertyId = CurrentProperty
@@ -42,7 +42,7 @@ function openManageMenu(propertyId, isDevice)
     return
   end
 
-  -- Prefer the fully synced Properties table if available; otherwise fallback to current property data getter
+
   local propertyData = nil
   if resolvedPropertyId and Properties[resolvedPropertyId] then
     propertyData = Properties[resolvedPropertyId]
@@ -53,14 +53,14 @@ function openManageMenu(propertyId, isDevice)
     end
   end
 
-  -- Permission gate (any permission)
+
   if not library.HasAnyPermission(resolvedPropertyId) then
     return
   end
 
-  -- Determine whether player is currently inside the property
+
   local isInside = false
-  local isOutside = false -- (calculated in original; not used later but kept)
+  local isOutside = false
 
   if propertyData.type == "shell" then
     if CurrentShell then
@@ -79,13 +79,13 @@ function openManageMenu(propertyId, isDevice)
     isOutside = not isInside
   end
 
-  -- Region utility prices/labels (fallback to NoRegion)
+
   local regionData = Config.Regions[propertyData.region]
   if not regionData then
     regionData = Config.NoRegion
   end
 
-  -- Refresh bills/rent bills/unpaid bills using cached async callback
+
   local manageServerData = nil
 
   local cacheValid = false
@@ -97,11 +97,11 @@ function openManageMenu(propertyId, isDevice)
   end
 
   if not cacheValid then
-    -- [ASYNC SERVER CALLBACK] Fetch manage menu data (bills, unpaid, etc.)
+
     local p = promise.new()
 
     library.Callback("vms_housing:openManageMenu", function(serverData)
-      -- set cache expiry for 60 seconds
+
       manageFetchCacheExpiresAt = GetGameTimer() + 60000
       p:resolve(serverData)
     end, resolvedPropertyId)
@@ -113,13 +113,13 @@ function openManageMenu(propertyId, isDevice)
       return
     end
 
-    -- Persist returned financial info into Properties table (matches original behavior)
+
     Properties[resolvedPropertyId].bills = manageServerData.bills
     Properties[resolvedPropertyId].unpaidRentBills = manageServerData.unpaidRentBills
     Properties[resolvedPropertyId].unpaidBills = manageServerData.unpaidBills
   end
 
-  -- Ownership / rental checks against current player identifier
+
   local isOwner = false
   if propertyData.owner then
     isOwner = (propertyData.owner == Identifier)
@@ -130,7 +130,7 @@ function openManageMenu(propertyId, isDevice)
     isRenter = (propertyData.renter == Identifier)
   end
 
-  -- Build NUI payload
+
   local payload = {
     action = "Property",
     actionName = "OpenManage",
@@ -140,7 +140,7 @@ function openManageMenu(propertyId, isDevice)
   local myPerms = propertyData.permissions and propertyData.permissions[Identifier] or {}
   local decodedKeys = json.decode(propertyData.keys)
 
-  -- Core data
+
   payload.data.type = propertyData.type
   payload.data.isObject = (propertyData.object_id ~= nil)
   payload.data.isDevice = isDevice
@@ -171,7 +171,7 @@ function openManageMenu(propertyId, isDevice)
   payload.data.isInside = isInside
   payload.data.lastEnter = propertyData.last_enter
 
-  -- Garage / parking info
+
   payload.data.garage = (propertyData.metadata and propertyData.metadata.garage ~= nil) or false
   if propertyData.metadata and propertyData.metadata.parking then
     payload.data.parking = #propertyData.metadata.parking
@@ -179,41 +179,41 @@ function openManageMenu(propertyId, isDevice)
     payload.data.parking = false
   end
 
-  -- Sale / rental info
+
   payload.data.sale = propertyData.sale
   payload.data.rental = propertyData.rental
   payload.data.keysLimit = propertyData.metadata and propertyData.metadata.keysLimit or nil
 
-  -- Furniture limit derived from upgrades
+
   payload.data.furnitureLimit = GetFurnitureLimit(propertyData.metadata and propertyData.metadata.upgrades)
 
-  -- Auto-sell price (kept identical to the original logic, even though it looks odd)
+
   local autoSellPrice = nil
   autoSellPrice = propertyData.sale and propertyData.sale.defaultPrice
   if autoSellPrice then
     local defaultPrice = propertyData.sale.defaultPrice
-    local _unusedMultiplier = (Config.AutomaticSell / 100) -- computed in original but not actually used
-    autoSellPrice = (defaultPrice >= 1 and defaultPrice) -- becomes false if < 1
+    local _unusedMultiplier = (Config.AutomaticSell / 100)
+    autoSellPrice = (defaultPrice >= 1 and defaultPrice)
   end
   payload.data.autoSellPrice = autoSellPrice
 
-  -- If owner/renter, include full permission table
+
   if isOwner or isRenter then
     payload.data.permissions = propertyData.permissions
   end
 
-  -- Furniture-related extras, only if user has "furniture" permission
+
   if library.HasPermissions(resolvedPropertyId, "furniture") then
     payload.data.furniture = propertyData.furniture
     payload.data.allowedInside = propertyData.metadata and propertyData.metadata.allowFurnitureInside
     payload.data.allowedOutside = propertyData.metadata and propertyData.metadata.allowFurnitureOutside
 
-    -- Wardrobe / Storage presence checks
+
     payload.data.hasWardrobe = (propertyData.metadata and propertyData.metadata.wardrobe and propertyData.metadata.wardrobe.x ~= nil) or false
     payload.data.hasStorage = (propertyData.metadata and propertyData.metadata.storage and propertyData.metadata.storage.x ~= nil) or false
   end
 
-  -- Upgrades manage data, only if user has "upgradesManage" permission
+
   if library.HasPermissions(resolvedPropertyId, "upgradesManage") then
     payload.data.upgrades = Config.HousingUpgrades
     payload.data.ownUpgrades = {}
@@ -229,26 +229,26 @@ function openManageMenu(propertyId, isDevice)
     end
   end
 
-  -- Marketplace manage data, only if user has "marketplaceManage" permission
+
   if library.HasPermissions(resolvedPropertyId, "marketplaceManage") then
     payload.data.furnished = propertyData.metadata and propertyData.metadata.furnished
     payload.data.contact_number = propertyData.metadata and propertyData.metadata.contact_number
     payload.data.images = propertyData.metadata and propertyData.metadata.images
   end
 
-  -- The UI may have loaded after the initial furniture sync. Send the current
-  -- catalog immediately before opening the purchase menu.
+
+
   SendNUIMessage({ action = "Property", actionName = "ReloadAvailableFurniture", data = Furniture or {} })
-  -- Open NUI
+
   SetNuiFocus(true, true)
   SendNUIMessage(payload)
   openedMenu = "PropertyManage"
 end
 
--- Export for other resources
+
 exports("OpenManageMenu", openManageMenu)
 
--- Close menu (NUI)
+
 function closeManageMenu()
   SendNUIMessage({
     action = "Property",
@@ -258,11 +258,11 @@ function closeManageMenu()
   SetNuiFocus(false, false)
   openedMenu = nil
 
-  -- Reset motel manage state (original behavior)
+
   MotelManageId = nil
 end
 
--- Optional command + key mapping
+
 if Config.HousingManagement and Config.HousingManagement.Command then
   RegisterCommand(Config.HousingManagement.Command, function()
     openManageMenu()

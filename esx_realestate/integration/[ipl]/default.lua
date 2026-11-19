@@ -1,5 +1,5 @@
 local ipls = {
-    -- https://wiki.rage.mp/wiki/Interiors_and_Locations#Online_Apartments
+
     ['apa_v_mp_h_01_a'] = {
         label = 'Modern 1 Apartment',
         tags = {'furnished', 'apartment'},
@@ -65,8 +65,8 @@ local ipls = {
         },
     },
     
-    -- https://wiki.rage.mp/wiki/Interiors_and_Locations#Arcadius_Business_Centre
-    ['ex_dt1_02_office_02b'] = { -- Vector3(-141.1987, -620.913, 168.8205);
+
+    ['ex_dt1_02_office_02b'] = {
         label = 'Executive Rich',
         tags = {'furnished', 'office'},
         rooms = 0,

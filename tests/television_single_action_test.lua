@@ -1,4 +1,4 @@
--- The real server and client handlers are connected by mocked FiveM callbacks.
+
 local serverCallbacks, clientEvents, serverEvents, nui, tasks = {}, {}, {}, {}, {}
 local registered, creates, destroys, releases = false,0,0,0
 CurrentProperty='7'; HousingDataReady=true; openedMenu=nil

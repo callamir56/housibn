@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 function exports() end
 assert(loadfile('esx_realestate/client/modules/property.lua'))()
 Property:RegisterDoors(nil)

@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 function exports() end
 assert(loadfile('esx_realestate/client/modules/property.lua'))()
 local zoneId = '6'
@@ -24,8 +24,8 @@ function SetArtificialLightsState() end
 local waitCount = 0
 function Wait()
   waitCount = waitCount + 1
-  if waitCount == 1 then zoneId = nil end -- zone disappears during fade
-  if waitCount == 3 then CurrentPropertyData = nil end -- async cache refresh
+  if waitCount == 1 then zoneId = nil end
+  if waitCount == 3 then CurrentPropertyData = nil end
 end
 function Property:RemoveFurniture() end
 function Property:LoadStaticInteractable() end
@@ -34,7 +34,7 @@ Property:EnterProperty(data)
 assert(entered == '6' and CurrentProperty == '6' and CurrentPropertyData == data)
 assert(fades == 1 and frozen == false)
 print('property entry async context test passed')
--- A missing interior definition should notify the player and stop cleanly.
+
 CurrentShell=nil; CurrentIPL=nil
 local alerted, complete = false, nil
 CL.Notification=function() alerted=true end

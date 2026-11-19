@@ -16,6 +16,6 @@ function DispatchAlertClient(property, type)
         return
     end
 
-    -- To be implemented according to the ps-dispatch script according to your configuration
-    -- https://github.com/Project-Sloth/ps-dispatch?tab=readme-ov-file#steps-to-create-new-alert
+
+
 end

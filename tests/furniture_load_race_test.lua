@@ -7,7 +7,7 @@ function DoesEntityExist(e) return e==12 end
 function DeleteObject(e) deleted[#deleted+1]=e end
 CL={Target=function() end}
 library={SpawnProp=function()
-    -- A house transition occurs while model loading yields.
+
     Property:RemoveFurniture()
     return 12
 end}

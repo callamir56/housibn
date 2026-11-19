@@ -3,7 +3,7 @@ if Config.Dispatch then
 end
 
 function DispatchAlertClient(property, type)
-    -- Nothing
+
 end
 
 RegisterNetEvent('vms_housing:cl:dispatchAlert', function(propertyId, coords, alarmType)

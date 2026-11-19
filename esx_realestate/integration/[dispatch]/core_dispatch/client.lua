@@ -15,14 +15,14 @@ function DispatchAlertClient(property, type)
     end
 
     TriggerServerEvent("core_dispatch:addCall", 
-        "459",                                        --- @code string code of the call (like 10-19)
-        "Burglary",                                   --- @message string message in the notification
-        { {icon = "fa-venus-mars", info = "male"} },  --- @info table of type {icon= string, info= string }
-        {coords.x, coords.y, coords.z},               --- @coords number,number,number coords where the notification is trigger
-        'police',                                     --- @job string job who will receive the notification (one at a time)
-        5000,                                         --- @time number time duration of the notification in ms
-        480,                                          --- @spritenumber Sprite that will be use on the minimap to 
-        1,                                            --- @colornumber color use for the blip
-        false                                         --- @priority boolean define if the call is priority or not
+        "459",
+        "Burglary",
+        { {icon = "fa-venus-mars", info = "male"} },
+        {coords.x, coords.y, coords.z},
+        'police',
+        5000,
+        480,
+        1,
+        false
     )
 end

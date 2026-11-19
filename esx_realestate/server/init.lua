@@ -1,26 +1,26 @@
---=====================================================================
---  Core / Globals
---=====================================================================
 
--- Core object (framework export)
+
+
+
+
 Core = Config.CoreExport()
 
--- In-memory caches (populated on resource init)
-Properties        = {}   -- [propertyIdString] = houseRow
-Furniture         = {}   -- [model] = furnitureRow
-PendingDeliveries = {}   -- array of { propertyId, furnitureId, deliveryTime }
-HousingDataReady = false -- client fetches must wait for catalog and property caches
 
---=====================================================================
---  Furniture catalog persistence helper
---=====================================================================
--- SaveFurniture(action, payload)
---  action:
---    "insert" -> payload = { "modelA", "modelB", ... }  (models must already exist in Furniture cache)
---    "update" -> payload = "model"
---    "delete" -> payload = "model"
---
--- NOTE: All DB writes here are ASYNC (fire-and-forget).
+Properties        = {}
+Furniture         = {}
+PendingDeliveries = {}
+HousingDataReady = false
+
+
+
+
+
+
+
+
+
+
+
 function SaveFurniture(action, payload)
     if action == "insert" then
         if type(payload) ~= "table" then
@@ -30,7 +30,7 @@ function SaveFurniture(action, payload)
         for _, model in ipairs(payload) do
             local item = Furniture[model]
             if not item then
-                -- Matches original behavior: abort the entire insert batch if any model is missing
+
                 return
             end
 
@@ -39,7 +39,7 @@ function SaveFurniture(action, payload)
                 metadataJson = json.encode(item.metadata) or nil
             end
 
-            -- ASYNC DB WRITE
+
             MySQL.Async.execute([[
                 INSERT INTO `houses_furniture_list` (
                     `model`,
@@ -78,7 +78,7 @@ function SaveFurniture(action, payload)
             metadataJson = json.encode(item.metadata) or nil
         end
 
-        -- ASYNC DB WRITE
+
         MySQL.Async.execute([[
             UPDATE `houses_furniture_list` SET
                 `label` = @label,
@@ -105,7 +105,7 @@ function SaveFurniture(action, payload)
     elseif action == "delete" then
         local model = payload
 
-        -- ASYNC DB WRITE
+
         MySQL.Async.execute([[
             DELETE FROM `houses_furniture_list` WHERE `model` = @model
         ]], {
@@ -114,15 +114,15 @@ function SaveFurniture(action, payload)
     end
 end
 
---=====================================================================
---  Database init / Resource boot
---=====================================================================
+
+
+
 
 MySQL.ready(function()
-    ------------------------------------------------------------------
-    -- Optional: auto-create tables
-    -- Await table creation before starting cache queries.
-    ------------------------------------------------------------------
+
+
+
+
     if Config.AutoExecuteQuery then
         MySQL.query.await([[
             CREATE TABLE IF NOT EXISTS `houses` (
@@ -225,19 +225,19 @@ MySQL.ready(function()
         ]])
     end
 
-    ------------------------------------------------------------------
-    -- Main init thread
-    ------------------------------------------------------------------
+
+
+
     Citizen.CreateThread(function()
         local initStartMs = GetGameTimer()
         local nowUnix      = os.time()
-        local monthPeriod  = os.date("%m:%Y", nowUnix)  -- current monthly billing period
-        local weekPeriod   = GetWeekPeriod()            -- weekly rent period (if enabled)
+        local monthPeriod  = os.date("%m:%Y", nowUnix)
+        local weekPeriod   = GetWeekPeriod()
 
-        ------------------------------------------------------------------
-        -- Optional table optimization
-        -- ASYNC DB MAINTENANCE
-        ------------------------------------------------------------------
+
+
+
+
         if Config.OptimizeBillsTable then
             MySQL.prepare(string.format(
                 "DELETE FROM houses_bills WHERE `paid` = 1 AND `period` != '%s'",
@@ -245,12 +245,12 @@ MySQL.ready(function()
             ), {})
         end
 
-        ------------------------------------------------------------------
-        -- Load all required data
-        -- These are AWAIT calls (block this init thread until results arrive)
-        ------------------------------------------------------------------
+
+
+
+
         local furnitureListRows   = MySQL.query.await("SELECT * FROM `houses_furniture_list`", {})
-        -- Seed only a genuinely empty catalog. Never replace a server's custom items.
+
         if furnitureListRows and #furnitureListRows == 0 and Config.AutoSeedFurniture then
             local sqlFile = LoadResourceFile(GetCurrentResourceName(), "[SQL]/housing.sql")
             local seedSql = sqlFile and sqlFile:match("%-%- HOUSING_FURNITURE_SEED_BEGIN%s*(.-)%s*%-%- HOUSING_FURNITURE_SEED_END")
@@ -270,9 +270,9 @@ MySQL.ready(function()
         local billsRows           = MySQL.query.await("SELECT * FROM `houses_bills` ORDER BY id DESC", {})
         local placedFurnitureRows = MySQL.query.await("SELECT * FROM `houses_furniture`", {})
 
-        ------------------------------------------------------------------
-        -- Build Furniture catalog cache
-        ------------------------------------------------------------------
+
+
+
         if furnitureListRows then
             for i = 1, #furnitureListRows do
                 local row = furnitureListRows[i]
@@ -285,19 +285,19 @@ MySQL.ready(function()
             end
         end
 
-        ------------------------------------------------------------------
-        -- Build Properties cache & initialize per-house runtime fields
-        ------------------------------------------------------------------
+
+
+
         for i = 1, #housesRows do
             local house = housesRows[i]
             local propertyId = tostring(house.id)
 
-            -- Decode JSON fields
+
             house.metadata = json.decode(house.metadata)
             house.sale     = json.decode(house.sale)
             house.rental   = json.decode(house.rental)
 
-            -- Extra per-house init (skip for building/motel types)
+
             if house.type ~= "building" and house.type ~= "motel" then
                 house.permissions    = json.decode(house.permissions)
                 house.bills          = {}
@@ -305,7 +305,7 @@ MySQL.ready(function()
                 house.unpaidRentBills = 0
                 house.furniture      = {}
 
-                -- Default door lock state if doors state is not persisted
+
                 if not Config.SaveDoorsState then
                     if house.type == "mlo" then
                         if house.metadata and house.metadata.doors then
@@ -318,7 +318,7 @@ MySQL.ready(function()
                     end
                 end
 
-                -- City hall taxes: cadastral tax (if enabled)
+
                 local taxCfg = Config.CityHallTaxes
                     and Config.CityHallTaxes.PropertyCadastralTax
                     and Config.CityHallTaxes.PropertyCadastralTax.Enabled
@@ -326,7 +326,7 @@ MySQL.ready(function()
                 if taxCfg and house.owner then
                     local lastPeriod = house.metadata and house.metadata.lastCadastralPeriod
                     if lastPeriod ~= monthPeriod then
-                        -- SERVER / MODULE CALL: generate and register tax for this owner
+
                         local added = SV.AddTax(
                             house.owner,
                             house.owner_name,
@@ -339,7 +339,7 @@ MySQL.ready(function()
                         if added then
                             house.metadata.lastCadastralPeriod = monthPeriod
 
-                            -- ASYNC DB WRITE (positional parameters)
+
                             MySQL.prepare(
                                 "UPDATE `houses` SET metadata = ? WHERE id = ?",
                                 { json.encode(house.metadata), tonumber(house.id) }
@@ -348,9 +348,9 @@ MySQL.ready(function()
                     end
                 end
 
-                -- House storage registration (if configured in metadata)
+
                 if house.metadata and house.metadata.storage and house.metadata.storage.x then
-                    -- SERVER / MODULE CALL: register a stash/storage
+
                     library.RegisterStorage({
                         id     = ("house_storage-%s"):format(house.id),
                         slots  = house.metadata.storage.slots,
@@ -359,18 +359,18 @@ MySQL.ready(function()
                 end
             end
 
-            -- Store in global cache
+
             Properties[propertyId] = house
 
-            -- Yield occasionally to avoid hitching on big datasets
+
             if (i % 100) == 0 then
                 Citizen.Wait(10)
             end
         end
 
-        ------------------------------------------------------------------
-        -- Attach placed furniture to properties, track deliveries, register storages
-        ------------------------------------------------------------------
+
+
+
         if placedFurnitureRows then
             for i = 1, #placedFurnitureRows do
                 local f = placedFurnitureRows[i]
@@ -380,7 +380,7 @@ MySQL.ready(function()
                 local propertyId = tostring(f.house_id)
                 local house = Properties[propertyId]
                 if house then
-                    -- Delivery tracking: furniture with deliveryTime becomes pending
+
                     if f.metadata and f.metadata.deliveryTime then
                         table.insert(PendingDeliveries, {
                             propertyId   = propertyId,
@@ -389,21 +389,21 @@ MySQL.ready(function()
                         })
                     end
 
-                    -- If this furniture has storage metadata (weight present), register it
+
                     if f.position and f.metadata and next(f.metadata) and f.metadata.weight ~= nil then
-                        -- SERVER / MODULE CALL
+
                         library.RegisterStorage(f.metadata)
                     end
 
-                    -- Attach to house furniture list
+
                     table.insert(house.furniture, f)
                 end
             end
         end
 
-        ------------------------------------------------------------------
-        -- Attach bills to properties and update unpaid counters
-        ------------------------------------------------------------------
+
+
+
         if billsRows then
             for i = 1, #billsRows do
                 local bill = billsRows[i]
@@ -412,8 +412,8 @@ MySQL.ready(function()
 
                 if house and house.type ~= "building" and house.type ~= "motel" then
                     if bill.paid ~= true and tonumber(bill.paid) ~= 1 then
-                        -- Preserve the original rent behaviour; changing eviction policy
-                        -- must not unexpectedly evict existing tenants during this upgrade.
+
+
                         if bill.type == "rent" and not bill.paid then
                             house.unpaidRentBills = (house.unpaidRentBills or 0) + 1
                         elseif bill.type == "services" and Config.UseServiceBills and bill.period ~= monthPeriod then
@@ -425,25 +425,25 @@ MySQL.ready(function()
                 end
             end
 
-            ------------------------------------------------------------------
-            -- Post-processing per property:
-            --  - ensure monthly service bill exists (if enabled)
-            --  - handle light shutoff if too many unpaid bills
-            --  - ensure rent bill exists (if renter & missing)
-            --  - terminate rental if conditions met
-            ------------------------------------------------------------------
+
+
+
+
+
+
+
             for propertyId, house in pairs(Properties) do
                 if house.type ~= "building" and house.type ~= "motel" then
                     local hasServiceBillThisMonth = false
                     local hasRentBillForCycle     = false
 
-                    -- Determine rent period key (weekly vs monthly)
+
                     local rentPeriod = monthPeriod
                     if house.rental and house.rental.cycle == "weekly" and weekPeriod then
                         rentPeriod = weekPeriod
                     end
 
-                    -- Scan existing bills
+
                     local bills = house.bills or {}
                     for _, bill in ipairs(bills) do
                         if bill.period == monthPeriod and bill.type == "services" then
@@ -453,7 +453,7 @@ MySQL.ready(function()
                             hasRentBillForCycle = true
                         end
 
-                        -- Early exit similar to original logic
+
                         if hasServiceBillThisMonth then
                             if (not house.renter) or hasRentBillForCycle then
                                 break
@@ -461,9 +461,9 @@ MySQL.ready(function()
                         end
                     end
 
-                    -- Create monthly service bill if needed
+
                     if Config.UseServiceBills and not hasServiceBillThisMonth then
-                        -- SERVER / MODULE CALL: creates bill row (likely also persists)
+
                         local newBill = library.GenerateMonthlyBill(propertyId, monthPeriod)
                         if newBill then
                             table.insert(house.bills, 1, newBill)
@@ -471,17 +471,17 @@ MySQL.ready(function()
                     end
 
                     library.RefreshUtilityDebt(house)
-                    -- Light shutoff logic when unpaid bills exceed limit
+
                     if Config.UseServiceBills and house.unpaidBills then
                         if house.unpaidBills >= Config.AllowedUnpaidBills then
                             if house.metadata and house.metadata.lightState then
-                                -- SERVER / MODULE CALL
+
                                 library.HandleLightStateMonthOverlap(propertyId)
 
                                 house.metadata.lightState = false
                                 house.metadata.lightStartTime = nil
 
-                                -- ASYNC DB WRITE
+
                                 MySQL.prepare(
                                     "UPDATE `houses` SET metadata = ? WHERE id = ?",
                                     { json.encode(house.metadata), tonumber(propertyId) }
@@ -490,10 +490,10 @@ MySQL.ready(function()
                         end
                     end
 
-                    -- Rent bill creation + rental termination checks
+
                     if house.renter then
                         if not hasRentBillForCycle then
-                            -- SERVER / MODULE CALL: creates rent bill row (likely also persists)
+
                             local rentBill = library.GenerateRentBill(propertyId, rentPeriod)
                             if rentBill then
                                 table.insert(house.bills, 1, rentBill)
@@ -507,20 +507,20 @@ MySQL.ready(function()
                             (house.rental and house.rental.terminateAtPeriod == monthPeriod)
 
                         if mustTerminate then
-                            ------------------------------------------------------------------
-                            -- Rental termination
-                            -- This section performs:
-                            --  - DB cleanup (bills, furniture if configured)
-                            --  - state resets (keys/permissions/metadata)
-                            --  - updates `houses` row
-                            --
-                            -- NOTE: Final DB update is ASYNC (MySQL.Async.execute).
-                            ------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
                             local updateQuery = ""
                             local renterIdentifier = house.renter
 
                             if house.owner then
-                                -- House has an owner: end renter only (keep sale data intact)
+
                                 updateQuery = [[
                                     UPDATE `houses`
                                         SET
@@ -533,12 +533,12 @@ MySQL.ready(function()
                                     WHERE id = @id
                                 ]]
 
-                                -- Optionally remove keys when rent ends
+
                                 if Config.RemoveKeysOnRentEnd then
                                     house.keys = json.encode({})
                                 end
 
-                                -- Reset rent counters and remove unpaid rent bills from DB
+
                                 house.unpaidRentBills = nil
 
                                 MySQL.prepare(
@@ -546,7 +546,7 @@ MySQL.ready(function()
                                     { tonumber(propertyId), "rent" }
                                 )
 
-                                -- Remove unpaid rent bills from in-memory list (paid == 0 or paid == false)
+
                                 for idx = #house.bills, 1, -1 do
                                     local b = house.bills[idx]
                                     if b.type == "rent" and (b.paid == 0 or b.paid == false) then
@@ -554,17 +554,17 @@ MySQL.ready(function()
                                     end
                                 end
 
-                                -- Lock and turn off lights
+
                                 house.metadata.locked = true
                                 house.metadata.lightState = false
                                 house.metadata.lightStartTime = nil
 
-                                -- Remove renter permissions entry
+
                                 if house.permissions then
                                     house.permissions[renterIdentifier] = nil
                                 end
                             else
-                                -- No owner: treat as generic rental unit reset (also resets sale/rental actives)
+
                                 updateQuery = [[
                                     UPDATE `houses`
                                         SET
@@ -579,10 +579,10 @@ MySQL.ready(function()
                                     WHERE id = @id
                                 ]]
 
-                                -- Always remove keys
+
                                 house.keys = json.encode({})
 
-                                -- Restore default sale/rental active states
+
                                 if house.sale then
                                     house.sale.active = house.sale.defaultActive
                                 end
@@ -590,13 +590,13 @@ MySQL.ready(function()
                                     house.rental.active = house.rental.defaultActive
                                 end
 
-                                -- Reset metadata flags
+
                                 house.metadata.locked = true
                                 house.metadata.contact_number = nil
                                 house.metadata.lightState = false
                                 house.metadata.lightStartTime = nil
 
-                                -- Optional: remove all placed furniture on rent end
+
                                 if Config.RemoveFurnitureOnRentEnd then
                                     house.furniture = {}
 
@@ -606,7 +606,7 @@ MySQL.ready(function()
                                     )
                                 end
 
-                                -- Clear bills/permissions and clean DB
+
                                 house.bills = {}
                                 house.unpaidBills = 0
                                 house.unpaidRentBills = nil
@@ -619,7 +619,7 @@ MySQL.ready(function()
                                 house.permissions = {}
                             end
 
-                            -- Common cleanup
+
                             house.renter = nil
                             house.renter_name = nil
                             if house.rental then
@@ -627,7 +627,7 @@ MySQL.ready(function()
                                 house.rental.terminateAtPeriod = nil
                             end
 
-                            -- Final ASYNC DB WRITE (uses named parameters)
+
                             MySQL.Async.execute(updateQuery, {
                                 ["@keys"]        = house.keys,
                                 ["@permissions"] = json.encode(house.permissions),
@@ -642,15 +642,15 @@ MySQL.ready(function()
             end
         end
 
-        ------------------------------------------------------------------
-        -- All caches are now populated; waiting clients may receive them.
+
+
         HousingDataReady = true
         if not furnitureListRows or #furnitureListRows == 0 then
             print("[esx_realestate] Furniture catalog is empty; import [SQL]/housing.sql once and restart the resource.")
         end
 
-        -- Debug output
-        ------------------------------------------------------------------
+
+
         library.Debug(("^2VMS Housing init completed in %d ms^7"):format(GetGameTimer() - initStartMs))
         library.Debug(("Loaded %d Properies, %d Bills, %d Furniture"):format(
             #housesRows,
@@ -660,10 +660,10 @@ MySQL.ready(function()
     end)
 end)
 
---=====================================================================
---  Pending deliveries worker
---=====================================================================
--- Runs only if DeliveryType is 2 or 3, periodically processing up to 200.
+
+
+
+
 CreateThread(function()
     while true do
         local deliveryType = Config.DeliveryType
@@ -674,11 +674,11 @@ CreateThread(function()
         Citizen.Wait(8000)
 
         if next(PendingDeliveries) then
-            -- SERVER / MODULE CALL
+
             ProcessPendingDeliveries(200)
         end
 
-        -- Original code used Wait() here (kept to match behavior/env)
+
         Wait(30000)
     end
 end)

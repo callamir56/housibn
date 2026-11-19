@@ -1,4 +1,4 @@
--- Agency copies require a fresh owner approval for every issuance.
+
 local byOwner, byAgent, sequence = {}, {}, 0
 local TIMEOUT = 30000
 local function notify(src,msg,kind) TriggerClientEvent('vms_housing:notification',src,msg,5000,kind or 'info') end

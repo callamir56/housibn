@@ -1,20 +1,20 @@
 Migration = Migration or {}
 
-local DefaultShell = 'standardmotel_shell' -- Default shell for properties without a specific shell type
+local DefaultShell = 'standardmotel_shell'
 local ShellsList = {
     [1] = 'standardmotel_shell',
     [2] = 'modernhotel_shell',
-    [3] = 'shell_v16mid',           -- By default: 'furnitured_midapart'
+    [3] = 'shell_v16mid',
     [4] = 'shell_garagem',
-    [5] = 'shell_v16mid',           -- By default: 'shell_office1'
-    [6] = 'shell_v16mid',           -- By default: 'shell_store1'
+    [5] = 'shell_v16mid',
+    [6] = 'shell_v16mid',
     [7] = 'shell_warehouse1',
     [8] = 'container_shell',
     [9] = 'shell_michael',
     [10] = 'shell_frankaunt',
-    [11] = 'shell_v16mid',          -- By default: 'shell_ranch'
+    [11] = 'shell_v16mid',
     [12] = 'shell_trailer',
-    [13] = 'shell_v16mid',          -- By default: 'shell_lester'
+    [13] = 'shell_v16mid',
     [14] = 'shell_v16mid',
     [15] = 'shell_trevor',
     [16] = 'shell_v16low',

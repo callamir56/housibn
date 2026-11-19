@@ -1,7 +1,7 @@
--- Run with Lua 5.4+ from the repository root, with ESX/FiveM APIs mocked.
+
 local f = assert(io.open('esx_realestate/server/main.lua'))
 local sourceText = f:read('*a'); f:close()
-local block = assert(sourceText:match('(%-%- Immediate placement purchases:.-)\n%-%- Place furniture'))
+local block = assert(sourceText:match('(local pendingPlacedFurniturePurchases = {}.-)library%.RegisterCallback%("vms_housing:placeFurniture"'))
 local callback, money, inserts, events = nil, 500, 0, 0
 local prop = {owner='id', metadata={allowFurnitureInside=true, upgrades={}}, furniture={}}
 local player = {}

@@ -1,8 +1,8 @@
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:playerDropped
-  Client-side cleanup when the server notifies that the player “dropped”.
-  (Same cleanup as resource stop: weather, shell, furniture, marketplace ped)
-----------------------------------------------------------------------------]]
+
+
+
+
+
 RegisterNetEvent("vms_housing:cl:playerDropped", function()
   if ToggleWeather then
     ToggleWeather(false)
@@ -19,14 +19,14 @@ RegisterNetEvent("vms_housing:cl:playerDropped", function()
   end
 end)
 
---[[--------------------------------------------------------------------------
-  Helpers for MLO door system reset/remove
-----------------------------------------------------------------------------]]
+
+
+
 local function resetMloDoorSystemStates(doors, alsoRemoveFromDoorSystem)
   if not doors then return end
 
   for _, door in pairs(doors) do
-    -- Double doors: reset left & right hashes if present
+
     if door.type == "double" then
       if door.left and door.left.hash then
         DoorSystemSetDoorState(door.left.hash, 4, false, false)
@@ -45,7 +45,7 @@ local function resetMloDoorSystemStates(doors, alsoRemoveFromDoorSystem)
       end
     end
 
-    -- Single hash doors
+
     if door.hash then
       DoorSystemSetDoorState(door.hash, 4, false, false)
       DoorSystemSetDoorState(door.hash, 0, false, false)
@@ -56,39 +56,39 @@ local function resetMloDoorSystemStates(doors, alsoRemoveFromDoorSystem)
   end
 end
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:createdHouse
-  Fired when a property is created/updated with fresh data from server.
 
-  Behavior:
-  - If old version existed and was MLO, “reset” its door system states.
-  - Replace Properties[propertyId] with newPropertyData.
-  - If new version is MLO with doors, register doors.
-  - Refresh blips.
-  - If player currently is in that zone (or object zone mapping), exit zone to force refresh.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:cl:createdHouse", function(propertyId, newPropertyData)
   local existing = Properties[propertyId]
 
-  -- If we had an old MLO property with doors, reset door states (no removal)
+
   if existing and existing.type == "mlo" then
     local oldDoors = existing.metadata and existing.metadata.doors
     resetMloDoorSystemStates(oldDoors, false)
   end
 
-  -- Store the new property data
+
   Properties[propertyId] = newPropertyData
   if CurrentProperty and tostring(CurrentProperty) == tostring(propertyId) then
     CurrentPropertyData = newPropertyData
   end
 
-  -- If new is MLO, register doors if available
+
   local updated = Properties[propertyId]
   if updated and updated.type == "mlo" then
     local doors = updated.metadata and updated.metadata.doors
     if doors then
-      -- NOTE: this forceLock computation matches the original obfuscated logic
-      -- (it always resolves to nil/false, but we keep it identical).
+
+
       local renter = Properties[propertyId].renter
       local forceLock = (not renter) and renter
 
@@ -102,7 +102,7 @@ RegisterNetEvent("vms_housing:cl:createdHouse", function(propertyId, newProperty
 
   RefreshBlips()
 
-  -- If player is on this zone (or the object_id points to the zone), force zone exit
+
   local currentZoneId = GetCurrentPropertyId()
   local shouldExitZone = false
 
@@ -124,16 +124,16 @@ RegisterNetEvent("vms_housing:cl:createdHouse", function(propertyId, newProperty
   end
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:removedHouse
-  Fired when a property is removed from server.
 
-  Behavior:
-  - If it was an MLO with doors, reset + remove those doors from GTA door system.
-  - Remove property from Properties.
-  - Refresh blips.
-  - If player is currently in that zone, exit zone.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:cl:removedHouse", function(propertyId)
   local existing = Properties[propertyId]
 
@@ -150,29 +150,29 @@ RegisterNetEvent("vms_housing:cl:removedHouse", function(propertyId)
   end
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:enterHouse
-  Admin-only “force enter” (server validated).
 
-  Flow:
-  - Validate property exists & not currently inside a shell/IPL
-  - Await permission from server callback
-  - Validate shell/IPL definition exists
-  - Fade out, freeze player, spawn shell/IPL, load static interactables
-  - [SERVER CALL] vms_housing:sv:enterHouse
-  - Weather loop thread (if enabled)
-  - Light state, fade in, load furniture, unfreeze, refresh targets
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
   local propertyData = GetProperty(propertyId)
   if not propertyData then return end
   if CurrentShell or CurrentIPL then return end
 
-  -- [ASYNC SERVER CALLBACK (await)]
+
   local allowed = library.CallbackAwait("vms_housing:isAllowedToUseAdmin")
   if not allowed then return end
 
-  -- Validate interior definition exists
+
   if propertyData.type == "shell" then
     if not AvailableShells[propertyData.metadata.shell] then
       return CL.Notification(('Could not find shell "%s"!'):format(propertyData.metadata.shell), 5000, "error")
@@ -195,7 +195,7 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
     return
   end
 
-  -- Clear any previously spawned furniture (world state)
+
   Property:RemoveFurniture()
 
   DoScreenFadeOut(1500)
@@ -206,7 +206,7 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
   CurrentProperty = tostring(propertyId)
   CurrentPropertyData = propertyData
 
-  -- Load shell / IPL
+
   if propertyData.type == "shell" then
     CurrentShell = SpawnHousingShell(propertyData.metadata.shell)
 
@@ -219,10 +219,10 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
     Property:LoadStaticInteractable(AvailableIPLS[propertyData.metadata.ipl])
   end
 
-  -- [SERVER CALL] mark player as inside
+
   TriggerServerEvent("vms_housing:sv:enterHouse", CurrentProperty)
 
-  -- Weather loop (async thread)
+
   if ToggleWeather then
     Citizen.CreateThread(function()
       while CurrentShell or CurrentIPL do
@@ -234,14 +234,14 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
 
   Wait(1500)
 
-  -- Apply interior light state (if present)
+
   if CurrentPropertyData.metadata.lightState ~= nil then
     SetArtificialLightsState(not CurrentPropertyData.metadata.lightState)
   end
 
   DoScreenFadeIn(1500)
 
-  -- Load furniture inside
+
   if propertyData.furniture then
     Property:LoadFurniture("inside", propertyData.furniture, CurrentProperty)
   end
@@ -250,15 +250,15 @@ RegisterNetEvent("vms_housing:cl:enterHouse", function(propertyId)
   RefreshTargets()
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:usedKeyItem
-  Triggered when a player uses a “key item”.
 
-  Behavior (kept identical):
-  - If player is on the property zone (or its object-zone mapping), toggle MLO door lock near the player,
-    OR toggle non-MLO lock if close to enter point.
-  - Otherwise, if player is inside that property (shell/IPL), toggle lock if close to the interior door marker coords.
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
 RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
   local ped = PlayerPedId()
   local coords = GetEntityCoords(ped)
@@ -266,7 +266,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
   local propertyData = Properties[propertyId]
   if not propertyData then return end
 
-  -- Some properties use `object_id` to map a zone id differently
+
   local isOnObjectZone = false
   if propertyData.object_id then
     local currentStr = tostring(GetCurrentPropertyId())
@@ -276,16 +276,16 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
 
   local currentZoneId = GetCurrentPropertyId()
 
-  -- OUTSIDE: on zone or object zone
+
   if currentZoneId == propertyId or isOnObjectZone then
-    -- MLO: pick nearest door and toggle via server
+
     if propertyData.type == "mlo" then
       local doors = propertyData.metadata and propertyData.metadata.doors
       if not doors then
         return
       end
 
-      -- Find nearest door index depending on door type
+
       local nearestDoorIndex = nil
 
       for doorIndex, door in pairs(doors) do
@@ -293,7 +293,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
           local dist = #(coords.xyz - vector3(door.coords.x, door.coords.y, door.coords.z))
           local maxDist = door.distance or 8.5
           if dist < maxDist then
-            nearestDoorIndex = doorIndex -- does NOT break (same as original)
+            nearestDoorIndex = doorIndex
           end
 
         elseif door.type == "double" then
@@ -318,7 +318,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
         return
       end
 
-      -- Cooldown handling (identical behavior)
+
       local canUse = true
       if Property.LastLockedDoors then
         local now = GetGameTimer()
@@ -328,7 +328,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
       end
 
       if canUse then
-        -- [SERVER CALL] toggle a specific door lock by index
+
         TriggerServerEvent(
           "vms_housing:sv:toggleDoorlock",
           propertyId,
@@ -342,7 +342,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
         CL.Notification(TRANSLATE("notify.doors:wait"), 3500, "info")
       end
 
-    -- NON-MLO: toggle lock only if close to enter point
+
     else
       if propertyData.metadata and propertyData.metadata.enter then
         local enter = propertyData.metadata.enter
@@ -358,12 +358,12 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
     return
   end
 
-  -- INSIDE: must match CurrentProperty
+
   if CurrentProperty ~= propertyId then
     return
   end
 
-  -- Inside shell: use shell door marker from shell definition
+
   if CurrentShell then
     local shellDef = AvailableShells[propertyData.metadata.shell]
     if not (shellDef and shellDef.doors) then return end
@@ -376,7 +376,7 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
     return
   end
 
-  -- Inside IPL: use IPL door marker from IPL definition
+
   if CurrentIPL then
     local iplDef = AvailableIPLS[propertyData.metadata.ipl]
     if not (iplDef and iplDef.doors) then return end
@@ -390,16 +390,16 @@ RegisterNetEvent("vms_housing:cl:usedKeyItem", function(propertyId, keyItemData)
   end
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:updateProperty
-  Massive “state sync” event. This updates Properties and triggers:
-  - blip refresh
-  - target refresh
-  - furniture reload in world
-  - IPL theme reload
-  - NUI updates (manage menu, modals, etc.)
-  - menu closes when permissions are lost
-----------------------------------------------------------------------------]]
+
+
+
+
+
+
+
+
+
+
 
 local function myServerId()
   return GetPlayerServerId(PlayerId())
@@ -427,10 +427,10 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
   local reloadIplTheme = false
   local registerMloDoors = false
 
-  -- This flag is used later to refresh “targets” and similar.
+
   local refreshTargets = false
 
-  -- Some buildings use `object_id` indirection (e.g. rooms/apartments)
+
   local objectIdStr = nil
   local objectIdIsBuilding = false
 
@@ -442,17 +442,17 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- If property doesn't exist and this isn't deliveredFurniture, do nothing
+
   if not Properties[propertyId] and action ~= "deliveredFurniture" then
     return
   end
 
-  -- =======================================================================
-  -- Action handlers
-  -- =======================================================================
+
+
+
 
   if action == "newOwner" then
-    -- Unlock doors when new owner is set
+
     Property:UnlockDoors(Properties[propertyId].metadata and Properties[propertyId].metadata.doors)
 
     Properties[propertyId].owner = data.owner
@@ -497,7 +497,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     refreshBlips = true
 
   elseif action == "forceRemovedOwner" then
-    -- If no renter, lock doors
+
     if not Properties[propertyId].renter then
       Property:LockDoors(Properties[propertyId].metadata and Properties[propertyId].metadata.doors)
     end
@@ -526,7 +526,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     registerMloDoors = true
 
   elseif action == "forceRemovedRenter" then
-    -- If no owner, lock doors
+
     if not Properties[propertyId].owner then
       Property:LockDoors(Properties[propertyId].metadata and Properties[propertyId].metadata.doors)
     end
@@ -575,7 +575,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       ReloadApartmentMenu()
     end
 
-    -- If update is meant for the source player, close manage menu
+
     if isFromMe(sourceId) then
       closeManageMenu()
     end
@@ -630,13 +630,13 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     refreshBlips = true
 
   elseif action == "toggleDoorlock" then
-    -- Update door state in cached property data
+
     local doorId = data.doorId
     Properties[propertyId].metadata.doors[doorId].locked = data.locked
     Properties[propertyId].metadata.upgrades.antiBurglaryDoors = data.antiBurglaryDoors
     Properties[propertyId].isUnderRaid = data.isUnderRaid
 
-    -- Apply door state to GTA door system
+
     local doorDef = Properties[propertyId].metadata.doors[doorId]
     local desiredState = (data.locked == true) and 1 or 0
 
@@ -648,7 +648,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
     if isFromMe(sourceId) then
-      -- Only play animation if not in a vehicle (matches original)
+
       if not IsPedInAnyVehicle(PlayerPedId(), false) then
         library.PlayAnimation(
           PlayerPedId(),
@@ -690,24 +690,24 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
   elseif action == "upgrade" then
-    -- Ensure upgrades table exists
+
     if not Properties[propertyId].metadata.upgrades then
       Properties[propertyId].metadata.upgrades = {}
     end
 
-    -- Update upgrade metadata
+
     Properties[propertyId].metadata.upgrades[data.metadataName] = data[data.metadataName]
 
     refreshBlips = true
 
-    -- Build NUI update
+
     local ui = buildManageUpdateBase("upgrades")
     ui.forcedUpdate = true
     ui.ownUpgrades = {}
     ui.furnitureLimit = GetFurnitureLimit(Properties[propertyId].metadata.upgrades)
     sendUiUpdate = ui
 
-    -- Fill ownUpgrades based on Config.HousingUpgrades
+
     for _, upgradeCfg in pairs(Config.HousingUpgrades) do
       local val = Properties[propertyId].metadata.upgrades[upgradeCfg.metadata]
       if val then
@@ -766,7 +766,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
   elseif action == "unpackedDelivery" then
-    -- Remove "delivered" flags from all furniture metadata
+
     local furn = Properties[propertyId].furniture
     if not furn then return end
 
@@ -781,11 +781,11 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
 
     for idx, f in pairs(Properties[propertyId].furniture) do
       if f.id == data.furnitureId then
-        -- If it was placed in the world, remove entity from world when on relevant environment
+
         if f.position then
           if f.position.environment == "inside" then
             if CurrentProperty == propertyId then
-              -- fallthrough to removal
+
             else
               goto continue_store
             end
@@ -828,14 +828,14 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
   elseif action == "deliveredFurniture" then
-    -- This action payload is keyed by propertyId -> furnitureIds delivered.
+
     local anyDeliveredFlag = false
     local resolvedPropertyId = nil
 
     for rawPropertyId, deliveredList in pairs(data) do
       local deliveredPropertyId = tostring(rawPropertyId)
 
-      -- Track property id if player is inside/on-zone for that property
+
       local contextId = CurrentProperty or GetCurrentPropertyId()
       local property = Properties[deliveredPropertyId]
       local relevant = property and contextId and tostring(contextId) == deliveredPropertyId
@@ -854,7 +854,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
             if f.metadata then
               f.metadata.deliveryTime = nil
 
-              -- DeliveryType == 3 special case (preserved)
+
               if Config.DeliveryType == 3 then
                 local meta = Properties[deliveredPropertyId].metadata
                 if meta and meta.deliveryType and meta.delivery then
@@ -869,7 +869,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       end
     end
 
-    -- If we have delivered furniture and player is in relevant property, load delivery marker furniture
+
     if anyDeliveredFlag and resolvedPropertyId and resolvedPropertyId ~= "nil" then
       local alreadyLoadedDelivery = false
 
@@ -883,7 +883,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       end
 
       if not alreadyLoadedDelivery then
-        -- Load a fake “delivery” furniture entry (same as original)
+
         Property:LoadFurniture(
           Properties[resolvedPropertyId].metadata.deliveryType,
           {
@@ -1017,7 +1017,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     local wardrobe = data and data.wardrobe
     Properties[propertyId].metadata.wardrobe = wardrobe
 
-    -- If player is inside this property, rebuild only wardrobe target
+
     if CurrentProperty and CurrentProperty == propertyId then
       for i = 1, #TargetPoints do
         if TargetPoints[i].type == "wardrobe" then
@@ -1043,7 +1043,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     local storage = data and data.storage
     Properties[propertyId].metadata.storage = storage
 
-    -- If player is inside this property, rebuild only storage target
+
     if CurrentProperty and CurrentProperty == propertyId then
       for i = 1, #TargetPoints do
         if TargetPoints[i].type == "storage" then
@@ -1126,7 +1126,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
 
   elseif action == "movedOut" then
-    -- If no owner, lock doors
+
     if not Properties[propertyId].owner then
       Property:LockDoors(Properties[propertyId].metadata and Properties[propertyId].metadata.doors)
     end
@@ -1162,15 +1162,15 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- =======================================================================
-  -- Post-actions: blips, door registration, menu/permissions, targets/furniture/theme
-  -- =======================================================================
+
+
+
 
   if refreshBlips then
     RefreshBlips()
   end
 
-  -- Re-register MLO doors when requested (logic preserved)
+
   if registerMloDoors then
     if Properties[propertyId] and Properties[propertyId].type == "mlo" then
       local renter = Properties[propertyId].renter
@@ -1184,7 +1184,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- If player is on this property zone or inside this property, enforce permission-based menu closes + UI updates
+
   local inRelevantContext = (GetCurrentPropertyId() == propertyId) or (CurrentProperty == propertyId)
 
   if inRelevantContext then
@@ -1198,7 +1198,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       end
     end
 
-    -- Only send manage UI updates while in manage/safe menus (same behavior)
+
     if sendUiUpdate then
       if openedMenu == "PropertyManage" or openedMenu == "Safe" then
         SendNUIMessage(sendUiUpdate)
@@ -1209,9 +1209,9 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
       RefreshTargets()
     end
   else
-    -- Special-case: if this property uses object_id and player is on object zone (e.g. building)
+
     if objectIdStr and GetCurrentPropertyId() == objectIdStr then
-      -- Keep the original behavior for building menus:
+
       if sendUiUpdate and objectIdIsBuilding then
         if openedMenu == "BuildingMenu" or openedMenu == "ApartmentMenu" then
           SendNUIMessage(sendUiUpdate)
@@ -1237,8 +1237,8 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- Ignore broadcasts for other homes: otherwise a shared map interior can
-  -- remove the current home's objects and replace them with another home's.
+
+
   local furnitureContext = CurrentProperty or GetCurrentPropertyId()
   if reloadWorldFurniture and furnitureContext and tostring(furnitureContext) == tostring(propertyId) then
     Property:RemoveFurniture(nil, function()
@@ -1250,7 +1250,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
         propertyId
       )
 
-      -- Original extra reload for MLO without object_id: load opposite environment too
+
       if Properties[propertyId].type == "mlo" and not Properties[propertyId].object_id then
         Property:LoadFurniture(
           (CurrentProperty and "outside") or "inside",
@@ -1261,7 +1261,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end)
   end
 
-  -- Apply IPL theme reload (preserved reposition callback)
+
   if reloadIplTheme then
     if CurrentIPL and CurrentProperty and tostring(CurrentProperty) == tostring(propertyId) then
       IPL.LoadSettings(
@@ -1276,7 +1276,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
     end
   end
 
-  -- Special cleanups for specific actions (preserved)
+
   if action == "unpackedDelivery" then
     Property:RemoveFurniture("delivery")
   end
@@ -1290,7 +1290,7 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
   if action == "movedOut" then
     if CurrentProperty == propertyId then
       if CurrentPropertyData.owner then
-        -- If owner exists and action didn't come from me, skip exit (preserved)
+
         if not isFromMe(sourceId) then
           return
         end
@@ -1300,10 +1300,10 @@ RegisterNetEvent("vms_housing:cl:updateProperty", function(action, propertyIdRaw
   end
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:sendPropertyContract
-  Shows contract UI (NUI) for a given propertyId and fills in region utilities.
-----------------------------------------------------------------------------]]
+
+
+
+
 RegisterNetEvent("vms_housing:cl:sendPropertyContract", function(contractData)
   local property = Properties[contractData.propertyId]
   if not property then return end
@@ -1322,7 +1322,7 @@ RegisterNetEvent("vms_housing:cl:sendPropertyContract", function(contractData)
   contractData.water = regionCfg.water
   contractData.internet = regionCfg.internet
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "ShowContract",
@@ -1333,14 +1333,14 @@ RegisterNetEvent("vms_housing:cl:sendPropertyContract", function(contractData)
   openedMenu = "Contract"
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:reloadFurnitureList
-  Receives full furniture list JSON and reloads NUI.
-----------------------------------------------------------------------------]]
+
+
+
+
 RegisterNetEvent("vms_housing:cl:reloadFurnitureList", function(furnitureJson)
   Furniture = json.decode(furnitureJson)
 
-  -- [NUI]
+
   SendNUIMessage({
     action = "Property",
     actionName = "ReloadAvailableFurniture",
@@ -1348,15 +1348,15 @@ RegisterNetEvent("vms_housing:cl:reloadFurnitureList", function(furnitureJson)
   })
 end)
 
---[[--------------------------------------------------------------------------
-  EVENT: vms_housing:cl:reloadFurniture
-  Updates one furniture entry if it exists, then reloads NUI list.
-----------------------------------------------------------------------------]]
+
+
+
+
 RegisterNetEvent("vms_housing:cl:reloadFurniture", function(furnitureId, updatedFurniture)
   if Furniture[furnitureId] then
     Furniture[furnitureId] = updatedFurniture
 
-    -- [NUI]
+
     SendNUIMessage({
       action = "Property",
       actionName = "ReloadAvailableFurniture",
@@ -1364,7 +1364,7 @@ RegisterNetEvent("vms_housing:cl:reloadFurniture", function(furnitureId, updated
     })
   end
 end)
--- A debt can change between the entry callback and the final server event.
+
 RegisterNetEvent("vms_housing:cl:utilityEntryDenied", function(propertyId)
   if tostring(CurrentProperty or "") ~= tostring(propertyId) then return end
   Property:ExitProperty(nil, false, true, true)

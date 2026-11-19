@@ -1,48 +1,48 @@
 Config = Config or {}
 
 
--- ███████╗██████╗  █████╗ ███╗   ███╗███████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
--- ██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
--- █████╗  ██████╔╝███████║██╔████╔██║█████╗  ██║ █╗ ██║██║   ██║██████╔╝█████╔╝ 
--- ██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██║███╗██║██║   ██║██╔══██╗██╔═██╗ 
--- ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
--- ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
--- This distribution is configured for ESX Legacy. Start es_extended before this resource.
+
+
+
+
+
+
+
 Config.Core = "ESX"
 Config.CoreExport = function()
     return exports['es_extended']:getSharedObject()
 end
 
----@field PlayerLoaded string: ESX: "esx:playerLoaded" / QB-Core: "QBCore:Client:OnPlayerLoaded"
+
 Config.PlayerLoaded = Config.Core == "ESX" and "esx:playerLoaded" or "QBCore:Client:OnPlayerLoaded"
 
----@field PlayerLogoutServer string: ESX: "esx:playerDropped" / QB-Core: "QBCore:Server:OnPlayerUnload"
+
 Config.PlayerLogoutServer = Config.Core == "ESX" and "esx:playerDropped" or "QBCore:Server:OnPlayerUnload"
 
----@field PlayerSetJob string: ESX: "esx:setJob" / QB-Core: "QBCore:Client:OnJobUpdate"
+
 Config.PlayerSetJob = Config.Core == "ESX" and "esx:setJob" or "QBCore:Client:OnJobUpdate"
 
 
 
--- ███╗   ███╗ █████╗ ██╗███╗   ██╗    ███████╗███████╗████████╗████████╗██╗███╗   ██╗ ██████╗ ███████╗
--- ████╗ ████║██╔══██╗██║████╗  ██║    ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██║████╗  ██║██╔════╝ ██╔════╝
--- ██╔████╔██║███████║██║██╔██╗ ██║    ███████╗█████╗     ██║      ██║   ██║██╔██╗ ██║██║  ███╗███████╗
--- ██║╚██╔╝██║██╔══██║██║██║╚██╗██║    ╚════██║██╔══╝     ██║      ██║   ██║██║╚██╗██║██║   ██║╚════██║
--- ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║    ███████║███████╗   ██║      ██║   ██║██║ ╚████║╚██████╔╝███████║
--- ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝    ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
----@class AutoExecuteQuery<boolean>
--- Automatically creates required SQL tables on resource start (recommended for first install).
+
+
+
+
+
+
+
+
 Config.AutoExecuteQuery = true
 
--- Populate the bundled furniture catalog only when its database table is empty.
+
 Config.AutoSeedFurniture = true
 
----@class Debug<boolean>
--- By running debugging, you will receive prints at various activities, in case of any problems, this will be able to help you find the cause of the misconfiguration.
-Config.Debug = false                -- Enables debug prints for various system events.
-Config.DebugTarget = false          -- Enables debug related to target zones.
-Config.DebugPolyZone = false        -- Enables debug related to PolyZone entries/exits.
-Config.DebugRegionsZone = false     -- Enables debug related to Regions PolyZone.
+
+
+Config.Debug = false
+Config.DebugTarget = false
+Config.DebugPolyZone = false
+Config.DebugRegionsZone = false
 
 
 local function DetectActiveTarget()
@@ -59,18 +59,18 @@ local function DetectActiveTarget()
     return nil
 end
 
----@class TargetResource<string>
--- Automatically detects the active target system (ox_target or qb-target).
+
+
 Config.TargetResource = DetectActiveTarget()
 
 
 
---  ██████╗ ███████╗███╗   ██╗███████╗██████╗  █████╗ ██╗         ███████╗███████╗████████╗████████╗██╗███╗   ██╗ ██████╗ ███████╗
--- ██╔════╝ ██╔════╝████╗  ██║██╔════╝██╔══██╗██╔══██╗██║         ██╔════╝██╔════╝╚══██╔══╝╚══██╔══╝██║████╗  ██║██╔════╝ ██╔════╝
--- ██║  ███╗█████╗  ██╔██╗ ██║█████╗  ██████╔╝███████║██║         ███████╗█████╗     ██║      ██║   ██║██╔██╗ ██║██║  ███╗███████╗
--- ██║   ██║██╔══╝  ██║╚██╗██║██╔══╝  ██╔══██╗██╔══██║██║         ╚════██║██╔══╝     ██║      ██║   ██║██║╚██╗██║██║   ██║╚════██║
--- ╚██████╔╝███████╗██║ ╚████║███████╗██║  ██║██║  ██║███████╗    ███████║███████╗   ██║      ██║   ██║██║ ╚████║╚██████╔╝███████║
---  ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝    ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
+
+
+
+
+
+
 Config.Blips = {
     ['Motel'] = {
         sprite = 475,
@@ -127,238 +127,238 @@ Config.Blips = {
     },
 }
 
----@class AreaUnit<string>
--- Unit used for displaying property area ("m2" for meters, "ft2" for feet)
+
+
 Config.AreaUnit = "m2"
 
----@class TeleportToLastPropertyOnJoin<boolean>
--- Automatically teleport player to last property after joining the server when he left the server while in the interiors.
--- If you are using a custom spawnselector, make sure you cancel running it when the player has data in the `last_property` column.
+
+
+
 Config.TeleportToLastPropertyOnJoin = true
 
----@class FurnitureInteractionAccess<number>
--- 1 : Every player who is inside or on the property has access to the interaction
--- 2 : Only players who have any permission in the property have access to furniture interaction
--- 3 : Only players who have the furniture permission in the property have access to furniture interaction
+
+
+
+
 Config.FurnitureInteractionAccess = 2
 
----@class StaticInteractionAccess<number>
--- 1 : Every player who is inside or on the property has access to the interaction
--- 2 : Only players who have any permission in the property have access to furniture interaction
--- 3 : Only players who have the furniture permission in the property have access to furniture interaction
+
+
+
+
 Config.StaticInteractionAccess = 1
 
----@class AllowChangeStoragePosition<boolean>
--- Allows the player to reposition the default storage unit inside the property.
--- Only applies if the house was created with a pre-set storage location (e.g., via housing creator).
--- Useful for letting the owner place it elsewhere inside the house after purchase.
+
+
+
+
 Config.AllowChangeStoragePosition = true
 
----@class AllowChangeWardrobePosition<boolean>
--- Allows the player to reposition the default wardrobe inside the property.
--- Only applies if the house was created with a pre-set wardrobe location (e.g., via housing creator).
--- Gives flexibility to organize the interior layout more freely.
+
+
+
+
 Config.AllowChangeWardrobePosition = true
 
----@class MaxPropertiesPerPlayer<number | false>
--- You can set a limit on the maximum number of properties owned by one player, if you do not want to use the limit, set false
+
+
 Config.MaxPropertiesPerPlayer = false
 
----@class RentalCycles<table>
+
 Config.RentalCycles = {
     ['weekly'] = true,
     ['monthly'] = true,
 }
 
 
--- ███████╗████████╗ █████╗ ██████╗ ████████╗███████╗██████╗      █████╗ ██████╗  █████╗ ██████╗ ████████╗███╗   ███╗███████╗███╗   ██╗████████╗███████╗
--- ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
--- ███████╗   ██║   ███████║██████╔╝   ██║   █████╗  ██████╔╝    ███████║██████╔╝███████║██████╔╝   ██║   ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   ███████╗
--- ╚════██║   ██║   ██╔══██║██╔══██╗   ██║   ██╔══╝  ██╔══██╗    ██╔══██║██╔═══╝ ██╔══██║██╔══██╗   ██║   ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
--- ███████║   ██║   ██║  ██║██║  ██║   ██║   ███████╗██║  ██║    ██║  ██║██║     ██║  ██║██║  ██║   ██║   ██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   ███████║
--- ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
----@class StarterApartments<table>
--- Configuration of automatically assigned starter apartments for new players
--- https://docs.vames-store.com/assets/vms_housing/guides/how-to-use-starter-apartments
+
+
+
+
+
+
+
+
+
 Config.StarterApartments = {
-    Object = 114, -- You need to have a property building created and here is to find the id of this building from the database.
-    Name = 'Starting Apartment #%s', -- Name of the starter apartment, which will be displayed in the menu.
-    Type = 'shell', -- 'shell' / 'ipl'
+    Object = 114,
+    Name = 'Starting Apartment #%s',
+    Type = 'shell',
 
     Shell = 'standardmotel_shell',
     Ipl = 'apa_v_mp_h_01_a',
 
-    DefaultPurchasePrice = 0, -- Default purchase price of the starter apartment. (By setting 0, the player will not be able to sell the property to make money)
-    DefaultRentPrice = 0, -- Default rent price of the starter apartment.
+    DefaultPurchasePrice = 0,
+    DefaultRentPrice = 0,
 
-    AllowFurnitureInside = true, -- true : Allow furniture inside the starter apartment
-    AllowChangeTheme = true, -- true : Allow changing the theme of the starter apartment IPL
+    AllowFurnitureInside = true,
+    AllowChangeTheme = true,
     DefaultThemeIpl = 'modern',
 
     Delivery = {
         Enabled = true,
-        Coords = vector4(2.4304, -2.1917, 498.4416, 79.99999237060547), -- Coords of the storage in the starter apartment
+        Coords = vector4(2.4304, -2.1917, 498.4416, 79.99999237060547),
     },
 
     Storage = {
         Enabled = true,
-        Coords = vector3(1.5388, -3.0803, 499.7162), -- Coords of the storage in the starter apartment
-        Slots = 20, -- Slots of the storage in the starter apartment
-        Weight = 25000, -- Weight of the storage in the starter apartment
+        Coords = vector3(1.5388, -3.0803, 499.7162),
+        Slots = 20,
+        Weight = 25000,
     },
 
     Wardrobe = {
         Enabled = true,
-        Coords = vector3(1.3227, 2.8945, 500.0726), -- Coords of the wardrobe in the starter apartment
+        Coords = vector3(1.3227, 2.8945, 500.0726),
     },
 }
 
 
 
--- ██╗  ██╗ ██████╗ ██╗   ██╗███████╗██╗███╗   ██╗ ██████╗     ███╗   ███╗ █████╗ ███╗   ██╗ █████╗  ██████╗ ███████╗███╗   ███╗███████╗███╗   ██╗████████╗
--- ██║  ██║██╔═══██╗██║   ██║██╔════╝██║████╗  ██║██╔════╝     ████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝ ██╔════╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
--- ███████║██║   ██║██║   ██║███████╗██║██╔██╗ ██║██║  ███╗    ██╔████╔██║███████║██╔██╗ ██║███████║██║  ███╗█████╗  ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   
--- ██╔══██║██║   ██║██║   ██║╚════██║██║██║╚██╗██║██║   ██║    ██║╚██╔╝██║██╔══██║██║╚██╗██║██╔══██║██║   ██║██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   
--- ██║  ██║╚██████╔╝╚██████╔╝███████║██║██║ ╚████║╚██████╔╝    ██║ ╚═╝ ██║██║  ██║██║ ╚████║██║  ██║╚██████╔╝███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
--- ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
+
+
+
+
+
+
 Config.HousingManagement = {
-    Command = 'housemanage',                    -- Command to open the property management menu
-    Key = 'F6',                                 -- Keyboard shortcut to open the management menu
-    Description = 'Property management menu',   -- Description shown in keybind hint
+    Command = 'housemanage',
+    Key = 'F6',
+    Description = 'Property management menu',
 }
 
----@class AutomaticSell<number>
--- Percentage (%) refunded to player when selling their property via menu
+
+
 Config.AutomaticSell = 50
 
 
 
--- ██╗  ██╗███████╗██╗   ██╗███████╗    ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
--- ██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝    ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
--- █████╔╝ █████╗   ╚████╔╝ ███████╗    ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║
--- ██╔═██╗ ██╔══╝    ╚██╔╝  ╚════██║    ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║
--- ██║  ██╗███████╗   ██║   ███████║    ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║
--- ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝    ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝
----@class UseKeysOnItem<boolean>
--- true = keys are given as inventory items (e.g. qb-inventory / ox_inventory)
--- false = key ownership stored internally (no item given)
+
+
+
+
+
+
+
+
+
 Config.UseKeysOnItem = false
 
----@class KeysLimit<number>
--- Max number of physical keys a player can generate for a property
+
+
 Config.KeysLimit = 8
 
----@class KeyPrice<number>
--- Price ($) to generate an additional key
+
+
 Config.KeyPrice = 300
 
----@class LockReplacementPrice<number>
--- Price ($) to replace the lock and invalidate old keys
+
+
 Config.LockReplacementPrice = 1000
 
----@class RemoveKeysOnRentEnd<boolean>
--- Remove all keys from tenants when the rent ends
+
+
 Config.RemoveKeysOnRentEnd = true
 
----@class AutomaticGiveKeyForProperty<boolean>
--- Do you want the player to receive the key item immediately after buying/renting the property?
+
+
 Config.AutomaticGiveKeyForProperty = true
 
 
 
--- ██████╗  ██████╗  ██████╗ ██████╗     ███████╗████████╗ █████╗ ████████╗███████╗
--- ██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗    ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝
--- ██║  ██║██║   ██║██║   ██║██████╔╝    ███████╗   ██║   ███████║   ██║   █████╗  
--- ██║  ██║██║   ██║██║   ██║██╔══██╗    ╚════██║   ██║   ██╔══██║   ██║   ██╔══╝  
--- ██████╔╝╚██████╔╝╚██████╔╝██║  ██║    ███████║   ██║   ██║  ██║   ██║   ███████╗
--- ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚══════╝
----@class SaveDoorsState<boolean>
--- true = door state (open/closed) is saved and restored after a server restart
+
+
+
+
+
+
+
+
 Config.SaveDoorsState = true
 
----@class DefaultDoorsLocked<boolean>
--- Default door state if SaveDoorsState is false
--- true = doors locked
--- false = doors unlocked
+
+
+
+
 Config.DefaultDoorsLocked = true
 
 
 
--- ██████╗ ███████╗██████╗ ███╗   ███╗██╗███████╗███████╗██╗ ██████╗ ███╗   ██╗███████╗
--- ██╔══██╗██╔════╝██╔══██╗████╗ ████║██║██╔════╝██╔════╝██║██╔═══██╗████╗  ██║██╔════╝
--- ██████╔╝█████╗  ██████╔╝██╔████╔██║██║███████╗███████╗██║██║   ██║██╔██╗ ██║███████╗
--- ██╔═══╝ ██╔══╝  ██╔══██╗██║╚██╔╝██║██║╚════██║╚════██║██║██║   ██║██║╚██╗██║╚════██║
--- ██║     ███████╗██║  ██║██║ ╚═╝ ██║██║███████║███████║██║╚██████╔╝██║ ╚████║███████║
--- ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
----@class DefaultPermissionsForRenter<table>
--- Default permissions granted to a renter when added to a property
+
+
+
+
+
+
+
+
 Config.DefaultPermissionsForRenter = {
-    'garage',           -- Access to garage
-    'furniture',        -- Can manage furniture
-    'billPayments',     -- Can pay bills
-    'keysManage',       -- Can manage keys
-    'upgradesManage',   -- Can manage house upgrades
+    'garage',
+    'furniture',
+    'billPayments',
+    'keysManage',
+    'upgradesManage',
 }
 
----@class PermissionsLimit<number>
--- Max number of players with permissions for a property
+
+
 Config.PermissionsLimit = 10
 
 
 
--- ████████╗ █████╗ ██╗  ██╗███████╗███████╗
--- ╚══██╔══╝██╔══██╗╚██╗██╔╝██╔════╝██╔════╝
---    ██║   ███████║ ╚███╔╝ █████╗  ███████╗
---    ██║   ██╔══██║ ██╔██╗ ██╔══╝  ╚════██║
---    ██║   ██║  ██║██╔╝ ██╗███████╗███████║
---    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
----@class CityHallTaxes<table>
--- City tax configuration for property-related transactions (Only for VMS City Hall Users)
+
+
+
+
+
+
+
+
 Config.CityHallTaxes = {
     PropertyPurchase = {
         Enabled = true,
-        Type = 'percentage', -- 'percentage' / 'static'
-        Value = 3, -- 3% for percentage Type or 3$ for static Type
+        Type = 'percentage',
+        Value = 3,
         Title = 'Property Purchase - %s %s',
     },
     PropertyResale = {
         Enabled = true,
-        Type = 'percentage', -- 'percentage' / 'static'
-        Value = 12, -- 12% for percentage Type or 12$ for static Type
+        Type = 'percentage',
+        Value = 12,
         Title = 'Property Resale - %s %s',
     },
     RentalIncome = {
         Enabled = true,
-        Type = 'percentage', -- 'percentage' / 'static'
-        Value = 15, -- 15% for percentage Type or 15$ for static Type
+        Type = 'percentage',
+        Value = 15,
         Title = 'Property Rental - %s %s',
     },
     PropertyCadastralTax = {
         Enabled = true,
-        Type = 'percentage', -- 'percentage' / 'static'
-        Value = 1, -- 1% for percentage Type or 1$ for static Type
+        Type = 'percentage',
+        Value = 1,
         Title = 'Property Cadastral Tax - %s %s',
     },
 }
 
 
 
--- ██████╗ ██╗██╗     ██╗     ███████╗
--- ██╔══██╗██║██║     ██║     ██╔════╝
--- ██████╔╝██║██║     ██║     ███████╗
--- ██╔══██╗██║██║     ██║     ╚════██║
--- ██████╔╝██║███████╗███████╗███████║
--- ╚═════╝ ╚═╝╚══════╝╚══════╝╚══════╝
----@class UseBills<boolean>
--- Enable utility bills system (electricity, water, internet)
+
+
+
+
+
+
+
+
 Config.UseServiceBills = true
 
----@class AllowedUnpaidBills<number>
--- Max number of unpaid utility bills before services are disabled
+
+
 Config.AllowedUnpaidBills = 2
 
--- Utility invoices become overdue after their billing month.
--- Access is restored as soon as enough overdue invoices are paid.
+
+
 Config.UtilityAccess = {
     BlockEntry = true,
     OverdueBillsToBlock = 2,
@@ -367,214 +367,214 @@ Config.UtilityAccess = {
 }
 
 
----@class AllowedUnpaidRentBills<number>
--- Max number of unpaid rent bills before tenant is evicted
--- Do not set to 1 to avoid instant eviction!
+
+
+
 Config.AllowedUnpaidRentBills = 2
 
----@class RemoveBillsOnRentEnd<boolean>
--- Delete all unpaid bills assigned to the tenant when the rent ends
+
+
 Config.RemoveBillsOnRentEnd = true
 
----@class OptimizeBillsTable<boolean>
--- true = Removes paid bills from the database at server startup
--- false = Doesn't remove bills from the database
+
+
+
 Config.OptimizeBillsTable = false
 
 
 
--- ███████╗███████╗ ██████╗██╗   ██╗██████╗ ██╗████████╗██╗   ██╗
--- ██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██║╚══██╔══╝╚██╗ ██╔╝
--- ███████╗█████╗  ██║     ██║   ██║██████╔╝██║   ██║    ╚████╔╝ 
--- ╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██║   ██║     ╚██╔╝  
--- ███████║███████╗╚██████╗╚██████╔╝██║  ██║██║   ██║      ██║   
--- ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝   ╚═╝      ╚═╝   
----@class Lockpick<table>
--- Configuration related to the possibility of breaking into a property
+
+
+
+
+
+
+
+
 Config.Lockpick = {
-    Enable = true, -- Enable or disable lockpicking for properties
+    Enable = true,
 
     Item = {
-        Required = true,           -- true = item is required to lockpick
-        Name = 'lockpick',         -- Name of the item used for lockpicking
-        Count = 1,                 -- Amount required
-        RemoveOnUse = true         -- true = item will be removed after use
+        Required = true,
+        Name = 'lockpick',
+        Count = 1,
+        RemoveOnUse = true
     },
 }
 
-Config.Alarm = { -- ./integration/[dispatch]/*
-    AlertPoliceOnlyWithUpgrade = true, -- Only alert the police if the property has the alarm upgrade installed
+Config.Alarm = {
+    AlertPoliceOnlyWithUpgrade = true,
 
     AlarmJobs = { 'police', 'sheriff' },
 
-    AlertPoliceOnLockpickStart = true,     -- Notify police when a lockpick attempt starts
-    AlertPoliceOnLockpickSuccess = false,  -- Notify police only if the break-in is successful
-    AlertPoliceOnLockpickFail = false,     -- Notify police only if the break-in attempt fails
+    AlertPoliceOnLockpickStart = true,
+    AlertPoliceOnLockpickSuccess = false,
+    AlertPoliceOnLockpickFail = false,
 }
 
 Config.PropertyLockdown = {
-    Enable = true, -- Enable the property lockdown system (e.g., police tape to restrict access)
+    Enable = true,
 
-    ObjectModel = 'prop_barrier_work05', -- Model used as the physical lockdown object (e.g., barrier or tape)
+    ObjectModel = 'prop_barrier_work05',
 
-    -- Lockdown object placement tuning (optional)
-    -- NOTE: If `ForwardOffset` is not set, the script will auto-place the object using:
-    --   (objectHalfDepth + Clearance)
+
+
+
     Placement = {
-        Clearance = 0.25, -- Extra space from the door so the barrier doesn't clip into it
-        RightOffset = 0.0, -- Side offset (relative to the door -> outside direction)
-        ZOffset = 0.0, -- Vertical offset
-        HeadingOffset = 0.0, -- Extra heading rotation (degrees)
-        -- ForwardOffset = 0.85, -- Distance from the door towards the outside direction (uncomment to override auto-placement)
+        Clearance = 0.25,
+        RightOffset = 0.0,
+        ZOffset = 0.0,
+        HeadingOffset = 0.0,
+
     },
 
-    Jobs = { 'police' }, -- List of jobs allowed to initiate property lockdown
+    Jobs = { 'police' },
 
     Item = {
-        Required = true,       -- true = item is required to lockdown
-        Name = 'police_barrier',   -- Name of the required item
-        Count = 1,              -- Amount required
-        RemoveOnUse = true      -- true = item will be removed after use
+        Required = true,
+        Name = 'police_barrier',
+        Count = 1,
+        RemoveOnUse = true
     },
 }
 
 Config.PropertyRaids = {
-    Enable = true, -- Enable the ability to raid properties by specific jobs
+    Enable = true,
 
-    Jobs = { 'police' }, -- List of jobs allowed to initiate raids
+    Jobs = { 'police' },
 
     AntiBurglaryDoors = {
-        AllowRaid = true, -- Allow raiding even if the property has Anti-Burglary Doors installed
-        RaidChance = 10, -- % chance that the raid will succeed if Anti-Burglary Doors are present
+        AllowRaid = true,
+        RaidChance = 10,
 
-        ---@field BreakOnRam<boolean>
-        -- true = Raiding will remove the Anti-Burglary Doors upgrade and require repurchase
-        -- false = Raiding will not remove the Anti-Burglary Doors upgrade
+
+
+
         BreakOnRam = true
     }, 
 
     Item = {
-        Required = true,            -- true = item is required to raid
-        Name = 'police_stormram',         -- Name of the required item
-        Count = 1,                   -- Amount required
-        RemoveOnUse = true           -- true = item will be removed after use
+        Required = true,
+        Name = 'police_stormram',
+        Count = 1,
+        RemoveOnUse = true
     },
 }
 
 
 
--- ██╗  ██╗ ██████╗ ██╗   ██╗███████╗██╗███╗   ██╗ ██████╗      ██████╗██████╗ ███████╗ █████╗ ████████╗ ██████╗ ██████╗ 
--- ██║  ██║██╔═══██╗██║   ██║██╔════╝██║████╗  ██║██╔════╝     ██╔════╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗
--- ███████║██║   ██║██║   ██║███████╗██║██╔██╗ ██║██║  ███╗    ██║     ██████╔╝█████╗  ███████║   ██║   ██║   ██║██████╔╝
--- ██╔══██║██║   ██║██║   ██║╚════██║██║██║╚██╗██║██║   ██║    ██║     ██╔══██╗██╔══╝  ██╔══██║   ██║   ██║   ██║██╔══██╗
--- ██║  ██║╚██████╔╝╚██████╔╝███████║██║██║ ╚████║╚██████╔╝    ╚██████╗██║  ██║███████╗██║  ██║   ██║   ╚██████╔╝██║  ██║
--- ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+
+
+
+
+
+
 Config.HousingCreator = {
-    Command = 'housing',                    -- Command to open the housing creator menu
-    Key = 'F7',                             -- Keyboard shortcut to open the housing creator menu
-    Description = 'Open Housing Creator',   -- Description shown in keybind hint
-    RequiredJob = 'unemployed',             -- Existing job-based access (nil permits all jobs)
-    AllowedGroups = { gamemaster = true },  -- ESX groups allowed regardless of job
+    Command = 'housing',
+    Key = 'F7',
+    Description = 'Open Housing Creator',
+    RequiredJob = 'unemployed',
+    AllowedGroups = { gamemaster = true },
 }
 
 Config.HousingCreatorControls = {
-    ['SELECT'] = {controlIndex = 24},           -- Default: Mouse Left
-    ['BACK'] = {controlIndex = 70},             -- Default: Mouse Right
-    ['SCROLL_DOWN'] = {controlIndex = 180},     -- Default: Scroll Down
-    ['SCROLL_UP'] = {controlIndex = 181},       -- Default: Scroll UP
-    ['LEFT_CTRL'] = {controlIndex = 210},       -- Default: Left CTRL
-    ['ENTER'] = {controlIndex = 191},           -- Default: Enter
-    ['CANCEL'] = {controlIndex = 202},          -- Default: BACKSPACE / ESC
+    ['SELECT'] = {controlIndex = 24},
+    ['BACK'] = {controlIndex = 70},
+    ['SCROLL_DOWN'] = {controlIndex = 180},
+    ['SCROLL_UP'] = {controlIndex = 181},
+    ['LEFT_CTRL'] = {controlIndex = 210},
+    ['ENTER'] = {controlIndex = 191},
+    ['CANCEL'] = {controlIndex = 202},
 }
 
--- Only the custom shells listed in integration/[shells]/custom.lua are loaded.
+
 Config.Shells = {}
 
 
 
--- ███╗   ███╗ █████╗ ██████╗ ██╗  ██╗███████╗████████╗██████╗ ██╗      █████╗  ██████╗███████╗
--- ████╗ ████║██╔══██╗██╔══██╗██║ ██╔╝██╔════╝╚══██╔══╝██╔══██╗██║     ██╔══██╗██╔════╝██╔════╝
--- ██╔████╔██║███████║██████╔╝█████╔╝ █████╗     ██║   ██████╔╝██║     ███████║██║     █████╗  
--- ██║╚██╔╝██║██╔══██║██╔══██╗██╔═██╗ ██╔══╝     ██║   ██╔═══╝ ██║     ██╔══██║██║     ██╔══╝  
--- ██║ ╚═╝ ██║██║  ██║██║  ██║██║  ██╗███████╗   ██║   ██║     ███████╗██║  ██║╚██████╗███████╗
--- ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝
+
+
+
+
+
+
 Config.Marketplace = {
-    Enabled = true, -- Enables or disables the marketplace system
-    AllowTransactionFromMenu = true, -- Allow transactions directly from the property management menu
+    Enabled = true,
+    AllowTransactionFromMenu = true,
 
-    ShowSecondaryMarketOnly = true, -- Show only the secondary market (properties for sale by players)
+    ShowSecondaryMarketOnly = true,
 
-    Blip = Config.Blips['Marketplace'], -- Blip settings (see Config.Blips section)
-    BlipCoords = vector3(-1082.89, -249.45, 43.98), -- Location of the blip on the map
+    Blip = Config.Blips['Marketplace'],
+    BlipCoords = vector3(-1082.89, -249.45, 43.98),
 
-    TargetCoords = vector4(-1083.08, -249.66, 44.02, 296.5), -- Target interaction coordinates (for targeting systems like ox_target)
-    TargetSize = vec3(2.0, 1.6, 1.8), -- Target zone dimensions (length, width, height)
+    TargetCoords = vector4(-1083.08, -249.66, 44.02, 296.5),
+    TargetSize = vec3(2.0, 1.6, 1.8),
 
-    Ped = { -- NPC configuration for visual immersion
-        Model = 'ig_drfriedlander', -- Model of the NPC ped
-        Coords = vector4(-1082.72, -249.5, 43.02, 296.32), -- Position and heading of the ped
-        Animation = {'switch@michael@sitting', 'idle'} -- Animation dictionary and name used by the ped
+    Ped = {
+        Model = 'ig_drfriedlander',
+        Coords = vector4(-1082.72, -249.5, 43.02, 296.32),
+        Animation = {'switch@michael@sitting', 'idle'}
     },
 }
 
 
 
--- ███████╗██╗   ██╗██████╗ ███╗   ██╗██╗████████╗██╗   ██╗██████╗ ███████╗
--- ██╔════╝██║   ██║██╔══██╗████╗  ██║██║╚══██╔══╝██║   ██║██╔══██╗██╔════╝
--- █████╗  ██║   ██║██████╔╝██╔██╗ ██║██║   ██║   ██║   ██║██████╔╝█████╗  
--- ██╔══╝  ██║   ██║██╔══██╗██║╚██╗██║██║   ██║   ██║   ██║██╔══██╗██╔══╝  
--- ██║     ╚██████╔╝██║  ██║██║ ╚████║██║   ██║   ╚██████╔╝██║  ██║███████╗
--- ╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝
+
+
+
+
+
+
 Config.HousingFurniture = {
-    Command = 'furniture',                     -- Command to open the property furniture menu
-    Key = nil,                                 -- Keyboard shortcut to open the furniture menu
-    Description = 'Property furniture menu',   -- Description shown in keybind hint
+    Command = 'furniture',
+    Key = nil,
+    Description = 'Property furniture menu',
 }
 
----@class RequirePurchaseFurniture<boolean>
--- true: Players must order furniture before placement
--- false: Furniture can be placed without ordering
+
+
+
 Config.RequirePurchaseFurniture = true
 
----@class FurnitureSellPercentage<number>
--- Percentage (%) refunded when selling furniture through the menu
+
+
 Config.FurnitureSellPercentage = 80
 
----@class FurnitureLimit<number>
--- Default maximum number of placed furniture per property without upgrades
+
+
 Config.FurnitureLimit = 10
 
----@class RemoveFurnitureOnRentEnd<boolean>
--- Remove all furniture placed by tenant when the rent ends
+
+
 Config.RemoveFurnitureOnRentEnd = true
 
 Config.FurnitureControls = {
-    ['CLOSE'] = {controlIndex = 202},           -- Default: BACKSPACE / ESC
+    ['CLOSE'] = {controlIndex = 202},
 
-    ['ACCEPT'] = {controlIndex = 38},           -- E: confirm placement
-    ['UP'] = {controlIndex = 172},              -- Default: Arrow Up
-    ['DOWN'] = {controlIndex = 173},            -- Default: Arrow Down
-    ['ROTATE_LEFT'] = {controlIndex = 181},     -- Default: Scroll UP
-    ['ROTATE_RIGHT'] = {controlIndex = 180},    -- Default: Scroll Down
-    ['SPEED_DOWN'] = {controlIndex = 210},      -- Default: Left CTRL
+    ['ACCEPT'] = {controlIndex = 38},
+    ['UP'] = {controlIndex = 172},
+    ['DOWN'] = {controlIndex = 173},
+    ['ROTATE_LEFT'] = {controlIndex = 181},
+    ['ROTATE_RIGHT'] = {controlIndex = 180},
+    ['SPEED_DOWN'] = {controlIndex = 210},
 
-    ['SNAP_TO_GROUND'] = {controlIndex = 19},   -- Default: Left ALT
-    ['ENABLE_CURSOR'] = {controlIndex = 238},   -- Default: PPM
-    ['CHANGE_MODE'] = {controlIndex = 58},      -- Default: G
+    ['SNAP_TO_GROUND'] = {controlIndex = 19},
+    ['ENABLE_CURSOR'] = {controlIndex = 238},
+    ['CHANGE_MODE'] = {controlIndex = 58},
     
     ['GIZMO_TRANSLATION'] = {control = 'X'},
     ['GIZMO_ROTATION'] = {control = 'C'},
 }
 
 Config.FurnitureSettings = {
-    HeightSpeed = 0.01,       -- Default height movement speed
-    HeightSpeedSlow = 0.005,  -- Slower height movement speed (when holding CTRL)
-    RotateSpeed = 5.0,        -- Default rotation speed
-    RotateSpeedSlow = 1.0,    -- Slower rotation speed (when holding CTRL)
+    HeightSpeed = 0.01,
+    HeightSpeedSlow = 0.005,
+    RotateSpeed = 5.0,
+    RotateSpeedSlow = 1.0,
 }
 
----@class Cameras<table>
--- List of object models recognized as security cameras, allowing interaction or placement
+
+
 Config.Cameras = {
     ['prop_cctv_cam_04c'] = true,
     ['prop_cctv_cam_05a'] = true,
@@ -583,48 +583,48 @@ Config.Cameras = {
 
 
 
--- ██████╗ ███████╗██╗     ██╗██╗   ██╗███████╗██████╗ ██╗███████╗███████╗
--- ██╔══██╗██╔════╝██║     ██║██║   ██║██╔════╝██╔══██╗██║██╔════╝██╔════╝
--- ██║  ██║█████╗  ██║     ██║██║   ██║█████╗  ██████╔╝██║█████╗  ███████╗
--- ██║  ██║██╔══╝  ██║     ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗██║██╔══╝  ╚════██║
--- ██████╔╝███████╗███████╗██║ ╚████╔╝ ███████╗██║  ██║██║███████╗███████║
--- ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝
----@class DeliveryType<number>
--- 1: No Delivery - Furniture is added instantly to the property, no waiting time.
--- 2: Auto-Delivery - Furniture is delivered after a set delay and automatically appears in the furniture menu.
--- 3: Realistic Delivery - Furniture arrives after a set delay as boxes on the property, which must be unpacked manually.
+
+
+
+
+
+
+
+
+
+
 Config.DeliveryType = 1
 
----@class DeliveryObject<string>
--- Object model used to represent a delivery box when using realistic delivery mode.
+
+
 Config.DeliveryObject = 'prop_boxpile_01a'
 
 Config.Deliveries = {
-    ['1'] = { -- Delivery Size 1
-        defaultDeliveryCharge = 2000,           -- Cost for small deliveries
-        defaultDeliveryTime = 30 * 60 * 1000,    -- 1 minute (for testing, originally 10 minutes)
+    ['1'] = {
+        defaultDeliveryCharge = 2000,
+        defaultDeliveryTime = 30 * 60 * 1000,
     },
-    ['2'] = { -- Delivery Size 2
-        defaultDeliveryCharge = 2000,           -- Cost for medium deliveries
-        defaultDeliveryTime = 60 * 60 * 1000,   -- 60 minutes
+    ['2'] = {
+        defaultDeliveryCharge = 2000,
+        defaultDeliveryTime = 60 * 60 * 1000,
     },
-    ['3'] = { -- Delivery Size 3
-        defaultDeliveryCharge = 2000,           -- Cost for large deliveries
-        defaultDeliveryTime = 180 * 60 * 1000,  -- 180 minutes
+    ['3'] = {
+        defaultDeliveryCharge = 2000,
+        defaultDeliveryTime = 180 * 60 * 1000,
     },
 }
 
 
 
--- ██╗   ██╗██████╗  ██████╗ ██████╗  █████╗ ██████╗ ███████╗███████╗
--- ██║   ██║██╔══██╗██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝
--- ██║   ██║██████╔╝██║  ███╗██████╔╝███████║██║  ██║█████╗  ███████╗
--- ██║   ██║██╔═══╝ ██║   ██║██╔══██╗██╔══██║██║  ██║██╔══╝  ╚════██║
--- ╚██████╔╝██║     ╚██████╔╝██║  ██║██║  ██║██████╔╝███████╗███████║
---  ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝
----@class HousingUpgrades<table>
--- Property upgrades available for players to purchase through the management menu.
--- Each upgrade enhances property features like security or furniture capacity.
+
+
+
+
+
+
+
+
+
 Config.HousingUpgrades = {
     ['alarm'] = {
         metadata = 'alarm',
@@ -678,7 +678,7 @@ Config.HousingUpgrades = {
 
         levels = {
             ['1'] = {
-                limit = 30,     -- Furniture Limit with LVL 1
+                limit = 30,
                 price = 60000,
                 description = [[
                     Increase your furniture limit from 30 to 50.
@@ -715,12 +715,12 @@ Config.HousingUpgrades = {
 
 
 
--- ██╗    ██╗███████╗ █████╗ ████████╗██╗  ██╗███████╗██████╗ 
--- ██║    ██║██╔════╝██╔══██╗╚══██╔══╝██║  ██║██╔════╝██╔══██╗
--- ██║ █╗ ██║█████╗  ███████║   ██║   ███████║█████╗  ██████╔╝
--- ██║███╗██║██╔══╝  ██╔══██║   ██║   ██╔══██║██╔══╝  ██╔══██╗
--- ╚███╔███╔╝███████╗██║  ██║   ██║   ██║  ██║███████╗██║  ██║
---  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+
+
+
+
+
+
 local function DetectActiveWeather()
     local weathers = {
         'cd_easytime',
@@ -742,12 +742,12 @@ Config.Weather = DetectActiveWeather()
 
 
 
---  ██████╗██╗      ██████╗ ████████╗██╗  ██╗██╗███╗   ██╗ ██████╗ 
--- ██╔════╝██║     ██╔═══██╗╚══██╔══╝██║  ██║██║████╗  ██║██╔════╝ 
--- ██║     ██║     ██║   ██║   ██║   ███████║██║██╔██╗ ██║██║  ███╗
--- ██║     ██║     ██║   ██║   ██║   ██╔══██║██║██║╚██╗██║██║   ██║
--- ╚██████╗███████╗╚██████╔╝   ██║   ██║  ██║██║██║ ╚████║╚██████╔╝
---  ╚═════╝╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+
+
+
+
+
+
 local function DetectActiveClothing()
     local resources = {
         'esx_skin',
@@ -776,12 +776,12 @@ Config.Clothing = DetectActiveClothing()
 
 
 
---  ██████╗  █████╗ ██████╗  █████╗  ██████╗ ███████╗███████╗
--- ██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██╔════╝ ██╔════╝██╔════╝
--- ██║  ███╗███████║██████╔╝███████║██║  ███╗█████╗  ███████╗
--- ██║   ██║██╔══██║██╔══██╗██╔══██║██║   ██║██╔══╝  ╚════██║
--- ╚██████╔╝██║  ██║██║  ██║██║  ██║╚██████╔╝███████╗███████║
---  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝
+
+
+
+
+
+
 local function DetectActiveGarage()
     local resources = {
         'vms_garagesv2',
@@ -805,13 +805,13 @@ Config.Garages = DetectActiveGarage()
 
 
 
--- ██╗███╗   ██╗██╗   ██╗███████╗███╗   ██╗████████╗ ██████╗ ██████╗ ██╗   ██╗
--- ██║████╗  ██║██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝
--- ██║██╔██╗ ██║██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║   ██║██████╔╝ ╚████╔╝ 
--- ██║██║╚██╗██║╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝  
--- ██║██║ ╚████║ ╚████╔╝ ███████╗██║ ╚████║   ██║   ╚██████╔╝██║  ██║   ██║   
--- ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
--- ESX job allowed to request additional deed copies (change to your job name).
+
+
+
+
+
+
+
 Config.DeedAgencyJob = 'realestateagent'
 
 local function DetectActiveInventory()
@@ -824,7 +824,7 @@ local function DetectActiveInventory()
         'qs-inventory',
         'ox_inventory',
         'qb-inventory',
-        'inventory', -- Chezza Inventory
+        'inventory',
     }
 
     for i=1, #resources, 1 do
@@ -839,12 +839,12 @@ Config.Inventory = DetectActiveInventory()
 
 
 
--- ██████╗ ██╗███████╗██████╗  █████╗ ████████╗ ██████╗██╗  ██╗
--- ██╔══██╗██║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██║  ██║
--- ██║  ██║██║███████╗██████╔╝███████║   ██║   ██║     ███████║
--- ██║  ██║██║╚════██║██╔═══╝ ██╔══██║   ██║   ██║     ██╔══██║
--- ██████╔╝██║███████║██║     ██║  ██║   ██║   ╚██████╗██║  ██║
--- ╚═════╝ ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝
+
+
+
+
+
+
 local function DetectActiveDispatch()
     local resources = {
         'lb-tablet',
@@ -866,7 +866,7 @@ end
 
 Config.Dispatch = DetectActiveDispatch()
 
--- Rest is available on these placed, indoor bed models. Values may be tuned.
+
 Config.HousingRest = {
     Enabled = true,
     Models = {
@@ -881,37 +881,37 @@ Config.HousingRest = {
         v_res_msonbed = true, v_res_tre_bed1 = true, v_res_tre_bed1_messy = true,
         v_res_tt_bed = true,
     },
-    BedOffset = nil, -- nil: estimate mattress position from model bounds; or set an explicit offset
-    BedOffsets = {}, -- [model] = {x=..., y=..., z=..., heading=...}
-    FixedBeds = true, -- model targets on fixed map beds; cosmetic only
-    DurationSeconds = 12, -- permits animation loading; client wakes after four seconds black
+    BedOffset = nil,
+    BedOffsets = {},
+    FixedBeds = true,
+    DurationSeconds = 12,
     TickSeconds = 1,
     HealPerTick = 5,
     CooldownSeconds = 300,
     MaxDistance = 3.0,
 }
 
--- Sitting on placed furniture. Offsets are relative to the furniture object;
--- override individual models after testing their orientation and seat height.
+
+
 Config.HousingSeats = {
     Enabled = true,
-    RequirePermission = false, -- true: owner/renter or someone with a house permission
+    RequirePermission = false,
     MaxDistance = 3.5,
     LeaseSeconds = 30,
     Types = {
         chair = { slots = {{x=0.0, y=0.0, z=0.45}}, heading = 180.0 },
         sofa = { slots = {{x=-0.45, y=0.0, z=0.45}, {x=0.45, y=0.0, z=0.45}}, heading = 180.0 },
     },
-    Models = {}, -- optional model-specific {slots={{x=...,y=...,z=...}}, heading=...}
+    Models = {},
 }
 
--- One YouTube channel per home, shared by all supported TVs in that home.
--- Only placed indoor furniture is supported; fixed map screens are separate.
+
+
 Config.HousingTV = {
     Enabled = true,
     ControlPermission = 'furniture',
-    -- nil accepts any public-looking HTTPS host for direct media files.
-    -- Set a table such as {['cdn.example.com']=true} to restrict direct URLs.
+
+
     DirectAllowedHosts = nil,
     MaxDistance = 3.5,
     Models = {
@@ -922,18 +922,18 @@ Config.HousingTV = {
     },
 }
 
--- Bathroom targets are available only while inside a housing property.
--- Add the model names used by your separate map/shell resource here.
+
+
 Config.HousingBathroom = {
     Enabled = true,
     DurationMs = 10000,
     ToiletModels = { 'prop_toilet_01', 'prop_toilet_02', 'prop_ld_toilet_01' },
     ShowerModels = { 'prop_shower_01', 'v_ilev_mm_shower', 'prop_shower_rack_01' },
-    BathModels = { 'v_res_mbath' }, -- add your map's bathtub models
-    BathAnimation = {dict='timetable@ron@ig_3_couch', name='base'}, -- seated pose
-    BathHeadingAdjustment = 180.0, -- reverse the default direction
-    BathOffset = nil, -- nil: estimate position from model bounds
-    BathOffsets = {}, -- optional per-model offsets
+    BathModels = { 'v_res_mbath' },
+    BathAnimation = {dict='timetable@ron@ig_3_couch', name='base'},
+    BathHeadingAdjustment = 180.0,
+    BathOffset = nil,
+    BathOffsets = {},
     ToiletOffset = {x=0.0, y=0.0, z=0.45, heading=180.0},
     ShowerOffset = {x=0.0, y=-0.4, z=0.0, heading=0.0},
 }

@@ -44,5 +44,5 @@ targets.bath.onSelect({entity=8}); assert(frozen and calls.collision==false and 
 table.remove(threads,1)(); assert(calls['timetable@ron@ig_3_couch'])
 table.remove(threads,1)(); assert(not frozen and calls.collision==true)
 targets.shower.onSelect({entity=8}); assert(frozen); handlers.onResourceStop('housing'); assert(not frozen)
-table.remove(threads,1)() -- delayed animation must not restart after stop
+table.remove(threads,1)()
 print('bathroom targets, interruption and cleanup passed')

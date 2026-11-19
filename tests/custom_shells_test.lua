@@ -1,4 +1,4 @@
--- Run with Lua 5.4+ from the repository root.
+
 local registry
 function addShells(shells) registry = shells end
 assert(loadfile('esx_realestate/integration/[shells]/custom.lua'))()

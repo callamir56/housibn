@@ -23,9 +23,9 @@ local result=check({1,1,2,3,40})
 assert(result.ok and #result.vehicles==2 and result.vehicles[1].plate=='OWNED' and result.vehicles[1].available)
 assert(result.vehicles[2].plate=='OTHER' and result.vehicles[2].available)
 local ids={} for i=1,39 do ids[i]=1000+i end ids[40]=1
-assert(#check(ids).vehicles==1) -- own vehicle is not dropped behind 30 others
+assert(#check(ids).vehicles==1)
 rows[#rows+1]={owner='char:a',plate='OWNED ',stored=0}
-assert(#check({1}).vehicles==0) -- ambiguous plates never selectable
+assert(#check({1}).vehicles==0)
 local resultMissing;callback(1,function(value) resultMissing=value end,'999',{1});assert(not resultMissing.ok)
 positions[10]={x=100,y=0,z=0}; assert(check({1}).reason=='distance')
 print('garage candidates: ownership, normalized plates, stored status, limit and distance passed')

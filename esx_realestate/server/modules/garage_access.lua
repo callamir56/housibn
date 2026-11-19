@@ -1,5 +1,5 @@
--- Server-side checks shared by the planned housing garage implementation.
--- This module does not register network handlers or change vehicles.
+
+
 HousingGarageAccess = {}
 
 function HousingGarageAccess.CanUse(propertyId, identifier, parkedBy)

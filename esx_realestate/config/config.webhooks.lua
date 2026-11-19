@@ -1,15 +1,15 @@
--- ██╗    ██╗███████╗██████╗ ██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗███████╗
--- ██║    ██║██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔═══██╗██║ ██╔╝██╔════╝
--- ██║ █╗ ██║█████╗  ██████╔╝███████║██║   ██║██║   ██║█████╔╝ ███████╗
--- ██║███╗██║██╔══╝  ██╔══██╗██╔══██║██║   ██║██║   ██║██╔═██╗ ╚════██║
--- ╚███╔███╔╝███████╗██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║  ██╗███████║
---  ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝
+
+
+
+
+
+
 Webhooks = {
-    ['OBJECTS_PHOTOS_TOOL'] = "",   -- Needed to create furniture
-    ['MARKETPLACE_PHOTOS'] = "",    -- Needed to marketplace option in manage
+    ['OBJECTS_PHOTOS_TOOL'] = "",
+    ['MARKETPLACE_PHOTOS'] = "",
     
 
-    -- Creator:
+
     ['CreatedProperty'] = "",
     ['EditedProperty'] = "",
     ['DeletedProperty'] = "",
@@ -19,7 +19,7 @@ Webhooks = {
     ['DeletedFurniture'] = "",
 
 
-    -- Property:
+
     ['PurchasedProperty'] = "",
     ['RentedProperty'] = "",
     ['LockpickedPropertyDoors'] = "",
@@ -51,7 +51,7 @@ Webhooks = {
 }
 
 WebhookText = {
-    -- Creator:
+
     ['TITLE.CreatedProperty'] = "Created Property",
     ['DESCRIPTION.CreatedProperty'] = [[
         Player %s [%s] created a new **%s** Property #%s.
@@ -120,7 +120,7 @@ WebhookText = {
         Player %s [%s] deleted furniture %s.
     ]],
     
-    -- Property:
+
     ['TITLE.PurchasedProperty'] = "Purchased Property",
     ['DESCRIPTION.PurchasedProperty'] = [[
         Player %s [%s] purchased property #%s for $%s.

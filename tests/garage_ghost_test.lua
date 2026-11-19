@@ -1,4 +1,4 @@
--- Ghost display is a local, locked, non-colliding vehicle at the garage point.
+
 local events, callbacks, threads, states = {}, {}, {}, {}
 local changeHandler, marker
 function RegisterNUICallback(name, fn) callbacks[name]=fn end
@@ -34,7 +34,7 @@ library={Callback=function(name, cb)
     cb({{id='42',coords={x=10,y=20,z=30,w=90},props={model=123}}})
 end}
 assert(loadfile('esx_realestate/client/modules/housing_garage.lua'))()
-assert(#threads==1) -- periodic refresh thread, not run in this mock
+assert(#threads==1)
 events['vms_housing:garage:changed']()
 assert(#threads==2); threads[2]()
 assert(states.alpha==102 and states.collision==false and states.invincible and states.lock==2 and states.lockAll and states.undriveable and states.frozen)

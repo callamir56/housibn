@@ -1,4 +1,4 @@
--- Cosmetic interactions only: no needs, inventory, or server rewards are changed.
+
 local session
 HousingBathroom = {}
 function HousingBathroom.IsBusy() return session ~= nil end

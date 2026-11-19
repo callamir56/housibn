@@ -58,6 +58,6 @@ entities[11]=true;entities[12]=nil
 assert(not call('park','1',100,{model=999,plate='TEST'}).ok and entities[11])
 ownedStatus=1; claimResult=0; assert(not call('park','1',100,props).ok and entities[11] and not stored and ownedStatus==1)
 claimResult=1; assert(call('park','1',100,props).ok and ownedStatus==0 and stored and entities[11] and bags[11].housingGarageGhost)
--- Simulate server restart: original entity no longer exists; use fallback spawn.
+
 entities[11]=nil; assert(call('take','1').ok and not stored and entities[12])
 print('garage parking, ownership, model and retrieval tests passed')

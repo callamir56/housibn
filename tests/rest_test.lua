@@ -23,7 +23,7 @@ assert(not request('7',6).ok)
 local tagbed=request('7',5); assert(tagbed.ok)
 source=1; net['vms_housing:rest:cancel'](tagbed.token)
 events, timers = {}, {}
--- reset time-based cooldown for a different character
+
 SV.GetIdentifier=function() return 'bob' end
 library.HasAnyPermission=function() return true end
 coords={x=10,y=0,z=0}; assert(not request('7',4).ok)

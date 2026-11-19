@@ -1,30 +1,30 @@
---=====================================================================
---  VMS Housing - Server Utility Library (Deobfuscated / Clean)
---=====================================================================
--- This file defines a shared `library` table with helper utilities used
--- by the housing system:
---   - Debug / Dump / Round
---   - Notifications (server -> client)
---   - Framework callback registration (ESX / QB)
---   - Permissions + key checks
---   - Service bills helpers (monthly bill generation, light/water usage)
---   - Region detection
---
--- It also exports a few helpers for other resources to call.
---=====================================================================
 
--- Prevent repeating the "missing inventory" warning spam
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local hasWarnedMissingInventory = false
 
--- Library table (module-style)
+
 library = library or {}
 
---=====================================================================
---  Debug helpers
---=====================================================================
 
----Print debug messages when Config.Debug is true.
----level: nil | "error" | "warn"
+
+
+
+
+
 function library.Debug(message, level)
     if not Config.Debug then
         return
@@ -39,33 +39,33 @@ function library.Debug(message, level)
     end
 end
 
----Pretty JSON dump for tables (indent enabled).
+
 function library.Dump(value)
     return json.encode(value, { indent = true })
 end
 
----Round a number to `decimals` decimal places (default 0).
+
 function library.Round(value, decimals)
     decimals = decimals or 0
     local multiplier = 10 ^ decimals
     return math.floor(value * multiplier + 0.5) / multiplier
 end
 
---=====================================================================
---  Notifications
---=====================================================================
--- SERVER -> CLIENT event:
---   "vms_housing:notification" (playerSrc, title, message, type)
+
+
+
+
+
 function library.Notification(playerSrc, title, message, notifType)
     TriggerClientEvent("vms_housing:notification", playerSrc, title, message, notifType)
 end
 
---=====================================================================
---  Framework callbacks (ESX / QB)
---=====================================================================
--- Highlights:
---   ESX:      Core.RegisterServerCallback(name, cb, ...)
---   QB-Core:  Core.Functions.CreateCallback(name, cb, ...)
+
+
+
+
+
+
 function library.RegisterCallback(name, cb, ...)
     if Config.Core == "ESX" then
         Core.RegisterServerCallback(name, cb, ...)
@@ -74,11 +74,11 @@ function library.RegisterCallback(name, cb, ...)
     end
 end
 
---=====================================================================
---  Creator permissions
---=====================================================================
 
----Check creator access on the server using the ESX group or configured job.
+
+
+
+
 function library.HasCreatorPermissions(player)
     if not player or not Config.HousingCreator then return false end
 
@@ -95,10 +95,10 @@ library.RegisterCallback("vms_housing:canOpenCreator", function(source, cb)
     cb(library.HasCreatorPermissions(SV.GetPlayer(source)))
 end)
 
---=====================================================================
---  Random chance helper
---=====================================================================
--- Input is a percent chance (0-100). Returns true if passed.
+
+
+
+
 function library.DrawChance(chancePercent)
     if not chancePercent or not tonumber(chancePercent) then
         return false
@@ -108,34 +108,34 @@ function library.DrawChance(chancePercent)
     return chancePercent > roll
 end
 
---=====================================================================
---  Keys
---=====================================================================
--- HasKeys(playerSrc, identifier, propertyId, keySerialMaybe)
--- Two modes depending on Config.UseKeysOnItem:
---   1) true: checks physical inventory items "house_key" with metadata.keySerialNumber
---   2) false: checks owner/renter/keys-string contains identifier
+
+
+
+
+
+
+
 function library.HasKeys(playerSrc, identifier, propertyId, keySerialMaybe)
     local property = Properties[propertyId]
     if not property then
         return false
     end
 
-    -- Mode 1: keys are inventory items
+
     if Config.UseKeysOnItem then
         local player = SV.GetPlayer(playerSrc)
 
-        -- If a specific serial is provided, validate it belongs to this property and exists in inventory.
+
         if keySerialMaybe then
-            -- serial format expected: "<propertyId>-<serialPart>"
+
             local serialPropertyId, serialPart = string.match(keySerialMaybe, "^(.-)%-(.+)$")
             if tostring(propertyId) ~= tostring(serialPropertyId) then
                 return false
             end
 
-            -- property.keys is stored as a string; original code uses string.find on it
+
             if string.find(property.keys, serialPart) then
-                -- INVENTORY LOOKUP (server-side helper)
+
                 local hasItem = SV.GetItem(
                     playerSrc,
                     player,
@@ -149,13 +149,13 @@ function library.HasKeys(playerSrc, identifier, propertyId, keySerialMaybe)
             end
 
         else
-            -- No serial provided: try all keys registered on the property
+
             local keyList = json.decode(property.keys)
 
             for i = 1, #keyList do
                 local serial = keyList[i]
 
-                -- INVENTORY LOOKUP (server-side helper)
+
                 local hasItem = SV.GetItem(
                     playerSrc,
                     player,
@@ -172,7 +172,7 @@ function library.HasKeys(playerSrc, identifier, propertyId, keySerialMaybe)
         return false
     end
 
-    -- Mode 2: classic identifier-based access
+
     if property.owner == identifier then
         return true
     end
@@ -186,17 +186,17 @@ function library.HasKeys(playerSrc, identifier, propertyId, keySerialMaybe)
     return false
 end
 
---=====================================================================
---  Key serial generation (when keys are items)
---=====================================================================
--- Generates "<propertyId>-<random4digits><AAA><random3digits>"
--- Ensures uniqueness against existing keys for that property by recursion.
+
+
+
+
+
 function library.GenerateKeySerialNumber(propertyId)
     if not Config.UseKeysOnItem then
         return
     end
 
-    -- local helper: random uppercase letter
+
     local function randomLetter()
         local letters = {
             "A","B","C","D","E","F","G","H","I","J","K","L","M",
@@ -205,14 +205,14 @@ function library.GenerateKeySerialNumber(propertyId)
         return letters[math.random(#letters)]
     end
 
-    -- Build candidate serial
+
     local serial = tostring(propertyId)
         .. "-"
         .. tostring(math.random(1000, 9999))
         .. randomLetter() .. randomLetter() .. randomLetter()
         .. tostring(math.random(100, 999))
 
-    -- Original behavior: check uniqueness by searching within encoded keys
+
     local encodedKeys = json.encode(Properties[propertyId].keys)
     if string.find(encodedKeys, serial) then
         return library.GenerateKeySerialNumber(propertyId)
@@ -221,10 +221,10 @@ function library.GenerateKeySerialNumber(propertyId)
     return serial
 end
 
---=====================================================================
---  Inventory integration (storage registration)
---=====================================================================
--- If a compatible inventory export isn't present, warn once.
+
+
+
+
 function library.RegisterStorage(storageData)
     if RegisterStorage then
         RegisterStorage(storageData)
@@ -238,13 +238,13 @@ function library.RegisterStorage(storageData)
     end
 end
 
---=====================================================================
---  Bills: Light usage month overlap handling
---=====================================================================
--- This compensates electricity usage when lights were turned on in a previous month,
--- and the month changed (so we move usage into the previous month's services bill).
---
--- IMPORTANT: Uses AWAIT DB update (MySQL.update.await) inside.
+
+
+
+
+
+
+
 function library.HandleLightStateMonthOverlap(propertyId)
     if not Config.UseServiceBills then
         return
@@ -263,24 +263,24 @@ function library.HandleLightStateMonthOverlap(propertyId)
     local now = os.time()
     local lightStart = metadata.lightStartTime
 
-    -- Extract month/year for now and for start time
+
     local nowMonth  = tonumber(os.date("%m", now))
     local nowYear   = tonumber(os.date("%Y", now))
     local startMonth = tonumber(os.date("%m", lightStart))
     local startYear  = tonumber(os.date("%Y", lightStart))
 
-    -- Same month/year => nothing to do
+
     if nowMonth == startMonth and nowYear == startYear then
         return
     end
 
-    -- Start of current month (00:00:00 day 1)
+
     local startOfCurrentMonth = os.time({
         day = 1, month = nowMonth, year = nowYear,
         hour = 0, min = 0, sec = 0
     })
 
-    -- If start time isn't before start-of-month, nothing to move
+
     if lightStart >= startOfCurrentMonth then
         return
     end
@@ -290,7 +290,7 @@ function library.HandleLightStateMonthOverlap(propertyId)
         return
     end
 
-    -- Determine previous month period string "%m:%Y"
+
     local prevMonth = nowMonth - 1
     local prevYear = nowYear
     if prevMonth <= 0 then
@@ -299,7 +299,7 @@ function library.HandleLightStateMonthOverlap(propertyId)
     end
     local prevPeriod = string.format("%02d:%04d", prevMonth, prevYear)
 
-    -- Find previous period "services" bill in property.bills
+
     local bills = property.bills or {}
     local prevServicesBill = nil
     for i = 1, #bills do
@@ -310,19 +310,19 @@ function library.HandleLightStateMonthOverlap(propertyId)
         end
     end
 
-    -- Reserve the interval before the awaited DB write so simultaneous menu,
-    -- rollover and payment requests cannot count the same seconds twice.
+
+
     metadata.lightStartTime = startOfCurrentMonth
     if prevServicesBill and prevServicesBill.paid ~= true and tonumber(prevServicesBill.paid) ~= 1 then
         local details = json.decode(prevServicesBill.details or "{}")
 
         local regionCfg = Config.Regions[property.region] or Config.NoRegion
 
-        -- Update usage and cost
+
         details.electricityUsage = (details.electricityUsage or 0) + overlapSeconds
         details.electricity      = (details.electricity or 0) + (overlapSeconds * regionCfg.electricity.rate)
 
-        -- Recompute total (electricity + water + internet)
+
         local electricity = details.electricity or 0
         local water       = details.water or 0
         local internet    = details.internet or 0
@@ -330,7 +330,7 @@ function library.HandleLightStateMonthOverlap(propertyId)
 
         prevServicesBill.details = json.encode(details)
 
-        -- AWAIT DB UPDATE
+
         MySQL.update.await(
             "UPDATE houses_bills SET details = ?, total = ? WHERE id = ? AND type = ?",
             { json.encode(details), prevServicesBill.total, prevServicesBill.id, "services" }
@@ -339,13 +339,13 @@ function library.HandleLightStateMonthOverlap(propertyId)
 
 end
 
---=====================================================================
---  Bills: Generate monthly services bill
---=====================================================================
--- Inserts a "services" bill (water + internet, electricity starts at 0 usage).
--- Uses pcall around INSERT to handle unique constraint conflicts.
---
--- IMPORTANT: Uses AWAIT DB insert/select.
+
+
+
+
+
+
+
 function library.GenerateMonthlyBill(propertyId, period)
     if not Config.UseServiceBills then
         return
@@ -380,7 +380,7 @@ function library.GenerateMonthlyBill(propertyId, period)
     }
     local detailsJson = json.encode(detailsTable)
 
-    -- AWAIT DB INSERT (protected)
+
     local ok, insertId = pcall(function()
         return MySQL.insert.await([[
             INSERT INTO houses_bills (house_id, period, type, total, paid, details)
@@ -389,7 +389,7 @@ function library.GenerateMonthlyBill(propertyId, period)
     end)
 
     if ok and insertId then
-        -- Reset usage in-memory (matches original intent)
+
         metadata.waterUsage = 0
 
         return {
@@ -404,19 +404,19 @@ function library.GenerateMonthlyBill(propertyId, period)
         }
     end
 
-    -- Conflict fallback: fetch existing record
+
     return MySQL.single.await([[
         SELECT * FROM houses_bills WHERE house_id = ? AND period = ? AND type = ?
     ]], { tonumber(propertyId), period, "services" })
 end
 
---=====================================================================
---  Bills: Generate rent bill
---=====================================================================
--- Inserts "rent" bill with details { rent = <price> }.
--- paidFlag: nil/false => unpaid, true => paid immediately.
---
--- IMPORTANT: Uses AWAIT DB insert/select.
+
+
+
+
+
+
+
 function library.GenerateRentBill(propertyId, period, paidFlag)
     local property = GetProperty(propertyId)
     if not (property and property.renter) then
@@ -462,11 +462,11 @@ function library.GenerateRentBill(propertyId, period, paidFlag)
     ]], { tonumber(propertyId), period, "rent" })
 end
 
---=====================================================================
---  Bills: Get or create bills for property (monthly services + rent)
---=====================================================================
--- paidRentFlag passed through to GenerateRentBill.
--- Count completed service periods, rather than trusting stale startup counters.
+
+
+
+
+
 function library.RefreshUtilityDebt(property, now)
     if not property then return 0 end
     local date = os.date("*t", now or os.time())
@@ -499,13 +499,13 @@ function library.GetOrCreateBills(propertyId, paidRentFlag)
         return {}
     end
 
-    -- Ensure previous-month overlap is handled before creating/reading this month
+
     library.HandleLightStateMonthOverlap(propertyId)
 
     local currentMonthPeriod = os.date("%m:%Y")
     local weeklyPeriod = GetWeekPeriod()
 
-    -- Determine rent period by rental.cycle
+
     local rentPeriod = currentMonthPeriod
     if property.rental and property.rental.cycle == "weekly" and weeklyPeriod then
         rentPeriod = weeklyPeriod
@@ -532,8 +532,8 @@ function library.GetOrCreateBills(propertyId, paidRentFlag)
             end
             if not exists then table.insert(property.bills, 1, newServices) end
 
-            -- Original code increments unpaidBills if bill period != currentMonthPeriod (rare),
-            -- kept as-is for parity.
+
+
             if newServices.period ~= currentMonthPeriod then
                 property.unpaidBills = (property.unpaidBills or 0) + 1
             end
@@ -554,13 +554,13 @@ function library.GetOrCreateBills(propertyId, paidRentFlag)
     return property.bills
 end
 
---=====================================================================
---  Bills: Apply current light usage (electricity) to this month's services bill
---=====================================================================
--- Updates details + total, updates DB, and sets metadata.lightStartTime to A1_2.
--- If shouldPersistPropertyMeta is true, also updates `houses.metadata` in DB.
---
--- IMPORTANT: Uses AWAIT DB updates.
+
+
+
+
+
+
+
 function library.ApplyCurrentLightUsage(propertyId, newLightStartTime, shouldPersistPropertyMeta)
     if not Config.UseServiceBills then
         return
@@ -586,7 +586,7 @@ function library.ApplyCurrentLightUsage(propertyId, newLightStartTime, shouldPer
     local regionCfg = Config.Regions[property.region] or Config.NoRegion
     local electricityRate = regionCfg.electricity.rate
 
-    -- Find current period services bill or create it
+
     local servicesBill = nil
     for _, bill in ipairs(property.bills or {}) do
         if bill.period == period and bill.type == "services" then
@@ -605,7 +605,7 @@ function library.ApplyCurrentLightUsage(propertyId, newLightStartTime, shouldPer
     details.electricityUsage = (details.electricityUsage or 0) + secondsUsed
     details.electricity = library.Round((details.electricity or 0) + (secondsUsed * electricityRate), 6)
 
-    -- Recompute total with rounded components (matches original approach)
+
     local electricity = library.Round(details.electricity or 0, 3)
     local water       = library.Round(details.water or 0, 3)
     local internet    = library.Round(details.internet or 0, 3)
@@ -613,17 +613,17 @@ function library.ApplyCurrentLightUsage(propertyId, newLightStartTime, shouldPer
 
     servicesBill.details = json.encode(details)
 
-    -- AWAIT DB UPDATE
+
     MySQL.update.await(
         "UPDATE houses_bills SET details = ?, total = ? WHERE id = ? AND type = ?",
         { servicesBill.details, servicesBill.total, servicesBill.id, "services" }
     )
 
-    -- Update metadata lightStartTime in memory
+
     property.metadata.lightStartTime = newLightStartTime
 
     if shouldPersistPropertyMeta then
-        -- AWAIT DB UPDATE
+
         MySQL.update.await(
             "UPDATE houses SET metadata = ? WHERE id = ?",
             { json.encode(property.metadata), tonumber(propertyId) }
@@ -633,12 +633,12 @@ function library.ApplyCurrentLightUsage(propertyId, newLightStartTime, shouldPer
     return true
 end
 
---=====================================================================
---  Bills: Apply water usage reading to this month's services bill
---=====================================================================
--- A1_2 is a raw reading (original code divides by 1000).
---
--- IMPORTANT: Uses AWAIT DB update.
+
+
+
+
+
+
 function library.ApplyWaterUsage(propertyId, rawUsage)
     if not Config.UseServiceBills then
         return
@@ -659,7 +659,7 @@ function library.ApplyWaterUsage(propertyId, rawUsage)
     local regionCfg = Config.Regions[property.region] or Config.NoRegion
     local waterRate = regionCfg.water.rate
 
-    -- Find current period bill (original code didn't check type here, kept behavior)
+
     local billForPeriod = nil
     for _, bill in ipairs(property.bills or {}) do
         if bill.period == period then
@@ -686,7 +686,7 @@ function library.ApplyWaterUsage(propertyId, rawUsage)
 
     billForPeriod.details = json.encode(details)
 
-    -- AWAIT DB UPDATE
+
     MySQL.update.await(
         "UPDATE houses_bills SET details = ?, total = ? WHERE id = ? AND type = ?",
         { billForPeriod.details, billForPeriod.total, billForPeriod.id, "services" }
@@ -695,11 +695,11 @@ function library.ApplyWaterUsage(propertyId, rawUsage)
     return true
 end
 
---=====================================================================
---  Permissions
---=====================================================================
 
----Returns true if identifier is owner or has specific permission flag.
+
+
+
+
 function library.HasPermissions(propertyId, identifier, permissionKey)
     local property = GetProperty(propertyId)
     if property and property.owner == identifier then
@@ -714,7 +714,7 @@ function library.HasPermissions(propertyId, identifier, permissionKey)
     return false
 end
 
----Returns true if identifier is owner OR has any permission entry at all.
+
 function library.HasAnyPermission(propertyId, identifier)
     local property = GetProperty(propertyId)
     if property and property.owner == identifier then
@@ -729,11 +729,11 @@ function library.HasAnyPermission(propertyId, identifier)
     return false
 end
 
---=====================================================================
---  Regions
---=====================================================================
 
----Returns region key for a coordinate point if inside a configured polygon, otherwise nil.
+
+
+
+
 function library.GetCurrentRegion(coords)
     for regionKey, regionData in pairs(Config.Regions) do
         if regionData.zone then
@@ -745,12 +745,10 @@ function library.GetCurrentRegion(coords)
     return nil
 end
 
---=====================================================================
---  Exports (other resources can call these)
---=====================================================================
+
+
+
 exports("HasKeys", library.HasKeys)
 exports("GenerateKeySerialNumber", library.GenerateKeySerialNumber)
 exports("HasPermissions", library.HasPermissions)
 exports("HasAnyPermission", library.HasAnyPermission)
-
--- `library` is intentionally global (used by server/main.lua and modules).

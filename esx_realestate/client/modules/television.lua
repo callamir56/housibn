@@ -3,8 +3,8 @@ local dui, target, ownedTarget, texture, property, activeVideo, activeVersion, r
 local textureSerial = 0
 local mode = nil
 local function clearPlayback()
-    -- Keep the registered target during on/off/channel transitions. Releasing
-    -- and re-registering it in the same frame can fail and require a retry.
+
+
     revision=revision+1
     if dui then DestroyDui(dui); dui=nil end
     texture,activeVideo,activeVersion,mode=nil,nil,nil,nil
@@ -14,8 +14,8 @@ local function stop()
     if ownedTarget then ReleaseNamedRendertarget('tvscreen') end
     target,ownedTarget,property=nil,false,nil
 end
--- Keep the game's named render target while the TV is off: simply releasing it
--- brings back GTA's default TV picture rather than a black screen.
+
+
 local function attachTarget(id)
     if ownedTarget and target and property==id then
         clearPlayback()
@@ -78,11 +78,11 @@ local function show(id,state)
         while dui and revision==thisRevision and not IsDuiAvailable(dui) and GetGameTimer()<deadline do Wait(100) end
         if not dui or revision~=thisRevision then return end
         if not IsDuiAvailable(dui) then stop(); return CL.Notification('TV player failed to load.',4000,'error') end
-        -- Do not bind a texture to a DUI before the browser is available.
+
         texture=CreateRuntimeTextureFromDuiHandle(txd,'screen',GetDuiHandle(dui))
         local message=json.encode({action='play',provider=state.provider,video=state.video,elapsed=state.elapsed or 0})
-        -- DUI availability can precede the page's message handler. Re-send
-        -- during initial load; the page ignores duplicates once it accepts the URL.
+
+
         CreateThread(function()
             for _=1,30 do
                 if not dui or revision~=thisRevision then return end

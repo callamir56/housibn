@@ -4,7 +4,7 @@ end
 
 function ToggleWeather(toggle, isIPL)
     if toggle then
-        -- When the player enters the house
+
         
         if isIPL then
             TriggerEvent('cd_easytime:PauseSync', true)
@@ -19,7 +19,7 @@ function ToggleWeather(toggle, isIPL)
             SetWeatherTypeNowPersist('EXTRASUNNY')
         end
     else
-        -- When the player leaves the house
+
         TriggerEvent('cd_easytime:PauseSync', false)
         SetArtificialLightsState(false)
     end

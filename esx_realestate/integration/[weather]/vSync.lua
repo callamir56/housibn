@@ -4,7 +4,7 @@ end
 
 function ToggleWeather(toggle, isIPL)
     if toggle then
-        -- When the player enters the house
+
         TriggerEvent('vSync:toggle', false)
         TriggerEvent('vSync:updateWeather', 'EXTRASUNNY', false) 
         
@@ -18,7 +18,7 @@ function ToggleWeather(toggle, isIPL)
             SetWeatherTypeNowPersist('EXTRASUNNY')
         end
     else
-        -- When the player leaves the house
+
         TriggerEvent('vSync:toggle', true)
         TriggerServerEvent('vSync:requestSync')
         SetArtificialLightsState(false)

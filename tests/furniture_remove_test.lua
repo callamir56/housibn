@@ -1,6 +1,6 @@
--- Run with Lua 5.4+ from the repository root.
+
 local f=assert(io.open('esx_realestate/server/main.lua')); local text=f:read('*a'); f:close()
-local block=assert(text:match('(RegisterNetEvent%("vms_housing:sv:sellFurniture".-)\n%-%-========================================================================\n%-%- Safe:'))
+local block=assert(text:match('(RegisterNetEvent%("vms_housing:sv:sellFurniture".-)RegisterNetEvent%("vms_housing:sv:changeSafePin"'))
 local events, balance, deleted = {}, 0, 0
 function RegisterNetEvent(name, fn) events[name]=fn end
 local prop={furniture={{id=11,model='chair',stored=1},{id=12,model='chair',stored=0}}}

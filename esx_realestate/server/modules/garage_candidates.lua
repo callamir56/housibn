@@ -1,5 +1,5 @@
--- The client supplies network IDs, never ownership. Validate every entity and
--- look up the logged-in character's vehicles on the server.
+
+
 local function near(a, b, radius)
     if not a or not b then return false end
     local x, y, z = a.x - b.x, a.y - b.y, a.z - b.z
@@ -31,7 +31,7 @@ library.RegisterCallback('vms_housing:garage:candidates', function(src, cb, prop
         for _, row in ipairs(rows) do
             local key = plateKey(row.plate)
             if key and HousingGarageAccess.OwnsVehicle(identifier, row) then
-                -- Ambiguous duplicate normalized plates cannot safely be parked.
+
                 if byPlate[key] ~= nil then byPlate[key] = false else byPlate[key] = row end
             end
         end

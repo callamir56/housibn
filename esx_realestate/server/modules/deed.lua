@@ -1,5 +1,5 @@
--- Read and sign a deed using the current server-side owner; no client-supplied
--- names or property details are treated as evidence of ownership.
+
+
 local pending = {}
 local function resultFor(src, propertyId)
     if not HousingDataReady then return nil end
@@ -55,5 +55,5 @@ library.RegisterCallback('vms_housing:deed', function(src, cb, action, propertyI
     cb(result)
 end)
 
--- Shared deed view is built only from server-held property data.
+
 HousingDeedData = function(property, propertyId, identifier, player) return deed(property, propertyId, identifier, player) end

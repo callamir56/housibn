@@ -1,5 +1,5 @@
--- One transient playback state per property. Only occupants in the property's
--- routing bucket receive it; no external media service is called server-side.
+
+
 local playing, lastChange, lastOff, sequence = {}, {}, {}, 0
 local function inside(src,id)
     local player=SV.GetPlayer(src)
@@ -28,8 +28,8 @@ local function canControl(src,id,furnitureId)
     if x*x+y*y+z*z>distance*distance then return end
     return item
 end
--- Only media URLs we can safely canonicalize are accepted. Arbitrary websites
--- are not embedded as privileged NUI pages.
+
+
 local function parseMedia(input)
     if type(input)~='string' or #input>2048 then return end
     input=input:match('^%s*(.-)%s*$')
@@ -131,7 +131,7 @@ RegisterNetEvent('vms_housing:tv:control',function(rawId,furnitureId,action,url)
 end)
 AddEventHandler('playerDropped',function() lastChange[source]=nil; lastOff[source]=nil end)
 
--- Stop a channel if its TV is removed or the property's occupants change.
+
 CreateThread(function()
     while true do
         Wait(5000)
